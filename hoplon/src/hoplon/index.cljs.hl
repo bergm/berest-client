@@ -2,17 +2,25 @@
       (:require #_[ui.tabs :as tabs]
                 [ajax.core :as ajax]))
 
+#_(ns hoplon.index
+  (:require-macros [tailrecursion.javelin :refer :all]
+                   [tailrecursion.hoplon :refer :all])
+  (:require [ajax.core :as ajax]
+            [tailrecursion.javelin :refer :all]
+            [tailrecursion.hoplon :refer :all]))
+
 (enable-console-print!)
 
 (def server-url "http://localhost:3000/")
 
-(defc state {:farms {}
-             :selected-farm-id ""
-             :plot-ids ["b" "c" "d"]
-             :selected-plot-id "ccccc"
-             :until-day-month [10 10]
-             :weather-year 1993
-             :irrigation-data [[1 4 22] [2 5 10] [11 7 30]]})
+(defc state
+  {:farms            {}
+   :selected-farm-id ""
+   :plot-ids         ["b" "c" "d"]
+   :selected-plot-id "ccccc"
+   :until-day-month  [10 10]
+   :weather-year     1993
+   :irrigation-data  [[1 4 22] [2 5 10] [11 7 30]]})
 
 (cell= (println "state: " state))
 
@@ -38,8 +46,8 @@
          year :weather-year} @state
         url (str server-url "api/calculate"
                  ;"?format=csv"
-                 "?farm-id="sel-farm-id
-                 "&plot-id="plot-id
+                 "?farm-id=" sel-farm-id
+                 "&plot-id=" sel-plot-id
                  "&until-day=" day "&until-month=" month
                  "&weather-year="weather-year
                  "&irrigation-data="(prn-str (:irrigation-data state)))]
