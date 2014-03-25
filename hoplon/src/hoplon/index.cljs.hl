@@ -14,13 +14,13 @@
 (def server-url "http://localhost:3000/")
 
 (defc state
-  {:farms            {}
-   :selected-farm-id ""
-   :plot-ids         ["b" "c" "d"]
-   :selected-plot-id "ccccc"
-   :until-day-month  [10 10]
-   :weather-year     1993
-   :irrigation-data  [[1 4 22] [2 5 10] [11 7 30]]})
+      {:farm-ids []
+       :selected-farm-id ""
+       :plot-ids []
+       :selected-plot-id ""
+       :until-day-month [10 10]
+       :weather-year 1993
+       :irrigation-data [[1 4 22] [2 5 10] [11 7 30]]})
 
 (cell= (println "state: " state))
 
@@ -44,12 +44,12 @@
          sel-plot-id :selected-plot-id
          [day month] :until-day-month
          year :weather-year} @state
-        url (str server-url "api/calculate"
+        url (str server-url "auth-api/calculate"
                  ;"?format=csv"
                  "?farm-id=" sel-farm-id
                  "&plot-id=" sel-plot-id
                  "&until-day=" day "&until-month=" month
-                 "&weather-year="weather-year
+                 "&year=" year
                  "&irrigation-data="(prn-str (:irrigation-data state)))]
     (-> js/window
         (.open ,,, url))))
@@ -74,22 +74,38 @@
   (swap! state update-in [:irrigation-data] conj @temp-irrigation-data)
   (reset! temp-irrigation-data [nil nil nil]))
 
-(defc authenticated? false)
+(defc session-token nil)
+(cell= (println session-token))
+
+(defn request-headers []
+  {"Accept" "application/edn"
+   "X-Auth-Token" @session-token})
 
 (ajax/POST "http://localhost:3000/login"
            {:headers {"Accept" "application/edn"
                       "Content-Type" "application/x-www-form-urlencoded"}
             :params {:username "michael"
                      :password "#zALf!"}
-            :handler #(reset! authenticated? (:authenticated-successfully? %))
+            :handler #(reset! session-token (:session-token %))
             :error-handler #(js/alert (str "Error: " %))})
 
-(cell= (when authenticated?
-         (println "making request for schlag ids")
-         (ajax/GET "http://localhost:3000/data/farms/zalf/plots/"
-                   {:headers {"Accept" "application/edn"}
-                    :handler #(swap! ~(cell state) assoc :plot-ids %)
+;get all farm ids
+(cell= (when session-token
+         (ajax/GET "http://localhost:3000/data/farms/"
+                   {:headers (request-headers)
+                    :handler #(do
+                               (swap! ~(cell state) assoc :farm-ids %)
+                               (swap! ~(cell state) assoc :selected-farm-id (-> state :farm-ids first)))
                     :error-handler #(js/alert (str "Error: " %))})))
+
+;if a farm is being selected get all plots of this farm
+(cell= (ajax/GET (str "http://localhost:3000/data/farms/" (:selected-farm-id state) "/plots/")
+                 {:headers (request-headers)
+                  :handler #(do
+                             (swap! ~(cell state) assoc :plot-ids %)
+                             (swap! ~(cell state) assoc :selected-plot-id (-> state :plot-ids first)))
+                  :error-handler #(js/alert (str "Error: " %))}))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -150,9 +166,6 @@
 
 
 
-
-
-
 (html
  (head
   (link :rel "stylesheet" :href "css/bootstrap.css"))
@@ -160,8 +173,15 @@
 
   (form
    :name "test-data-form"
+
    (fieldset
-    (legend "Schlag Id")
+     (legend "Betriebs-Id")
+     (select ;:on-change #(swap! state assoc :weather-year 0)
+       (loop-tpl :bindings [fid (cell= (:farm-ids state))]
+                 (create-option fid (:selected-farm-id @state)))))
+
+   (fieldset
+    (legend "Schlag-Id")
     (select ;:on-change #(swap! state assoc :weather-year 0)
      (loop-tpl :bindings [pid (cell= (:plot-ids state))]
                (create-option pid (:selected-plot-id @state)))))
