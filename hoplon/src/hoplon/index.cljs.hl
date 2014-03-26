@@ -14,10 +14,10 @@
 (def server-url "http://localhost:3000/")
 
 (defc state
-      {:farm-ids []
-       :selected-farm-id ""
-       :plot-ids []
-       :selected-plot-id ""
+      {:farms []
+       :selected-farm-id nil
+       :plots []
+       :selected-plot-id nil
        :until-day-month [10 10]
        :weather-year 1993
        :irrigation-data [[1 4 22] [2 5 10] [11 7 30]]})
@@ -84,8 +84,8 @@
 (ajax/POST "http://localhost:3000/login"
            {:headers {"Accept" "application/edn"
                       "Content-Type" "application/x-www-form-urlencoded"}
-            :params {:username "michael"
-                     :password "#zALf!"}
+            :params {:username "zalf"
+                     :password "fLAz"}
             :handler #(reset! session-token (:session-token %))
             :error-handler #(js/alert (str "Error: " %))})
 
@@ -94,17 +94,20 @@
          (ajax/GET "http://localhost:3000/data/farms/"
                    {:headers (request-headers)
                     :handler #(do
-                               (swap! ~(cell state) assoc :farm-ids %)
-                               (swap! ~(cell state) assoc :selected-farm-id (-> state :farm-ids first)))
+                               (swap! ~(cell state) assoc :farms %)
+                               (swap! ~(cell state) assoc :selected-farm-id
+                                      (-> state :farms first :farm/id)))
                     :error-handler #(js/alert (str "Error: " %))})))
 
 ;if a farm is being selected get all plots of this farm
-(cell= (ajax/GET (str "http://localhost:3000/data/farms/" (:selected-farm-id state) "/plots/")
-                 {:headers (request-headers)
-                  :handler #(do
-                             (swap! ~(cell state) assoc :plot-ids %)
-                             (swap! ~(cell state) assoc :selected-plot-id (-> state :plot-ids first)))
-                  :error-handler #(js/alert (str "Error: " %))}))
+(cell= (when (:selected-farm-id state)
+         (ajax/GET (str "http://localhost:3000/data/farms/" (:selected-farm-id state) "/plots/")
+                   {:headers (request-headers)
+                    :handler #(do
+                               (swap! ~(cell state) assoc :plots %)
+                               (swap! ~(cell state) assoc :selected-plot-id
+                                      (-> state :plots first)))
+                    :error-handler #(js/alert (str "Error: " %))})))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -127,34 +130,48 @@
 (defn create-irrigation-inputs [row-no day month amount]
   (let [template? (nil? row-no)]
     (div
-     (input :type "number"
-            :placeholder "Tag"
-            :value day
-            :data-id "day"
-            ;:data-row-no row-no
-            :on-change #(if template?
-                          (swap! temp-irrigation-data assoc-in [0] (val-event %))
-                          (swap! state assoc-in [:irrigation-data @row-no 0] (val-event %))))
-     (input :type "number"
-            :placeholder "Monat"
-            :value month
-            :data-id "month"
-            ;:data-row-no row-no
-            :on-change #(if template?
-                          (swap! temp-irrigation-data assoc-in [1] (val-event %))
-                          (swap! state assoc-in [:irrigation-data @row-no 1] (val-event %))))
-     (input :type "number"
-            :placeholder "Menge [mm]"
-            :value amount
-            :data-id "amount"
-            ;:data-row-no row-no
-            :on-change #(if template?
-                          (swap! temp-irrigation-data assoc-in [2] (val-event %))
-                          (swap! state assoc-in [:irrigation-data @row-no 2] (val-event %))))
-     (input :type "button"
-            ;:data-row-no row-no
-            :value (if template? "Zeile hinzufügen" "Zeile entfernen")
-            :on-click (if template? add-irrigation-row (partial remove-irrigation-row @row-no))))))
+      (div
+        :class "col-xs-2"
+        (input
+          :class "form-control"
+          :type "number"
+          :placeholder "Tag"
+          :value day
+          :data-id "day"
+          ;:data-row-no row-no
+          :on-change #(if template?
+                       (swap! temp-irrigation-data assoc-in [0] (val-event %))
+                       (swap! state assoc-in [:irrigation-data @row-no 0] (val-event %)))))
+      (div
+        :class "col-xs-2"
+        (input
+          :class "form-control"
+          :type "number"
+          :placeholder "Monat"
+          :value month
+          :data-id "month"
+          ;:data-row-no row-no
+          :on-change #(if template?
+                       (swap! temp-irrigation-data assoc-in [1] (val-event %))
+                       (swap! state assoc-in [:irrigation-data @row-no 1] (val-event %)))))
+      (div
+        :class "col-xs-2"
+        (input
+          :class "form-control"
+          :type "number"
+          :placeholder "Menge [mm]"
+          :value amount
+          :data-id "amount"
+          ;:data-row-no row-no
+          :on-change #(if template?
+                       (swap! temp-irrigation-data assoc-in [2] (val-event %))
+                       (swap! state assoc-in [:irrigation-data @row-no 2] (val-event %)))))
+      (input
+        :class "btn btn-default"
+        :type "button"
+        ;:data-row-no row-no
+        :value (if template? "Zeile hinzufügen" "Zeile entfernen")
+        :on-click (if template? add-irrigation-row (partial remove-irrigation-row @row-no))))))
 
 
 
@@ -167,56 +184,107 @@
 
 
 (html
- (head
-  (link :rel "stylesheet" :href "css/bootstrap.css"))
- (body
+  (head
+    (meta :name "viewport" :content "width=device-width, initial-scale=1")
+    (link :rel "stylesheet" :href "css/bootstrap.css"))
+  (body
 
-  (form
-   :name "test-data-form"
+    (div
+      :class "container"
 
-   (fieldset
-     (legend "Betriebs-Id")
-     (select ;:on-change #(swap! state assoc :weather-year 0)
-       (loop-tpl :bindings [fid (cell= (:farm-ids state))]
-                 (create-option fid (:selected-farm-id @state)))))
+      (form
+        :role "form"
+        :class "form-horizontal"
+        :name "test-data-form"
 
-   (fieldset
-    (legend "Schlag-Id")
-    (select ;:on-change #(swap! state assoc :weather-year 0)
-     (loop-tpl :bindings [pid (cell= (:plot-ids state))]
-               (create-option pid (:selected-plot-id @state)))))
+        (div
+          :class "form-group"
+          (label :for "farm-id" :class "col-sm-2 control-label" "Betrieb")
+          (div
+            :class "col-xs-3"
+            (select
+              :id "farm-id"
+              :class "form-control" ;:on-change #(swap! state assoc :weather-year 0)
+              (loop-tpl :bindings [{fid  :farm/id
+                                    name :farm/name} (cell= (:farms state))]
+                        (create-option fid (:selected-farm-id @state) name)))))
 
-   (fieldset
-    (legend "Rechnen bis Datum")
-    (input :id "day"
-           :type "number"
-           :placeholder "Tag"
-           :value @until-day
-           :on-change #(swap! state assoc-in [:until-day-month 0] (val-id "day")))
-    (input :id "month"
-           :type "number"
-           :placeholder "Monat"
-           :value @until-month
-           :on-change #(swap! state assoc-in [:until-day-month 1] (val-id "month"))))
+        (div
+          :class "form-group"
+          (label :for "plot" :class "col-sm-2 control-label" "Schlag")
+          (div
+            :class "col-xs-3"
+            (select
+              :id "plot"
+              :class "form-control" ;:on-change #(swap! state assoc :weather-year 0)
+              (loop-tpl :bindings [{pid  :plot/id
+                                    name :plot/name} (cell= (:plots state))]
+                        (create-option pid (:selected-plot-id @state) name)))))
 
-   (fieldset
-    (legend "Wetterdaten für Jahr")
-    (select :id "weather-year"
-            (for [y (range 1993 (inc 1998))]
-              (create-option y @year (str y)))))
 
-   (fieldset
-    (legend "Beregnungsdaten")
-    (div :id "irrigation-data-list"
-         (loop-tpl :bindings [[row-no [day month amount]] (cell= (indexed (:irrigation-data state)))]
-                   (create-irrigation-inputs row-no day month amount)))
-    (apply create-irrigation-inputs nil (cell-map identity temp-irrigation-data)))
+        (div
+          :class "form-group"
+          (label :for "until-day" :class "col-sm-2 control-label" "Rechnen bis Datum")
+          (div
+            :class "col-xs-1"
+            (input :id "until-day"
+                   :class "form-control"
+                   :type "number"
+                   :placeholder "Tag"
+                   :value @until-day
+                   :on-change #(swap! state assoc-in [:until-day-month 0] (val-id "until-day"))))
+          (div
+            :class "col-xs-1"
+            (input :id "until-month"
+                   :class "form-control"
+                   :type "number"
+                   :placeholder "Monat"
+                   :value @until-month
+                   :on-change #(swap! state assoc-in [:until-day-month 1] (val-id "until-month")))))
 
-   (input :type "button" :on-click calc-and-download :value "Berechnen & CSV-Downloaden")
-   (input :type "button" :on-click sim-and-download :value "Simulieren & CSV-Downloaden")
+        (div
+          :class "form-group"
+          (label :for "year" :class "col-sm-2 control-label" "Wetterdaten für Jahr")
+          (div
+            :class "col-xs-2"
+            (select
+              :id "year"
+              :class "form-control"
+              (for [y (range 1993 (inc 1998))]
+                (create-option y @year (str y))))))
 
-   (a :href "https://dl.dropboxusercontent.com/u/29574974/Weberest/output-analysis.xlsx"
-      "Analyse Excel-File herunterladen"))))
+        (fieldset
+          (legend "Beregnungsdaten")
+          (div
+            :class "form-group"
+            (div :id "irrigation-data-list"
+                 (loop-tpl :bindings [[row-no [day month amount]] (cell= (indexed (:irrigation-data state)))]
+                           (create-irrigation-inputs row-no day month amount)))
+            (apply create-irrigation-inputs nil (cell-map identity temp-irrigation-data))))
+
+        (div
+          :class "form-group"
+          (div
+            :class "col-sm-4"
+            (input
+              :class "btn btn-primary btn-lg"
+              :type "button"
+              :on-click calc-and-download
+              :value "Berechnen & CSV-Downloaden"))
+          (div
+            :class "col-sm-4"
+            (input
+              :class "btn btn-primary btn-lg"
+              :type "button"
+              :on-click sim-and-download
+              :value "Simulieren & CSV-Downloaden"))
+
+          (div
+            :class "col-sm-4"
+            (a
+              :class "btn btn-primary"
+              :href "https://dl.dropboxusercontent.com/u/29574974/Weberest/output-analysis.xlsx"
+               "Analyse Excel-File herunterladen")))))))
 
 
 
