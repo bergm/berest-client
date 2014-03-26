@@ -1,6 +1,7 @@
 (page "index.html"
       (:require #_[ui.tabs :as tabs]
-                [ajax.core :as ajax]))
+                [ajax.core :as ajax]
+                [clojure.string :as str]))
 
 #_(ns hoplon.index
   (:require-macros [tailrecursion.javelin :refer :all]
@@ -18,8 +19,7 @@
        :selected-farm-id nil
        :plots []
        :selected-plot-id nil
-       :until-day-month [10 10]
-       :weather-year 1993
+       :until-date #inst "1993-09-30"
        :irrigation-data [[1 4 22] [2 5 10] [11 7 30]]})
 
 (cell= (println "state: " state))
@@ -101,6 +101,7 @@
 
 ;if a farm is being selected get all plots of this farm
 (cell= (when (:selected-farm-id state)
+         (println "state changed")
          (ajax/GET (str "http://localhost:3000/data/farms/" (:selected-farm-id state) "/plots/")
                    {:headers (request-headers)
                     :handler #(do
@@ -182,7 +183,6 @@
 (defc= until-month (-> state :until-day-month second))
 
 
-
 (html
   (head
     (meta :name "viewport" :content "width=device-width, initial-scale=1")
@@ -191,6 +191,9 @@
 
     (div
       :class "container"
+
+      (h1 "BEREST Webservice Test Client")
+      (hr)
 
       (form
         :role "form"
@@ -226,32 +229,17 @@
           :class "form-group"
           (label :for "until-day" :class "col-sm-2 control-label" "Rechnen bis Datum")
           (div
-            :class "col-xs-1"
-            (input :id "until-day"
-                   :class "form-control"
-                   :type "number"
-                   :placeholder "Tag"
-                   :value @until-day
-                   :on-change #(swap! state assoc-in [:until-day-month 0] (val-id "until-day"))))
-          (div
-            :class "col-xs-1"
-            (input :id "until-month"
-                   :class "form-control"
-                   :type "number"
-                   :placeholder "Monat"
-                   :value @until-month
-                   :on-change #(swap! state assoc-in [:until-day-month 1] (val-id "until-month")))))
-
-        (div
-          :class "form-group"
-          (label :for "year" :class "col-sm-2 control-label" "Wetterdaten für Jahr")
-          (div
             :class "col-xs-2"
-            (select
-              :id "year"
-              :class "form-control"
-              (for [y (range 1993 (inc 1998))]
-                (create-option y @year (str y))))))
+            (input
+              :id "until-date"
+              :type "date"
+              :placeholder "Datum"
+              :value (-> @state :until-date .toJSON (.split ,,, "T") first)
+              :on-change #(swap! state assoc :until-date (js/Date. (val-id "until-date"))))
+
+            )
+          )))
+
 
         (fieldset
           (legend "Beregnungsdaten")
@@ -261,6 +249,8 @@
                  (loop-tpl :bindings [[row-no [day month amount]] (cell= (indexed (:irrigation-data state)))]
                            (create-irrigation-inputs row-no day month amount)))
             (apply create-irrigation-inputs nil (cell-map identity temp-irrigation-data))))
+
+        (hr)
 
         (div
           :class "form-group"
@@ -282,7 +272,7 @@
           (div
             :class "col-sm-4"
             (a
-              :class "btn btn-primary"
+              :class "btn btn-primary btn-lg"
               :href "https://dl.dropboxusercontent.com/u/29574974/Weberest/output-analysis.xlsx"
                "Analyse Excel-File herunterladen")))))))
 
