@@ -16,17 +16,26 @@
 
 ;; state
 
-(defc farms [])
-(defc selected-farm-id nil)
-(defc plots [])
-(defc selected-plot-id nil)
-(defc until-date #inst "1993-09-30")
-(defc irrigation-data [[1 4 22] [2 5 10] [11 7 30]])
-(defc temp-irrigation-data [nil nil nil])
+(defc state
+      {:farms []
+       :selected-farm-id nil
+       :plots []
+       :selected-plot-id nil
+       :until-date #inst "1993-09-30"
+       :irrigation-data [[1 4 22] [2 5 10] [11 7 30]]})
+
 (defc session-token nil)
+(defc temp-irrigation-data [nil nil nil])
+
+(defc= farms (:farms state))
+(defc= selected-farm-id (:selected-farm-id state))
+(defc= plots (:plots state))
+(defc= selected-plot-id (:selected-plot-id state))
+(defc= until-date (:until-date state))
+(defc= irrigation-data (:irrigation-data state))
 
 (cell= (println "plots: " plots))
-(cell= (println session-token))
+(cell= (println "session-token: " session-token))
 (cell= (println "selected-plot-id: " selected-plot-id))
 (cell= (println "temp-irrigation-data: " temp-irrigation-data))
 
@@ -63,12 +72,13 @@
         (.open ,,, url))))
 
 (defn remove-irrigation-row [row-no]
-  (reset! irrigation-data (->> @irrigation-data
-                               (keep-indexed #(when-not (= %1 row-no) %2) ,,,)
-                               (into [] ,,,))))
+  (swap! state assoc :irrigation-data
+         (->> @irrigation-data
+              (keep-indexed #(when-not (= %1 row-no) %2) ,,,)
+              (into [] ,,,))))
 
 (defn add-irrigation-row [_]
-  (swap! irrigation-data conj @temp-irrigation-data)
+  (swap! state update-in [:irrigation-data] conj @temp-irrigation-data)
   (reset! temp-irrigation-data [nil nil nil]))
 
 (defn error-alert
@@ -92,20 +102,23 @@
          (ajax/GET "http://localhost:3000/data/farms/"
                    {:headers (request-headers)
                     :handler #(do
-                               (reset! ~(cell farms) %)
-                               (reset! ~(cell selected-farm-id) (-> farms first :farm/id)))
+                               (swap! ~(cell state) assoc :farms %)
+                               (swap! ~(cell state) assoc :selected-farm-id
+                                      (-> farms first :farm/id)))
                     :error-handler error-alert})))
 
 (defn update-plots
   [new-plots]
-  (reset! plots new-plots)
-  (reset! selected-plot-id (first new-plots)))
+  (swap! state assoc :plots new-plots)
+  (swap! state assoc :selected-plot-id (first new-plots)))
 
 ;if a farm is being selected get all plots of this farm
 (cell= (when selected-farm-id
          (ajax/GET (str "http://localhost:3000/data/farms/" selected-farm-id "/plots/")
                    {:headers (request-headers)
-                    :handler update-plots
+                    :handler #(do
+                               (swap! ~(cell state) assoc :plots %)
+                               (swap! ~(cell state) assoc :selected-plot-id (first plots)))
                     :error-handler error-alert})))
 
 
@@ -140,7 +153,7 @@
           :data-id "day"
           :on-change #(if template?
                        (swap! temp-irrigation-data assoc-in [0] (val-event %))
-                       (swap! irrigation-data assoc-in [@row-no 0] (val-event %)))))
+                       (swap! state assoc-in [:irrigation-data @row-no 0] (val-event %)))))
       (div
         :class "col-xs-2"
         (input
@@ -151,7 +164,7 @@
           :data-id "month"
           :on-change #(if template?
                        (swap! temp-irrigation-data assoc-in [1] (val-event %))
-                       (swap! irrigation-data assoc-in [@row-no 1] (val-event %)))))
+                       (swap! state assoc-in [:irrigation-data @row-no 1] (val-event %)))))
       (div
         :class "col-xs-2"
         (input
@@ -162,7 +175,7 @@
           :data-id "amount"
           :on-change #(if template?
                        (swap! temp-irrigation-data assoc-in [2] (val-event %))
-                       (swap! irrigation-data assoc-in [@row-no 2] (val-event %)))))
+                       (swap! state assoc-in [:irrigation-data @row-no 2] (val-event %)))))
       (input
         :class "btn btn-default"
         :type "button"
@@ -223,7 +236,7 @@
               :type "date"
               :placeholder "Datum"
               :value (date-str @until-date)
-              :on-change #(reset! until-date (js/Date. (val-id "until-date"))))))
+              :on-change #(swap! state assoc :until-date (js/Date. (val-id "until-date"))))
 
 
         (fieldset
@@ -259,7 +272,7 @@
             (a
               :class "btn btn-primary btn-lg"
               :href "https://dl.dropboxusercontent.com/u/29574974/Weberest/output-analysis.xlsx"
-               "Analyse Excel-File herunterladen")))))))
+               "Analyse Excel-File herunterladen")))))))))
 
 
 
