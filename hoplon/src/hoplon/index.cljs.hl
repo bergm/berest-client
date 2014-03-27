@@ -14,19 +14,26 @@
 
 (def server-url "http://localhost:3000/")
 
-(defc state
-      {:farms []
-       :selected-farm-id nil
-       :plots []
-       :selected-plot-id nil
-       :until-date #inst "1993-09-30"
-       :irrigation-data [[1 4 22] [2 5 10] [11 7 30]]})
+;; state
 
-(cell= (println "state: " state))
-
+(defc farms [])
+(defc selected-farm-id nil)
+(defc plots [])
+(defc selected-plot-id nil)
+(defc until-date #inst "1993-09-30")
+(defc irrigation-data [[1 4 22] [2 5 10] [11 7 30]])
 (defc temp-irrigation-data [nil nil nil])
+(defc session-token nil)
+
+(cell= (println "plots: " plots))
+(cell= (println session-token))
+(cell= (println "selected-plot-id: " selected-plot-id))
 (cell= (println "temp-irrigation-data: " temp-irrigation-data))
 
+;; util
+
+(defn date-str [date]
+  (-> date .toJSON (.split,,, "T") first))
 
 (defn is-leap-year [year]
   (= 0 (rem (- 2012 year) 4)))
@@ -40,42 +47,33 @@
   (-> event .-target .-value))
 
 (defn calc-and-download []
-  (let [{sel-farm-id :selected-farm-id
-         sel-plot-id :selected-plot-id
-         [day month] :until-day-month
-         year :weather-year} @state
-        url (str server-url "auth-api/calculate"
-                 ;"?format=csv"
-                 "?farm-id=" sel-farm-id
-                 "&plot-id=" sel-plot-id
-                 "&until-day=" day "&until-month=" month
-                 "&year=" year
-                 "&irrigation-data="(prn-str (:irrigation-data state)))]
+  (let [url (str server-url "auth-api/calculate"
+                 "?farm-id=" @selected-farm-id
+                 "&plot-id=" @selected-plot-id
+                 "&until-date=" (date-str @until-date)
+                 "&irrigation-data="(prn-str @irrigation-data))]
     (-> js/window
         (.open ,,, url))))
 
 (defn sim-and-download []
-  (let [[day month] (:until-day-month @state)
-        wy (by-id "weather-year")
-        url (str "rest/farms/111/plots/" (:selected-plot-id @state) ".csv"
+  (let [url (str "rest/farms/111/plots/" @selected-plot-id ".csv"
                  ;"?format=csv"
-                 "?sim=true&until-day=" day "&until-month=" month
-                 "&weather-year=" (js/parseInt (.-value (.item (.-options wy) (.-selectedIndex wy))))) #_(:weather-year state)]
+                 "?sim=true&until-date=" (date-str @until-date))]
     (-> js/window
         (.open ,,, url))))
 
 (defn remove-irrigation-row [row-no]
-  (swap! state assoc :irrigation-data
-         (->> (:irrigation-data @state)
-              (keep-indexed #(when-not (= %1 row-no) %2) ,,,)
-              (into [] ,,,))))
+  (reset! irrigation-data (->> @irrigation-data
+                               (keep-indexed #(when-not (= %1 row-no) %2) ,,,)
+                               (into [] ,,,))))
 
 (defn add-irrigation-row [_]
-  (swap! state update-in [:irrigation-data] conj @temp-irrigation-data)
+  (swap! irrigation-data conj @temp-irrigation-data)
   (reset! temp-irrigation-data [nil nil nil]))
 
-(defc session-token nil)
-(cell= (println session-token))
+(defn error-alert
+  [error]
+  (js/alert (str "Error: " error)))
 
 (defn request-headers []
   {"Accept" "application/edn"
@@ -94,21 +92,22 @@
          (ajax/GET "http://localhost:3000/data/farms/"
                    {:headers (request-headers)
                     :handler #(do
-                               (swap! ~(cell state) assoc :farms %)
-                               (swap! ~(cell state) assoc :selected-farm-id
-                                      (-> state :farms first :farm/id)))
-                    :error-handler #(js/alert (str "Error: " %))})))
+                               (reset! ~(cell farms) %)
+                               (reset! ~(cell selected-farm-id) (-> farms first :farm/id)))
+                    :error-handler error-alert})))
+
+(defn update-plots
+  [new-plots]
+  (reset! plots new-plots)
+  (reset! selected-plot-id (first new-plots)))
 
 ;if a farm is being selected get all plots of this farm
-(cell= (when (:selected-farm-id state)
-         (println "state changed")
-         (ajax/GET (str "http://localhost:3000/data/farms/" (:selected-farm-id state) "/plots/")
+(cell= (when selected-farm-id
+         (ajax/GET (str "http://localhost:3000/data/farms/" selected-farm-id "/plots/")
                    {:headers (request-headers)
-                    :handler #(do
-                               (swap! ~(cell state) assoc :plots %)
-                               (swap! ~(cell state) assoc :selected-plot-id
-                                      (-> state :plots first)))
-                    :error-handler #(js/alert (str "Error: " %))})))
+                    :handler update-plots
+                    :error-handler error-alert})))
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -139,10 +138,9 @@
           :placeholder "Tag"
           :value day
           :data-id "day"
-          ;:data-row-no row-no
           :on-change #(if template?
                        (swap! temp-irrigation-data assoc-in [0] (val-event %))
-                       (swap! state assoc-in [:irrigation-data @row-no 0] (val-event %)))))
+                       (swap! irrigation-data assoc-in [@row-no 0] (val-event %)))))
       (div
         :class "col-xs-2"
         (input
@@ -151,10 +149,9 @@
           :placeholder "Monat"
           :value month
           :data-id "month"
-          ;:data-row-no row-no
           :on-change #(if template?
                        (swap! temp-irrigation-data assoc-in [1] (val-event %))
-                       (swap! state assoc-in [:irrigation-data @row-no 1] (val-event %)))))
+                       (swap! irrigation-data assoc-in [@row-no 1] (val-event %)))))
       (div
         :class "col-xs-2"
         (input
@@ -163,24 +160,15 @@
           :placeholder "Menge [mm]"
           :value amount
           :data-id "amount"
-          ;:data-row-no row-no
           :on-change #(if template?
                        (swap! temp-irrigation-data assoc-in [2] (val-event %))
-                       (swap! state assoc-in [:irrigation-data @row-no 2] (val-event %)))))
+                       (swap! irrigation-data assoc-in [@row-no 2] (val-event %)))))
       (input
         :class "btn btn-default"
         :type "button"
-        ;:data-row-no row-no
         :value (if template? "Zeile hinzufügen" "Zeile entfernen")
         :on-click (if template? add-irrigation-row (partial remove-irrigation-row @row-no))))))
 
-
-
-#_(js/setInterval #(swap! state update-in [:plot-ids] conj "a") 3000)
-
-(defc= year (:weather-year state))
-(defc= until-day (-> state :until-day-month first))
-(defc= until-month (-> state :until-day-month second))
 
 
 (html
@@ -209,8 +197,8 @@
               :id "farm-id"
               :class "form-control" ;:on-change #(swap! state assoc :weather-year 0)
               (loop-tpl :bindings [{fid  :farm/id
-                                    name :farm/name} (cell= (:farms state))]
-                        (create-option fid (:selected-farm-id @state) name)))))
+                                    name :farm/name} farms]
+                        (create-option fid @selected-farm-id name)))))
 
         (div
           :class "form-group"
@@ -221,8 +209,8 @@
               :id "plot"
               :class "form-control" ;:on-change #(swap! state assoc :weather-year 0)
               (loop-tpl :bindings [{pid  :plot/id
-                                    name :plot/name} (cell= (:plots state))]
-                        (create-option pid (:selected-plot-id @state) name)))))
+                                    name :plot/name} plots]
+                        (create-option pid @selected-plot-id name)))))
 
 
         (div
@@ -234,11 +222,8 @@
               :id "until-date"
               :type "date"
               :placeholder "Datum"
-              :value (-> @state :until-date .toJSON (.split ,,, "T") first)
-              :on-change #(swap! state assoc :until-date (js/Date. (val-id "until-date"))))
-
-            )
-          )))
+              :value (date-str @until-date)
+              :on-change #(reset! until-date (js/Date. (val-id "until-date"))))))
 
 
         (fieldset
@@ -246,7 +231,7 @@
           (div
             :class "form-group"
             (div :id "irrigation-data-list"
-                 (loop-tpl :bindings [[row-no [day month amount]] (cell= (indexed (:irrigation-data state)))]
+                 (loop-tpl :bindings [[row-no [day month amount]] (cell= (indexed irrigation-data))]
                            (create-irrigation-inputs row-no day month amount)))
             (apply create-irrigation-inputs nil (cell-map identity temp-irrigation-data))))
 
