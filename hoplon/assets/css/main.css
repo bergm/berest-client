@@ -6,3 +6,23 @@ body {
 h1 {
     color: blue;
 }
+
+#line-example {
+  width: 100%;
+  padding: 60px 80px 80px 120px;
+  color: #444444;
+  font-family: Helvetica, Arial, sans-serif;
+  font-weight: bold;
+}
+#line-example h3 {
+  text-align: center;
+  margin: 0 0 28px 0;
+}
+#line-example chart {
+  width: 100%;
+  height: 400px;
+}
+#line-example line path {
+  stroke-width: 2px;
+  stroke: #dc7062;
+}

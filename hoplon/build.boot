@@ -1,82 +1,90 @@
 #!/usr/bin/env boot
 
-#tailrecursion.boot.core/version "2.2.1"
+#tailrecursion.boot.core/version "2.5.0"
 
 (set-env!
- :project      'berest-client
+ :project      'berest-hoplon-client
  :version      "0.1.0-SNAPSHOT"
 
- ;doesn't work right now, as the repository must be a string, even though pomegrante allows this, but boot doesn't
- #_:repositories #_#{{:url "https://my.datomic.com/repo"
-                      :username "michael.berg@zalf.de"
-                      :password "dfe713b3-62f0-469d-8ac9-07d6b02b0175"}}
+ #_:repositories #_{"my.datomic.com" {:url "https://my.datomic.com/repo"
+                                  :username "michael.berg@zalf.de"
+                                  :password "dfe713b3-62f0-469d-8ac9-07d6b02b0175"}
+                "jboss" "https://repository.jboss.org/nexus/content/groups/public/"
+                }
 
- :dependencies '[[tailrecursion/boot.task   "2.1.1"]
-                 [tailrecursion/hoplon      "5.5.1"]
-                 [org.clojure/clojurescript "0.0-2156"]
+ :dependencies '[[tailrecursion/boot.task   "2.2.3"]
+                 [tailrecursion/hoplon      "5.10.14"]
+                 [tailrecursion/boot.notify "2.0.2"]
+                 [tailrecursion/boot.ring   "0.2.1"]
+                 #_[org.clojure/clojurescript "0.0-2202"]
 
                  [cljs-ajax "0.2.3"]
 
-                 #_(
-                 [com.datomic/datomic-pro "0.9.4556"]
+                 #_[org.clojure/core.match "0.2.1"]
 
-                 [crypto-password "0.1.1"]
+                 #_[com.datomic/datomic-pro "0.9.4766"]
 
-                 [clj-time "0.6.0"]
-                 [clojure-csv "2.0.1"]
-                 [org.clojure/algo.generic "0.1.1"]
-                 [org.clojure/math.numeric-tower "0.0.2"]
-                 [com.taoensso/timbre "2.6.3"]
-                 [egamble/let-else "1.0.6"]
-                 [org.clojars.pallix/analemma "1.0.0"]
-                 [org.clojure/core.match "0.2.0"]
-                 [com.keminglabs/c2 "0.2.3"]
-                 [formative "0.3.2"]
-                 [com.velisco/clj-ftp "0.3.0"]
-                 [instaparse "1.2.13"]
-                 [org.clojure/tools.logging "0.2.6"]
-                 [org.clojure/tools.namespace "0.2.4"]
-                 [clojurewerkz/propertied "1.1.0"]
-                   )
+                 #_[buddy "0.1.0-beta4"]
+                 #_[crypto-password "0.1.1"]
 
+                 #_[ring "1.2.1"]
+                 #_[fogus/ring-edn "0.2.0"]
+
+                 #_[hiccup "1.0.4"]
+
+                 #_[simple-time "0.1.1"]
+                 #_[clj-time "0.6.0"]
+                 [com.andrewmcveigh/cljs-time "0.1.5"]
+
+                 #_[clojure-csv "2.0.1"]
+                 #_[org.clojure/algo.generic "0.1.1"]
+                 #_[org.clojure/math.numeric-tower "0.0.2"]
+                 #_[com.taoensso/timbre "3.1.6"]
+                 #_[org.clojars.pallix/analemma "1.0.0"]
+                 #_[org.clojure/core.match "0.2.0"]
+                 #_[com.keminglabs/c2 "0.2.3"]
+                 #_[formative "0.3.2"]
+                 #_[com.velisco/clj-ftp "0.3.0"]
+                 #_[instaparse "1.3.2"]
+                 #_[org.clojure/tools.logging "0.2.6"]
+                 #_[org.clojure/tools.namespace "0.2.4"]
+                 #_[clojurewerkz/propertied "1.1.0"]
                  ]
- :out-path     "resources/public"
- :src-paths    #{"src/hoplon"
+ :out-path     "../../berest-service/castra/resources/public"
+ :src-paths    #{"src/hl"
                  "src/cljs"
+                 "src/apogee"
 
-                 ;both will be used if castra is used for rpc, for now we use the REST service (has to work anyway)
-                 #_"src/castra"
-                 #_"../berest/src"})
+                 ;for castra in dev mode
+                 #_"../../berest-service/castra/src"
+                 #_"../../berest-core/private-resources"
+                 #_"../../berest-core/src"})
 
 ;; Static resources (css, images, etc.):
 (add-sync! (get-env :out-path) #{"assets"})
 
 (require '[tailrecursion.hoplon.boot :refer :all]
-         '[tailrecursion.castra.handler   :as c])
-
-(deftask castra
-  [& specs]
-  (r/ring-task (fn [_] (apply c/castra specs))))
-
-(deftask server
-  "Start castra dev server (port 8000)."
-  []
-  (comp (r/head) (r/dev-mode) (r/session-cookie) (r/files) (castra 'demo.api.chat) (r/jetty)))
-
-(deftask chat-demo
-  "Build the castra chat demo. Server on port 8000."
-  []
-  (comp (watch) (hoplon {:prerender false}) (server)))
-
-
-
+         '[tailrecursion.boot.task.notify :refer [hear]]
+         '[tailrecursion.castra.task :as c])
 
 (deftask development
-  "Build berest-client for development."
-  []
-  (comp (watch) (hoplon {:prerender false :pretty-print true})))
+         "Build BEREST Hoplon client for development."
+         []
+         (comp (watch)
+               (hear)
+               (hoplon {:prerender false :pretty-print true})
+               #_(c/castra-dev-server 'de.zalf.berest.web.castra.api)))
+
+(deftask dev-sourcemaps
+         []
+         (comp
+           (watch)
+           (hear)
+           (hoplon {:prerender false :pretty-print true :source-map true})
+           #_(c/castra-dev-server 'de.zalf.berest.web.castra.api)
+           #_(dev-server)))
 
 (deftask production
-  "Build berest-client for production."
+  "Build BEREST hoplon client for production."
   []
   (hoplon {:optimizations :advanced}))

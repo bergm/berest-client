@@ -1,0 +1,803 @@
+(ns ui.plot-annual
+  (:require [ui.elements :as uie]
+            [ui.technology :as technology]
+            [ui.addresses :as addr]
+            [bootstrap-util :as bs]
+            [cljs-time.core :as cstc]
+            [cljs-time.format :as cstf]
+            [cljs-time.coerce :as cstcoe]
+            [de.zalf.berest.client.hoplon.state :as s]
+            [de.zalf.berest.client.hoplon.util :as util]))
+
+
+(defn vocab
+  "translatable vocabulary for this page"
+  [element lang]
+  (get-in {:year-label {:lang/de "Jahr"
+                        :lang/en "Year"}
+           :year-placeholder {:lang/de "Jahr der Schlagnutzung"
+                              :lang/en "Year of plot use"}
+
+           :abs-day-of-initial-soil-moisture-measurement-label {:lang/de "Tag der Bodenfeuchtemessung"
+                                                                :lang/en "Day of soil moisture measurement"}
+           :abs-day-of-initial-soil-moisture-measurement-placeholder {:lang/de "Tag"
+                                                                      :lang/en "day"}
+
+           :initial-soil-moistures-label {:lang/de "Bodenfeuchten"
+                                 :lang/en "Soil moistures"}
+
+           :soil-moisture-data-fieldset-label {:lang/de "Bodenfeuchtedaten"
+                                               :lang/en "Soil moisture data"}
+
+           :initial-sm-unit-label {:lang/de "Bodenfeuchte Einheit"
+                                       :lang/en "Soil moisture unit"}
+
+           :pFK {:lang/de "% FK"
+                 :lang/en "% FC"}
+
+           :pNFK {:lang/de "% NFK"
+                 :lang/en "% NFC"}
+
+           :volP {:lang/de "Vol.%"
+                 :lang/en "vol.%"}
+
+           :mm {:lang/de "mm"
+                :lang/en "mm"}
+
+           :technology-fieldset-label {:lang/de "Technologiedaten"
+                                       :lang/en "Technology data"}
+
+           :technology-select-label {:lang/de "Technologieauswahl"
+                                     :lang/en "Technology selection"}
+
+           :crop-instances-fieldset-label {:lang/de "Angebaute Fruchtarten"
+                                       :lang/en "Applied crops"}
+
+           :new-crop-instance-button-label {:lang/de "Neue Fruchtart"
+                                     :lang/en "New crop"}
+
+           :crop-instance-select-label {:lang/de "Fruchtartauswahl"
+                                     :lang/en "Crop selection"}
+
+           :donations-fieldset-label {:lang/de "Bewässerungsdaten"
+                                      :lang/en "Irrigation data"}
+
+           :donations-label {:lang/de "Bewässerungsgaben"
+                             :lang/en "Irrigation donations"}
+
+
+           :ci-name-label {:lang/de "Name"
+                             :lang/en "Name"}
+
+           :dc-assertions-label {:lang/de "DC Stadien melden"
+                                 :lang/en "DC states"}
+
+
+
+           :show-data {:lang/de "Daten anzeigen"
+                       :lang/en "Show data"}
+
+           :edit-plot-button-label {:lang/de "Ändern"
+                                      :lang/en "Edit"}
+
+           :add-layer-label {:lang/de "Schicht hinzufügen"
+                             :lang/en "Add layer"}
+           :remove-layer-label {:lang/de "Schicht entfernen"
+                                :lang/en "Remove layer"}
+           :depth-placeholder {:lang/de "Tiefe [cm]"
+                               :lang/en "Depth [cm]"}
+           :value-placeholder {:lang/de "Wert"
+                               :lang/en "Value"}
+
+
+           :chart-header {:lang/de "Wetterdaten"
+                          :lang/en "Weather data"}
+           :chart-subheader {:lang/de "Quelle: DWD Station"
+                             :lang/en "Source: DWD station"}
+
+           :dc {:lang/de "BEREST DC Code"
+                :lang/en "BEREST DC code"}
+
+           :sm {:lang/de "Bodenfeuchte"
+                :lang/en "Soil moisture"}
+
+           :sm-0-10 {:lang/de "BF 0-10cm"
+                     :lang/en "SM 0-10cm"}
+
+           :sm-10-30 {:lang/de "BF 10-30cm"
+                      :lang/en "SM 10-30cm"}
+
+           :sm-30-60 {:lang/de "BF 30-60cm"
+                      :lang/en "SM 30-60cm"}
+
+           :sm-60-100 {:lang/de "BF 60-100cm"
+                       :lang/en "SM 60-100cm"}
+
+           :sm-100-150 {:lang/de "BF 100-150cm"
+                        :lang/en "SM 100-150cm"}
+
+           :sm-0-30 {:lang/de "BF 0-30cm"
+                     :lang/en "SM 0-30cm"}
+
+           :sm-60-90 {:lang/de "BF 60-90cm"
+                      :lang/en "SM 60-90cm"}
+
+           :precip {:lang/de "Nied."
+                    :lang/en "Precip"}
+
+           :evap {:lang/de "Verd."
+                  :lang/en "Evap"}
+
+           :donation {:lang/de "Gabe"
+                      :lang/en "Donation"}
+
+           :chart-until-abs-day-label {:lang/de "Berechnen bis"
+                                       :lang/en "Calculate until"}
+
+           :calculate-fieldset-label {:lang/de "Schlag berechnen & Empfehlung"
+                                      :lang/en "Calculate plot & recommendation"}
+
+           :lock-recommended-donation {:lang/de "Gabe sperren"
+                                       :lang/en "Lock donation"}
+
+           :recommendation-label {:lang/de "Empfehlung"
+                                  :lang/en "Recommendation"}
+
+           :cover-degree {:lang/de "Bedeckungsgrad"
+                          :lang/en "Cover degree"}
+
+           :extraction-depth {:lang/de "Entzugstiefe"
+                              :lang/en "Extraction depth"}
+
+           :aet-pet {:lang/de "AET/PET"
+                     :lang/en "AET/PET"}
+
+           :target-aet-pet {:lang/de "Ziel AET/PET"
+                            :lang/en "Target AET/PET"}
+
+           :transpiration-factor {:lang/de "Transpirations-Faktor"
+                                  :lang/en "Transpiration factor"}
+           }
+          [element (or lang :lang/de)] "UNKNOWN element"))
+
+(defelem
+  plot-annual
+  [{{:keys [plot-id
+
+            db-id
+
+            year
+            year!
+
+            abs-day-of-initial-soil-moisture-measurement
+            abs-day-of-initial-soil-moisture-measurement!
+
+            initial-soil-moistures
+
+            initial-sm-unit
+            initial-sm-unit!
+
+            technology
+
+            crop-instances
+
+            donations]} :fields
+    {:keys [edit? label-cols value-cols]} :opts
+    toggle :toggle
+    :as attrs}
+   kids]
+  (let [toggle (cell= toggle)
+        edit? (cell (if (cell? edit?) @edit? edit?))
+        no-edit? (cell= (not edit?))
+
+        [plot-annual-form-name
+         year-id
+         abs-day-of-initial-soil-moisture-measurement-id
+         initial-soil-moistures-id
+         initial-sm-unit-id
+         technology-id
+         technology-select-id
+         crop-instances-id
+         new-crop-instance-id
+         donations-id
+         calc-until-id
+         chart-id
+         recommended-donation-id] (repeatedly gensym)
+
+        calc-until-abs-day (cell nil)
+        calc-until-abs-day* (cell= (if calc-until-abs-day
+                                     calc-until-abs-day
+                                     (util/dmy-date->doy 31 12 year)))
+        ;_ (cell= (println "calc-until-abs-day*: " (pr-str calc-until-abs-day*)))
+
+        calc-result (cell nil)
+        ;_ (cell= (println "calc-result: " (pr-str calc-result)))
+        recommendation (cell nil)
+
+
+        calc-fn (fn [plot-id until-abs-day year]
+                    (when (and plot-id until-abs-day year)
+                          (s/calculate-from-db calc-result plot-id until-abs-day year)))
+
+        ;only calc plot if chart is visible
+        _ (cell= (when toggle
+                       (calc-fn plot-id calc-until-abs-day* year)))
+
+        soil-moistures (cell= (mapv (fn [{:keys [abs-day soil-moistures
+                                                 qu-target aet7pet aet pet] :as all}]
+                                      {:abs-day abs-day
+                                       :target-aet7pet qu-target
+                                       :aet7pet aet7pet
+                                       :aet aet
+                                       :pet pet
+                                       :sm-0-10 (util/sum (subvec (vec soil-moistures) 0 2))
+                                       :sm-10-30 (util/sum (subvec (vec soil-moistures) 2 4))
+                                       :sm-30-60 (util/sum (subvec (vec soil-moistures) 4 7))
+                                       :sm-60-100 (util/sum (subvec (vec soil-moistures) 7 11))
+                                       :sm-100-150 (util/sum (subvec (vec soil-moistures) 11 16))
+                                       :sm-0-30  (util/sum (subvec (vec soil-moistures) 0 4))
+                                       :sm-60-90 (util/sum (subvec (vec soil-moistures) 7 10))
+                                       })
+                                    (:soil-moistures calc-result)))
+
+        inputs (cell= (:inputs calc-result))
+        recommendation (cell= (:recommendation calc-result))
+
+        chart-config {:chart {:renderTo chart-id
+                              ;:defaultSeriesType "spline"
+                              :zoomType "x"
+                              #_:spacingTop #_50}
+                      :title {:text "" #_(vocab :chart-header @s/lang)
+                              :x 0 #_-20}
+                      #_:subtitle #_{:text (str (vocab :chart-subheader @s/lang) " " @name)
+                                       :x 0 #_-20
+                                       :y -20}
+                      :xAxis {:type "datetime"
+                              :labels {:format "{value: %d.%m.%Y}"
+                                       :rotation 45
+                                       :align "left"}}
+                      :yAxis [{:title {:text (str (vocab :aet-pet @s/lang) " []")}}
+                              {:title {:text (str (vocab :sm @s/lang) "/"
+                                                  (vocab :donation @s/lang) "/"
+                                                  (vocab :precip @s/lang) "/"
+                                                  (vocab :evap @s/lang)" [mm]")}
+                               :opposite true}
+                              {:title {:text "aet | pet"}}]
+                      :tooltip {:hideDelay 0
+                                :shared true
+                                :crosshairs true}
+                      :legend {:layout "horizontal" #_"vertical"
+                               :align "center" #_"right"
+                               :verticalAlign "top" #_"middle"
+                               :borderWidth 0}
+                      :plotOptions {:series {:marker {:enabled false}}}
+                      :series [#_{:type "line"
+                                :name (vocab :sm-0-10 @s/lang)
+                                :yAxis 1
+                                :tooltip {:valueSuffix " mm"}
+                                ;:color "#FF0000"
+                                :data []}
+                               #_{:type "line"
+                                :name (vocab :sm-10-30 @s/lang)
+                                :yAxis 1
+                                :tooltip {:valueSuffix " mm"}
+                                ;:color "#FF0000"
+                                :data []}
+                               #_{:type "line"
+                                :name (vocab :sm-30-60 @s/lang)
+                                :yAxis 1
+                                :tooltip {:valueSuffix " mm"}
+                                ;:color "#FF0000"
+                                :data []}
+                               #_{:type "line"
+                                :name (vocab :sm-60-100 @s/lang)
+                                :yAxis 1
+                                :tooltip {:valueSuffix " mm"}
+                                ;:color "#FF0000"
+                                :data []}
+
+                               {:type "line"
+                                :name (vocab :sm-0-30 @s/lang)
+                                :yAxis 1
+                                :tooltip {:valueSuffix " mm"}
+                                ;:color "#FF0000"
+                                :data []}
+                               {:type "line"
+                                :name (vocab :sm-30-60 @s/lang)
+                                :yAxis 1
+                                :tooltip {:valueSuffix " mm"}
+                                ;:color "#FF0000"
+                                :data []}
+                               {:type "line"
+                                :name (vocab :sm-60-90 @s/lang)
+                                :yAxis 1
+                                :tooltip {:valueSuffix " mm"}
+                                ;:color "#FF0000"
+                                :data []}
+
+                               {:type "column"
+                                :name (vocab :donation @s/lang)
+                                :yAxis 1
+                                :tooltip {:valueSuffix " mm"}
+                                :color "blue"
+                                :data []}
+                               {:type "column"
+                                :name (vocab :evap @s/lang)
+                                :yAxis 1
+                                :tooltip {:valueSuffix " mm"}
+                                :color "#FF6600"
+                                :data []}
+                               {:type "column"
+                                :name (vocab :precip @s/lang)
+                                :yAxis 1
+                                :tooltip {:valueSuffix " mm"}
+                                ;:color "#FF6600"
+                                :data []}
+
+                               {:type "line"
+                                :name (vocab :aet-pet @s/lang)
+                                :yAxis 0
+                                ;:tooltip {:valueSuffix " mm"}
+                                ;:color "#FF0000"
+                                :data []}
+                               {:type "line"
+                                :name (vocab :target-aet-pet @s/lang)
+                                :yAxis 0
+                                ;:tooltip {:valueSuffix " mm"}
+                                ;:color "#FF0000"
+                                :data []}
+
+                               {:type "line"
+                                :name "aet"
+                                :yAxis 2
+                                ;:tooltip {:valueSuffix " mm"}
+                                ;:color "#FF0000"
+                                :data []}
+                               {:type "line"
+                                :name "pet"
+                                :yAxis 2
+                                ;:tooltip {:valueSuffix " mm"}
+                                ;:color "#FF0000"
+                                :data []}]}
+        _ (with-timeout 0 (js/Highcharts.Chart. (clj->js chart-config)))
+
+        set-series-data (fn [series-index data]
+                          (some-> chart-id
+                                  by-id
+                                  js/jQuery
+                                  .highcharts
+                                  .-series
+                                  (#(nth % series-index) ,,,)
+                                  (.setData (clj->js data))))
+
+        _ (cell= (println "..." (pr-str (map (juxt :abs-day :sm-0-10) soil-moistures))))
+
+        create-ordered-curve-data (fn [data key year & {:keys [f] :or {f identity}}]
+                                    (->> data
+                                         (mapv (fn [{:keys [abs-day] :as sm}]
+                                                 [(.getTime (util/doy->js-date abs-day year))
+                                                  (f (get sm key))])
+                                           ,,,)
+                                         (sort-by first ,,,)))
+
+        ;_ (cell= (set-series-data 0 (create-ordered-curve-data soil-moistures :sm-0-10 year)))
+        ;_ (cell= (set-series-data 1 (create-ordered-curve-data soil-moistures :sm-10-30 year)))
+        ;_ (cell= (set-series-data 2 (create-ordered-curve-data soil-moistures :sm-30-60 year)))
+        ;_ (cell= (set-series-data 3 (create-ordered-curve-data soil-moistures :sm-60-100 year)))
+
+        _ (cell= (set-series-data 0 (create-ordered-curve-data soil-moistures :sm-0-30 year)))
+        _ (cell= (set-series-data 1 (create-ordered-curve-data soil-moistures :sm-30-60 year)))
+        _ (cell= (set-series-data 2 (create-ordered-curve-data soil-moistures :sm-60-90 year)))
+
+        _ (cell= (set-series-data 3 (create-ordered-curve-data inputs :donation year)))
+        _ (cell= (set-series-data 4 (create-ordered-curve-data inputs :evaporation year :f -)))
+        _ (cell= (set-series-data 5 (create-ordered-curve-data inputs :precipitation year)))
+
+        _ (cell= (set-series-data 6 (create-ordered-curve-data soil-moistures :aet7pet year)))
+        _ (cell= (set-series-data 7 (create-ordered-curve-data soil-moistures :target-aet7pet year)))
+
+        _ (cell= (set-series-data 8 (create-ordered-curve-data soil-moistures :aet year)))
+        _ (cell= (set-series-data 9 (create-ordered-curve-data soil-moistures :pet year)))
+
+        #_sms-0-10 #_(cell= (->> soil-moistures
+                            (mapv (fn [{:keys [abs-day sm-0-10]}]
+                                    [(.getTime (util/doy->js-date abs-day year)) sm-0-10])
+                              ,,,)
+                            (sort-by first ,,,)))
+        ;_ (cell= (set-series-data 0 sms-0-10))
+
+        ]
+    ((div
+       (bs/form
+         :opts [:horizontal]
+         :name plot-annual-form-name
+
+         (button
+           :style "float:right"
+           :class "btn btn-info"
+           :click #(swap! edit? not)
+           (text "~(vocab :edit-plot-button-label s/lang)"))
+
+         (bs/form-group
+           (bs/control-label :col [:sm label-cols] :for year-id (text "~(vocab :year-label s/lang)"))
+           (div
+             :col [:xs value-cols]
+             (p :toggle no-edit? :class "form-control-static" (text "~{year}"))
+             (input
+               :id year-id
+               :toggle edit?
+               :class "form-control"
+               :type "number"
+               :step 1
+               :min 1961
+               :max 2100
+               :placeholder (cell= (vocab :year-placeholder s/lang))
+               :value year
+               :on-change #(year! (js/parseFloat (val-id year-id))))
+             ))
+
+         (let [visible? (cell false)]
+           (fieldset
+           (legend :click #(swap! visible? not) (text "~(vocab :soil-moisture-data-fieldset-label s/lang)"))
+
+           (bs/form-group
+             :toggle visible?
+             (bs/control-label :col [:sm label-cols] :for abs-day-of-initial-soil-moisture-measurement-id
+                               (text "~(vocab :abs-day-of-initial-soil-moisture-measurement-label s/lang)"))
+             (div
+               :col [:xs value-cols]
+               (p :toggle no-edit? :class "form-control-static" (text "~{abs-day-of-initial-soil-moisture-measurement-id}"))
+               (input
+                 :id abs-day-of-initial-soil-moisture-measurement-id
+                 :toggle edit?
+                 :class "form-control"
+                 :type "date"
+                 :placeholder (cell= (vocab :abs-day-of-initial-soil-moisture-measurement-id-placeholder s/lang))
+                 :value (cell= (->> (util/doy->cljs-time-date abs-day-of-initial-soil-moisture-measurement year)
+                                    (cstf/unparse (cstf/formatters :date) ,,,)))
+                 :on-change #(abs-day-of-initial-soil-moisture-measurement!
+                              (util/cljs-time-date->doy (cstf/parse (cstf/formatters :date)
+                                                                    (val-id abs-day-of-initial-soil-moisture-measurement-id)))))))
+
+
+           (bs/form-group
+             :toggle (cell= (and edit? visible?)) ;we don't have to show this for read-only mode
+             (bs/control-label :col [:sm label-cols] :for initial-sm-unit-id
+                               (text "~(vocab :initial-sm-unit-label s/lang)"))
+             (div
+               :col [:xs 2]
+               (select
+                 :disabled "disabled"
+                 :id initial-sm-unit-id
+                 :class "form-control"
+                 :on-change #(initial-sm-unit! (keyword (val-id initial-sm-unit-id)))
+                 (option :value "soil-moisture.unit/pFK"
+                         :selected (cell= (= initial-sm-unit :soil-moisture.unit/pFK))
+                         (text "~(vocab :pFK s/lang)"))
+                 (option :value "soil-moisture.unit/pNFK"
+                         :selected (cell= (= initial-sm-unit :soil-moisture.unit/pNFK))
+                         (text "~(vocab :pNFK s/lang)"))
+                 (option :value "soil-moisture.unit/volP"
+                         :selected (cell= (= initial-sm-unit :soil-moisture.unit/volP))
+                         (text "~(vocab :volP s/lang)"))
+                 (option :value "soil-moisture.unit/mm"
+                         :selected (cell= (= initial-sm-unit :soil-moisture.unit/mm))
+                         (text "~(vocab :mm s/lang)")))))
+
+           (bs/form-group
+             :toggle visible?
+             (bs/control-label :col [:sm label-cols] :for initial-soil-moistures-id
+                               (text "~(vocab :initial-soil-moistures-label s/lang)"))
+             (let [depth* (cell nil)
+                   sm* (cell nil)
+                   unit* (cell= (vocab (keyword ((fnil clojure.core/name "") initial-sm-unit)) s/lang))]
+               (div
+                 :col [:xs (min (+ value-cols 2) (- 12 label-cols))]
+                 #_(p :toggle no-edit? :class "form-control-static" (text "~{irrigation-area}"))
+
+                 (loop-tpl
+                   :bindings [[row-no {db-id :db/id
+                                       sm :soil/soil-moisture
+                                       depth :soil/upper-boundary-depth}]
+                              (cell= (util/indexed (sort-by :soil/upper-boundary-depth initial-soil-moistures)))]
+                   (uie/create-soil-data-inputs
+                     :fields {:row-no row-no
+                              :row-action! #(s/delete-db-entity @db-id)
+                              :unit unit*
+                              :depth depth :depth! #(s/update-db-entity @db-id :soil/upper-boundary-depth %)
+                              :value sm :value! #(s/update-db-entity @db-id :soil/soil-moisture % :value-type :double)}))
+                 (uie/create-soil-data-inputs
+                   :fields {:row-action! #(when (and @depth* @sm*)
+                                           (s/create-new-soil-data-layer :db/id @db-id @depth* :sm @sm*)
+                                           (reset! depth* nil)
+                                           (reset! sm* nil))
+                            :unit unit*
+                            :depth depth* :depth! #(reset! depth* %)
+                            :value sm* :value! #(reset! sm* %)})
+                 )))))
+
+         (let [visible? (cell false)]
+           (fieldset
+             (legend :click #(swap! visible? not) (text "~(vocab :technology-fieldset-label s/lang)"))
+
+           (bs/form-group
+             :toggle visible?
+             (bs/control-label :col [:sm label-cols] :for technology-select-id (text "~(vocab :technology-select-label s/lang)"))
+             (div
+               :col [:xs (min (+ value-cols 2) (- 12 label-cols))]
+               (p :toggle no-edit? :class "form-control-static" "???Schlauchtrommel???" #_(text "~{}"))
+               (select
+                 :toggle edit?
+                 :disabled "disabled"
+                 :id technology-select-id
+                 :class "form-control"
+                 :on-change #()
+                 (option "Schlauchtrommel")
+                 (option "Tropfenbewässerung")
+                 (option "Linearregner")
+                 #_(loop-tpl
+                   :bindings [{key :soil.stt/key
+                               symbol :soil.stt/symbol
+                               description :soil.stt/description
+                               subs-groups :soil.stt/substrate-groups}
+                              (cell= (sort-by :soil.stt/symbol s/stts))]
+                   (option :value key
+                           :selected (cell= (= key (:soil.stt/key stt)))
+                           (text "~{symbol} | ~{description}"))))))
+
+           (cell-let
+             [{tec-db-id :db/id
+               cycle-days :technology/cycle-days
+               outlet-height :technology/outlet-height
+               sprinkle-loss-factor :technology/sprinkle-loss-factor
+               type :technology/type
+               donation-min :donation/min
+               donation-max :donation/max
+               donation-opt :donation/opt
+               step-size :donation/step-size
+               } technology]
+
+             (div
+               :toggle visible?
+               :col [:xs 12]
+               (technology/technology
+                 :class "row"
+                 :style "margin-top: 20px"
+                 ;:toggle plot-annual-details-visible?
+                 :fields {:db-id tec-db-id
+
+                          :cycle-days cycle-days :cycle-days! #(s/update-db-entity @db-id :technology/cycle-days %)
+
+                          :outlet-height outlet-height
+                          :outlet-height! #(s/update-db-entity @db-id :technology/outlet-height %)
+
+                          :sprinkle-loss-factor sprinkle-loss-factor
+                          :sprinkle-loss-factor! #(s/update-db-entity @db-id :technology/sprinkle-loss-factor %)
+
+                          :type type :type! #(s/update-db-entity @db-id :technology/type %)
+
+                          :donation-min donation-min :donation-min! #(s/update-db-entity @db-id :donation/min %)
+
+                          :donation-max donation-max :donation-max! #(s/update-db-entity @db-id :donation/max %)
+
+                          :donation-opt donation-opt :donation-opt! #(s/update-db-entity @db-id :donation/opt %)
+
+                          :step-size step-size :step-size! #(s/update-db-entity @db-id :donation/step-size %)}
+                 :opts {:edit? true
+                        :label-cols 2
+                        :value-cols 3})))
+           ))
+
+         (let [visible? (cell false)]
+           (fieldset
+           (legend :click #(swap! visible? not) (text "~(vocab :crop-instances-fieldset-label s/lang)"))
+
+           (let [show-select (cell false)]
+
+             (div
+               :toggle visible?
+             :class "row"
+
+             (div
+               :col [:xs 2]
+               (button
+               ;:toggle no-edit?
+               ;:style "float:right"
+               :class "btn btn-warning"
+               :click #(reset! show-select true)
+               (text "~(vocab :new-crop-instance-button-label s/lang)")))
+
+             (div
+               :col [:xs 3]
+
+               (select
+                 :toggle show-select
+                 :id new-crop-instance-id
+                 :class "form-control"
+                 :on-change #(do
+                              (s/create-new-crop-instance @db-id (val-id new-crop-instance-id))
+                              (reset! show-select false))
+                 (option "")
+                 (loop-tpl
+                   :bindings [{id :crop/id
+                               name :crop/name
+                               symbol :crop/symbol}
+                              (cell= (sort-by :crop/name s/minimal-all-crops))]
+                   (option :value id
+                           (text "~{symbol} | ~{name}")))))
+             ))
+
+           #_(hr)
+
+           (loop-tpl
+             :bindings [{ci-db-id :db/id
+                         dc-assertions :crop.instance/dc-assertions
+                         template-id :crop.instance/template
+                         ci-name :crop.instance/name}
+                        (cell= (sort-by #(apply min (map :assertion/abs-assert-dc-day (:crop.instance/assertions %)))
+                                        crop-instances))]
+             :bind-ids [ci-name-id dc-assertions-id]
+             (fieldset
+               :toggle visible?
+               :style "font-size: 18px; margin-left: 5%; width:95%"
+               (legend (text "~{ci-name}"))
+
+               (bs/form-group
+                 (bs/control-label :col [:sm (+ 1 label-cols)] :for ci-name-id (text "~(vocab :ci-name-label s/lang)"))
+                 (div
+                   :col [:xs value-cols]
+                   (p :toggle no-edit? :class "form-control-static" (text "~{ci-name}"))
+                   (input
+                     :id ci-name-id
+                     :toggle edit?
+                     :class "form-control"
+                     :type "text"
+                     :placeholder (cell= (vocab :ci-name-placeholder s/lang))
+                     :value ci-name
+                     :on-change #(s/update-db-entity @ci-db-id :crop.instance/name (val-id ci-name-id)))))
+
+               (bs/form-group
+                 (bs/control-label :col [:sm (+ 1 label-cols)] :for dc-assertions-id
+                                   (text "~(vocab :dc-assertions-label s/lang)"))
+                 (let [abs-day* (cell nil)
+                       ;at-abs-day* (cell nil)
+                       dc* (cell nil)
+                       dc->names (cell= (get s/crop->dcs template-id))]
+                   (div
+                     :col [:xs (min (+ value-cols 4) (- 12 label-cols))]
+                     #_(p :toggle no-edit? :class "form-control-static" (text "~{irrigation-area}"))
+
+                     (loop-tpl
+                       :bindings [[row-no {a-db-id :db/id
+                                           abs-day :assertion/abs-assert-dc-day
+                                           dc :assertion/assert-dc
+                                           #_at-abs-day #_:assertion/at-abs-day}]
+                                  (cell= (util/indexed (sort-by :assertion/abs-assert-dc-day dc-assertions)))]
+                       (uie/create-dc-assertion-inputs
+                         :fields {:row-no row-no
+                                  :row-action! #(s/delete-db-entity @a-db-id)
+                                  :dc->names dc->names
+                                  :year year
+                                  :abs-day abs-day :abs-day! #(s/update-db-entity @a-db-id :assertion/abs-assert-dc-day %)
+                                  ;:at-abs-day at-abs-day :at-abs-day! #(s/update-db-entity @a-db-id :assertion/at-abs-day %)
+                                  :dc dc :dc! #(s/update-db-entity @a-db-id :assertion/assert-dc %)}
+                         #_:opts #_{:link-abs-days false
+                                :hide-at-abs-day false}))
+                     (uie/create-dc-assertion-inputs
+                       :fields {:row-action! #(when (and @abs-day* @dc* #_@at-abs-day*)
+                                               (s/create-new-dc-assertion @ci-db-id @abs-day* @dc* #_@at-abs-day*)
+                                               (reset! abs-day* nil)
+                                               (reset! dc* nil))
+                                :dc->names dc->names
+                                :year year
+                                :abs-day abs-day* :abs-day! #(reset! abs-day* %)
+                                ;:at-abs-day at-abs-day* :at-abs-day! #(reset! at-abs-day* %)
+                                :dc dc* :dc! #(reset! dc* %)}
+                       #_:opts #_{:link-abs-days false
+                              :hide-at-abs-day false})
+                     )))))))
+
+         (let [visible? (cell true)]
+           (fieldset
+           (legend :click #(swap! visible? not) (text "~(vocab :donations-fieldset-label s/lang)"))
+
+           (bs/form-group
+             :toggle visible?
+             (bs/control-label :col [:sm label-cols] :for donations-id (text "~(vocab :donations-label s/lang)"))
+             (let [abs-day* (cell nil)
+                   amount* (cell nil)]
+               (div
+                 :col [:xs (min (+ value-cols 4) (- 12 label-cols))]
+                 #_(p :toggle no-edit? :class "form-control-static" (text "~{irrigation-area}"))
+
+                 (loop-tpl
+                   :bindings [[row-no {don-db-id :db/id
+                                       abs-day :donation/abs-day
+                                       amount :donation/amount}]
+                              (cell= (util/indexed (sort-by :donation/abs-day donations)))]
+                   (uie/create-donation-inputs
+                     :fields {:row-no row-no
+                              :row-action! #(s/delete-db-entity @don-db-id)
+                              :year year
+                              :abs-day abs-day :abs-day! #(s/update-db-entity @don-db-id :donation/abs-day %)
+                              :amount amount :amount! #(s/update-db-entity @don-db-id :donation/amount % :value-type :double)}))
+                 (uie/create-donation-inputs
+                   :fields {:row-action! #(when (and @abs-day* @amount*)
+                                           (s/create-new-donation @db-id @abs-day* @amount*)
+                                           (reset! abs-day* nil)
+                                           (reset! amount* nil))
+                            :year year
+                            :abs-day abs-day* :abs-day! #(reset! abs-day* %)
+                            :amount amount* :amount! #(reset! amount* %)})
+                 )))))
+
+         (fieldset
+           (legend (text "~(vocab :calculate-fieldset-label s/lang)"))
+
+           (bs/form-group
+
+           (bs/control-label :col [:sm label-cols] :for donations-id (text "~(vocab :chart-until-abs-day-label s/lang)"))
+           (div
+             :col [:xs 2]
+             (input
+               :id calc-until-id
+               :class "form-control"
+               :type "date"
+               :value (cell= (if (and calc-until-abs-day* year)
+                               (->> (util/doy->cljs-time-date calc-until-abs-day* year)
+                                    (cstf/unparse (cstf/formatters :date) ,,,))
+                               (str year "-12-31")))
+               :on-change #(reset! calc-until-abs-day (util/cljs-time-date->doy (cstf/parse (cstf/formatters :date)
+                                                                                            (val-id calc-until-id))))))
+
+           (bs/control-label
+             :col [:xs 2]
+             (span
+               :class "glyphicon glyphicon-refresh"
+               :on-click #(calc-fn @plot-id @calc-until-abs-day* @year)))))
+
+
+         (div
+           :id chart-id
+           :col [:xs 12])
+
+         (let [rec-text (cell= (:text recommendation))
+               donation (cell= (:donation recommendation))
+               action (cell= (:action recommendation))
+               donation* (cell nil)]
+              (bs/form-group
+                (bs/control-label :col [:sm label-cols] (text "~(vocab :recommendation-label s/lang)"))
+
+                (div
+                  :toggle (cell= (= action :irrigate))
+                  :col [:xs 2]
+                  (div
+                    :class "input-group"
+                    (input
+                      :id recommended-donation-id
+                      :class "form-control"
+                      :type "number"
+                      :step 0.1
+                      :min 1
+                      :max 100
+                      :value donation
+                      :on-change #(reset! donation* (js/parseFloat (val-id recommended-donation-id))))
+                    (span :class "input-group-addon" "mm")))
+
+                (div
+                  :toggle (cell= (= action :irrigate))
+                  :col [:xs 2]
+                  (button
+                    :class "btn btn-warning"
+                    :click #(s/create-new-donation @db-id @calc-until-abs-day* (or @donation* @donation))
+                    (text "~(vocab :lock-recommended-donation s/lang)")))
+
+                (div
+                  :col [:xs 6]
+                  (p :class "form-control-static" (strong (text "~(s/lang rec-text)"))))
+                )
+
+           )
+
+
+         )) (dissoc attrs :fields :opts) kids)))

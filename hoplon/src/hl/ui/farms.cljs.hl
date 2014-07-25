@@ -1,0 +1,455 @@
+(ns ui.farms
+  #_(:require-macros [tailrecursion.javelin :refer :all]
+                   [tailrecursion.hoplon :refer :all])
+  (:require #_[tailrecursion.javelin :refer :all]
+            #_[tailrecursion.hoplon :refer :all]
+            [de.zalf.berest.client.hoplon.util :as util]
+            [de.zalf.berest.client.hoplon.state :as s]
+            [ui.elements :as uie]
+            [ui.farm :as farm]
+            [ui.plot :as plot]
+            [ui.plot-annual :as plot-annual]
+            [bootstrap-util :as bs]
+            #_[cljs-time.coerce :as cstcoe]))
+
+
+(defn vocab
+  "translatable vocabulary for this page"
+  [element lang]
+  (get-in {:new-farm-filter-value {:lang/de "Neuer Betriebsname"
+                                   :lang/en "New farm name"}
+
+           :new-farm-button {:lang/de "Neuer Betrieb"
+                             :lang/en "New farm"}
+           :new-plot-button {:lang/de "Neuer Schlag"
+                             :lang/en "New plot"}
+
+           :delete-plot-button {:lang/de "Schlag löschen"
+                                :lang/en "Delete plot"}
+
+           :delete-farm-button {:lang/de "Betrieb löschen"
+                                :lang/en "Delete farm"}
+
+           :new-farm-header {:lang/de "Neuen Betrieb anlegen"
+                             :lang/en "Create new farm"}
+
+           :query-label {:lang/de "Suche"
+                         :lang/en "Search"}
+           :query-placeholder {:lang/de "Achtung LEERE SUCHE!! Alle Betriebe anzeigen kann lange dauern!!!"
+                                :lang/en "Attention EMPTY SEARCH!! Showing all farms might take long!!!"}
+
+           :no-farm-name-label {:lang/de "??? Betrieb ohne Name ???"
+                                :lang/en "??? Farm without name ???"}
+           :no-plot-name-label {:lang/de "??? Schlag ohne Name ???"
+                                :lang/en "??? Plot without name ???"}
+
+           :annual-years-label {:lang/de "des Jahres"
+                                :lang/en "of year"}
+
+           :name-label {:lang/de "Name"
+                        :lang/en "Name"}
+           :name-placeholder {:lang/de "Name der Fruchtart"
+                              :lang/en "Name of crop"}
+
+           :symbol-label {:lang/de "Symbol"
+                        :lang/en "Symbol"}
+           :symbol-placeholder {:lang/de "Symbol der Fruchtart"
+                              :lang/en "Symbol of crop"}
+
+           :show-data {:lang/de "Daten anzeigen"
+                       :lang/en "Show data"}
+
+           :show-farm-details {:lang/de "Betriebs-Details anzeigen"
+                               :lang/en "Show detailed farm data"}
+
+           :show-plot-details {:lang/de "Schlag-Details anzeigen"
+                               :lang/en "Show detailed plot data"}
+
+           :show-plot-annual-details {:lang/de "Beregnungsberatungsdetails anzeigen"
+                                      :lang/en "Show irrigation management details"}
+
+
+           :edit {:lang/de "Ändern"
+                  :lang/en "Edit"}
+           :save-edit {:lang/de "Änderungen speichern"
+                       :lang/en "Save changes"}
+           :chart-header {:lang/de "Wetterdaten"
+                          :lang/en "Weather data"}
+           :chart-subheader {:lang/de "Quelle: DWD Station"
+                             :lang/en "Source: DWD station"}
+
+           :dc {:lang/de "BEREST DC Code"
+                :lang/en "BEREST DC code"}
+
+           :cover-degree {:lang/de "Bedeckungsgrad"
+                          :lang/en "Cover degree"}
+
+           :extraction-depth {:lang/de "Entzugstiefe"
+                              :lang/en "Extraction depth"}
+
+           :aet-pet {:lang/de "Quotient AET/PET"
+                     :lang/en "Quotient AET/PET"}
+
+           :transpiration-factor {:lang/de "Transpirations-Faktor"
+                                  :lang/en "Transpiration factor"}
+           }
+          [element (or lang :lang/de)] "UNKNOWN element"))
+
+
+(defn farms-pane
+  []
+  (let [filter-criterium (cell {:attr :farm/name
+                                :value ""})
+        fc-count (cell= (count (:value filter-criterium)))
+        lc-filter-criterium (cell= (.toLowerCase (:value filter-criterium)))
+        fc-first-char (cell= (.charAt lc-filter-criterium 0))
+        filtered-farms (cell= (if (> fc-count 0)
+                                (filter (fn [[farm-id farm {name :farm/name}]]
+                                          (let [value (-> :attr filter-criterium farm)]
+                                            ;include farms in resultset, whose name is missing
+                                            (if value
+                                              (let [lc-name (.toLowerCase value)]
+                                                (if (> fc-count 1)
+                                                  (> (.search lc-name lc-filter-criterium) -1)
+                                                  (= (.charAt lc-name 0) fc-first-char)))
+                                              true)))
+                                        (:farms s/state))
+                                (:farms s/state)))
+
+         edit-new-farm? (cell false)
+         no-edit-new-farm? (cell= (not edit-new-farm?))
+
+         name (cell nil)
+         notes (cell nil)
+
+         new-farm-no (cell 0)
+
+         [new-farm-id new-plot-id query-id] (repeatedly gensym)
+
+         ]
+
+    (div
+      :id "farms-pane"
+      :do-toggle (cell= (= s/route "#/farms"))
+
+      (bs/form
+        :opts [:horizontal]
+
+        (bs/form-group
+          (div
+            :class "col-xs-offset-1 form-control-static"
+            :col [:xs 11]
+            (for [c (range 65 91)]
+              (button
+                :type "button"
+                :class "btn btn-link"
+                :on-click #(reset! filter-criterium {:attr :farm/name
+                                                     :value (char c)})
+                (char c)))))
+
+        (bs/form-group
+          (bs/control-label :col [:xs 1] :for query-id (text "~(vocab :query-label s/lang)"))
+          (div
+            :col [:xs 11]
+            (input
+              :id query-id
+              :class "form-control"
+              :type "text"
+              :placeholder (cell= (vocab :query-placeholder s/lang))
+              :value (cell= (:value filter-criterium))
+              :on-change #(reset! filter-criterium {:attr :farm/name
+                                                    :value (val-id query-id)})))))
+
+      (hr)
+
+      (div
+        :id new-farm-id
+        (button
+          ;:toggle no-edit?
+          ;:style "float:right"
+          :class "btn btn-warning"
+          :click #(let [temp-farm-name (str (vocab :new-farm-filter-value @s/lang) " "
+                                            (swap! new-farm-no inc))]
+                   (s/create-new-farm temp-farm-name)
+                   (reset! filter-criterium {:attr :farm/name
+                                             :value temp-farm-name})
+                   #_(swap! edit-new-farm? not))
+          (text "~(vocab :new-farm-button s/lang)")))
+
+      (hr)
+
+      (div
+        (loop-tpl
+          :bindings [[_ {farm-db-id :db/id
+                         farm-id :farm/id
+                         farm-name :farm/name
+                         addresses :farm/addresses
+                         farm-notes :farm/notes
+                         authorative-weather-station :farm/authorative-weather-station
+                         weather-station :farm/weather-station
+                         weather-data :farm/weather-data
+                         :as farm}] (cell= (sort-by #(-> % second :farm/name) filtered-farms))]
+          ;:bind-ids [farm-id]
+          (let [farm-details-visible? (cell false)
+                farm-hover? (cell false)]
+            (div
+              :mouseenter #(reset! farm-hover? true)
+              :mouseleave #(reset! farm-hover? false)
+              ;:hover #(swap! farm-hover? not)
+              (h3
+                (text "~(if farm-name farm-name (vocab :no-farm-name-label s/lang))")
+                (div
+                  (button
+                    :toggle farm-hover?
+                    :style "float:right"
+                    :class "btn btn-danger"
+                    :click #(do (println "delete farm id: " @farm-id " name: " @farm-name)
+                                (s/delete-db-entity @farm-db-id))
+                    (text "~(vocab :delete-farm-button s/lang)"))
+
+                  (button
+                    :toggle farm-hover?
+                    :style "float:right"
+                    :class "btn btn-warning"
+                    :click #(s/create-new-plot @farm-id)
+                    (text "~(vocab :new-plot-button s/lang)"))
+                  ))
+
+              (span
+                :class "glyphicon glyphicon-plus"
+                :toggle (cell= (not farm-details-visible?))
+                :on-click #(reset! farm-details-visible? true))
+              (span
+                :toggle farm-details-visible?
+                :class "glyphicon glyphicon-minus"
+                :click #(reset! farm-details-visible? false))
+              (span (text " ~(vocab :show-farm-details s/lang)"))
+
+              (farm/farm
+                :toggle farm-details-visible?
+                :fields {:id farm-id
+                         :name farm-name :name! #(s/update-db-entity @farm-db-id :farm/name %)
+                         :addresses addresses
+                         :notes farm-notes :notes! #(s/update-db-entity @farm-db-id :farm/notes %)
+
+                         :authorative-weather-station authorative-weather-station
+                         :authorative-weather-station! #(s/update-db-entity @farm-db-id :farm/authorative-weather-station %)
+
+                         :weather-station weather-station
+                         :weather-station! #(s/update-db-entity @farm-db-id :farm/weather-station %)
+
+                         :weather-data weather-data}
+                :opts {:edit? true
+                       :label-cols 2
+                       :value-cols 3})
+
+              (hr)
+
+              (div
+                (loop-tpl
+                  :bindings [[_ {db-id :db/id
+                                 id :plot/id
+                                 name :plot/name
+                                 number :plot/number
+                                 description :plot/description
+                                 short-description :plot/short-description
+                                 crop-area :plot/crop-area
+                                 irrigation-area :plot/irrigation-area
+                                 stt :plot/stt
+                                 slope :plot/slope
+                                 field-capacities :plot/field-capacities
+                                 fc-pwp-unit :plot/fc-pwp-unit
+                                 permanent-wilting-points :plot/permanent-wilting-points
+                                 pwp-unit :plot/pwp-unit
+                                 ka5-soil-types :plot/ka5-soil-types
+                                 groundwaterlevel :plot/groundwaterlevel
+                                 annuals :plot/annuals
+                                 weather-station :plot/weather-station
+                                 weather-data :plot/weather-data
+                                 location-coords :plot/location-coords
+                                 notes :plot/notes
+                                 az-glz :plot/az-glz
+                                 nft :plot/nft
+                                 bse :plot/bse
+                                 sse :plot/sse
+                                 bwb :plot/bwb
+                                 irrigation-well :plot/irrigation-well}]
+                             (cell= (sort-by :plot/name (:plots farm)))]
+                  :bind-ids [annual-years-id]
+                  (let [plot-details-visible? (cell false)
+                        plot-annual-details-visible? (cell false)
+                        plot-hover? (cell false)]
+                    (div
+                      :hover #(swap! plot-hover? not)
+                      (h4
+                        (text "~(if name name (vocab :no-plot-name-label s/lang))")
+                        (button
+                          :toggle plot-hover?
+                          :style "float:right"
+                          :class "btn btn-danger"
+                          :click #(s/delete-db-entity @db-id)
+                          (text "~(vocab :delete-plot-button s/lang)")))
+
+                      (span
+                        :class "glyphicon glyphicon-plus"
+                        :toggle (cell= (not plot-details-visible?))
+                        :on-click #(reset! plot-details-visible? true))
+                      (span
+                        :toggle plot-details-visible?
+                        :class "glyphicon glyphicon-minus"
+                        :click #(reset! plot-details-visible? false))
+                      (span (text " ~(vocab :show-plot-details s/lang)"))
+
+                      (plot/plot
+                        :toggle plot-details-visible?
+                        :fields {:id id
+                                 :name name :name! #(s/update-db-entity @db-id :plot/name %)
+                                 :number number :number! #(s/update-db-entity @db-id :plot/number %)
+                                 :description description :description! #(s/update-db-entity @db-id :plot/description %)
+
+                                 :short-description short-description
+                                 :short-description! #(s/update-db-entity @db-id :plot/short-description %)
+
+                                 :crop-area crop-area :crop-area! #(s/update-db-entity @db-id :plot/crop-area %)
+
+                                 :irrigation-area irrigation-area
+                                 :irrigation-area! #(s/update-db-entity @db-id :plot/irrigation-area %)
+
+                                 :stt stt :stt! #(s/update-db-entity @db-id :plot/stt [:soil.stt/key %])
+                                 :slope slope :slope! #(s/update-db-entity @db-id :plot/slope [:slope/key %])
+
+                                 :field-capacities field-capacities
+                                 ;:field-capacities! #(s/update-db-entity @db-id :plot/field-capacities %)
+
+                                 :fc-pwp-unit fc-pwp-unit :fc-pwp-unit! #(s/update-db-entity @db-id :plot/fc-pwp-unit %)
+
+                                 :permanent-wilting-points permanent-wilting-points
+                                 ;:permanent-wilting-points! #(s/update-db-entity @db-id :plot/permanent-wilting-points %)
+
+                                 :pwp-unit pwp-unit :pwp-unit! #(s/update-db-entity @db-id :plot/pwp-unit %)
+
+                                 :ka5-soil-types ka5-soil-types
+                                 :ka5-soil-types! #(s/update-db-entity @db-id :plot/ka5-soil-types %)
+
+                                 :groundwaterlevel groundwaterlevel
+                                 :groundwaterlevel! #(s/update-db-entity @db-id :plot/groundwaterlevel %)
+
+                                 :annuals annuals
+
+                                 :weather-station weather-station
+                                 :weather-station! #(s/update-db-entity @db-id :plot/weather-station %)
+
+                                 :weather-data weather-data
+
+                                 :location-coords location-coords
+                                 :location-coords! #(s/update-db-entity @db-id :plot/location-coords %)
+
+                                 :notes notes :notes! #(s/update-db-entity @db-id :plot/notes %)
+
+                                 :az-glz az-glz :az-glz! #(s/update-db-entity @db-id :plot/az-glz %)
+                                 :nft nft :nft! #(s/update-db-entity @db-id :plot/nft %)
+                                 :bse bse :bse! #(s/update-db-entity @db-id :plot/bse %)
+                                 :sse sse :sse! #(s/update-db-entity @db-id :plot/sse %)
+                                 :bwb bwb :bwb! #(s/update-db-entity @db-id :plot/bwb %)
+
+                                 ;:irrigation-well irrigation-well
+                                 ;irrigation-well! #(s/update-db-entity @db-id :plot/irrigation-well %)
+                                 }
+                        :opts {:edit? true
+                               :label-cols 2
+                               :value-cols 3})
+
+
+                      (let [annual-years (cell= (->> annuals
+                                                     (map :plot.annual/year ,,,)
+                                                     sort))
+
+                            current-year (.getFullYear (js/Date.))
+
+                            selected-annual-year* (cell nil)
+
+                            selected-annual-year (cell= (or selected-annual-year*
+                                                            ((into #{} annual-years) current-year)
+                                                            (last annual-years)))
+
+                            selected-annual (cell= (first (filter #(= selected-annual-year (:plot.annual/year %)) annuals)))]
+
+                        (div
+
+                          (div
+                            :class "row"
+
+                            (div
+                              :col [:xs 3]
+                              (span
+                                :class "glyphicon glyphicon-plus"
+                                :toggle (cell= (not plot-annual-details-visible?))
+                                :on-click #(reset! plot-annual-details-visible? true))
+                              (span
+                                :toggle plot-annual-details-visible?
+                                :class "glyphicon glyphicon-minus"
+                                :click #(reset! plot-annual-details-visible? false))
+                              (span (text " ~(vocab :show-plot-annual-details s/lang)")))
+
+                            (div
+                              :col [:xs 4]
+                              (bs/form
+                                :opts [:horizontal]
+
+                                (bs/control-label :col [:sm 4] :for annual-years-id (text "~(vocab :annual-years-label s/lang)"))
+                                (div
+                                  :col [:xs 8]
+                                  (select
+                                  :id annual-years-id
+                                  :class "form-control"
+                                  :on-change #(reset! selected-annual-year* (js/parseInt (val-id annual-years-id)))
+                                  (loop-tpl
+                                    :bindings [year annual-years]
+                                    (option :value year
+                                            :selected (cell= (= year selected-annual-year))
+                                            (text "~{year}"))))))))
+
+                          (cell-let
+                            [{db-id :db/id
+                              year :plot.annual/year
+                              abs-day-of-initial-soil-moisture-measurement :plot.annual/abs-day-of-initial-soil-moisture-measurement
+                              initial-soil-moistures :plot.annual/initial-soil-moistures
+                              initial-sm-unit :plot.annual/initial-sm-unit
+                              technology :plot.annual/technology
+                              crop-instances :plot.annual/crop-instances
+                              donations :plot.annual/donations
+                              } selected-annual]
+
+                            (plot-annual/plot-annual
+                              :style "margin-top: 20px"
+                              :toggle plot-annual-details-visible?
+                              :fields {:plot-id id
+
+                                       :db-id db-id
+
+                                       :year year :year! #(s/update-db-entity @db-id :plot.annual/year %)
+
+                                       :abs-day-of-initial-soil-moisture-measurement abs-day-of-initial-soil-moisture-measurement
+                                       :abs-day-of-initial-soil-moisture-measurement! #(s/update-db-entity @db-id :plot.annual/abs-day-of-initial-soil-moisture-measurement %)
+
+                                       :initial-soil-moistures initial-soil-moistures
+
+                                       :initial-sm-unit initial-sm-unit
+                                       :initial-sm-unit! #(s/update-db-entity @db-id :plot.annual/initial-sm-unit %)
+
+                                       :technology technology
+
+                                       :crop-instances crop-instances
+
+                                       :donations donations}
+                              :opts {:edit? true
+                                     :label-cols 2
+                                     :value-cols 3}))))
+
+                      (hr)))))
+
+              ))))
+
+
+
+      )))
