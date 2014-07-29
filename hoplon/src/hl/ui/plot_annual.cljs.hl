@@ -241,6 +241,7 @@
                                     (:soil-moistures calc-result)))
 
         inputs (cell= (:inputs calc-result))
+        _ (cell= (println "inputs: " (pr-str inputs)))
         recommendation (cell= (:recommendation calc-result))
 
         chart-config {:chart {:renderTo chart-id
@@ -262,7 +263,10 @@
                                                   (vocab :precip @s/lang) "/"
                                                   (vocab :evap @s/lang)" [mm]")}
                                :opposite true}
-                              {:title {:text "aet | pet"}}]
+                              {:title {:text "aet | pet"}}
+                              {:title {:text "Wurzeltiefe [cm]"}
+                               :opposite true}
+                              ]
                       :tooltip {:hideDelay 0
                                 :shared true
                                 :crosshairs true}
@@ -358,6 +362,13 @@
                                 :yAxis 2
                                 ;:tooltip {:valueSuffix " mm"}
                                 ;:color "#FF0000"
+                                :data []}
+
+                               {:type "line"
+                                :name "Wtiefe"
+                                :yAxis 3
+                                ;:tooltip {:valueSuffix " mm"}
+                                ;:color "#FF0000"
                                 :data []}]}
         _ (with-timeout 0 (js/Highcharts.Chart. (clj->js chart-config)))
 
@@ -398,6 +409,8 @@
 
         _ (cell= (set-series-data 8 (create-ordered-curve-data soil-moistures :aet year)))
         _ (cell= (set-series-data 9 (create-ordered-curve-data soil-moistures :pet year)))
+
+        _ (cell= (set-series-data 10 (create-ordered-curve-data inputs :extraction-depth-cm year)))
 
         #_sms-0-10 #_(cell= (->> soil-moistures
                             (mapv (fn [{:keys [abs-day sm-0-10]}]

@@ -37,6 +37,8 @@
 
 (defc= farms (:farms state))
 
+(defc= users (:users state))
+
 (defc= user-weather-stations (:weather-stations state))
 (cell= (println "user-weather-stations: " (pr-str user-weather-stations)))
 
