@@ -114,6 +114,8 @@
 (def create-new-farm (mkremote 'de.zalf.berest.web.castra.api/create-new-farm state error loading))
 (def create-new-plot (mkremote 'de.zalf.berest.web.castra.api/create-new-plot state error loading))
 
+(def create-new-user (mkremote 'de.zalf.berest.web.castra.api/create-new-user state error loading))
+
 (def create-new-farm-address (mkremote 'de.zalf.berest.web.castra.api/create-new-farm-address state error loading))
 
 (def create-new-soil-data-layer (mkremote 'de.zalf.berest.web.castra.api/create-new-soil-data-layer state error loading))
