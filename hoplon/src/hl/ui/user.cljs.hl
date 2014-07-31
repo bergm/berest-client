@@ -1,9 +1,9 @@
 (ns ui.user
-  (:require [de.zalf.berest.client.hoplon.util :as util]
+  (:require #_[tailrecursion.hoplon :as hop]
+            [de.zalf.berest.client.hoplon.util :as util]
             [ui.elements :as uie]
             [bootstrap-util :as bs]
             [de.zalf.berest.client.hoplon.state :as s]))
-
 
 (defn vocab
   "translatable vocabulary for this page"
@@ -13,10 +13,14 @@
            :full-name-placeholder {:lang/de "Name des Nutzers"
                                    :lang/en "Name of user"}
 
-           :number-label {:lang/de "Nummer"
-                          :lang/en "Number"}
-           :number-placeholder {:lang/de "BEREST-Nummer des Schlages"
-                                :lang/en "BEREST-number of plot"}
+           :pwd-label {:lang/de "Passwort"
+                       :lang/en "Password"}
+           :pwd1-placeholder {:lang/de "Neues Passwort eingeben"
+                             :lang/en "Enter new password"}
+           :pwd2-placeholder {:lang/de "Neues Passwort wiederholen"
+                              :lang/en "Repeat new password"}
+           :pwd-updated-successfully {:lang/de "Passwort wurde erfolgreich geändert"
+                                      :lang/en "Password has been changed successfully"}
 
            :description-label {:lang/de "Beschreibung"
                                :lang/en "Description"}
@@ -152,11 +156,25 @@
         [user-form-name
          name-id
          full-name-id
+         pwd-id
+         pwd2-id
          roles-id
          weather-stations-id
          farms-id] (repeatedly gensym)
-        selected-stt-substrate-group-keys (cell= (:soil.stt/substrate-groups stt))
+        ;selected-stt-substrate-group-keys (cell= (:soil.stt/substrate-groups stt))
 
+        pwds (cell ["" ""])
+        _ (cell= (println "--pwds: " pwds))
+        pwd-error (cell false)
+        _ (cell= (if (not-any? empty? pwds)
+                   (if (apply = pwds)
+                     (do
+                       (reset! ~(cell pwd-error) false)
+                       (s/set-new-password id (first pwds)))
+                     (reset! ~(cell pwd-error) true))))
+        _ (cell= (when s/pwd-update-success?
+                       (reset! ~(cell pwds) ["" ""])
+                       (timeout #(reset! ~(cell s/pwd-update-success?) nil) 5000)))
         ]
     ((div
        (bs/form
@@ -185,6 +203,35 @@
                :on-change #(full-name! @% #_(val-id name-id)))))
 
          (bs/form-group
+           :class (cell= {:has-error pwd-error})
+           (bs/control-label :col [:sm label-cols] :for pwd-id (text "~(vocab :pwd-label s/lang)"))
+           (div
+             :col [:xs value-cols]
+             (p
+               :toggle s/pwd-update-success?
+               :class (cell= {:bg-success s/pwd-update-success?
+                              :form-control-static true})
+               (text "~(vocab :pwd-updated-successfully s/lang)"))
+
+             (input
+               :id pwd-id
+               :toggle (cell= (and edit? (not s/pwd-update-success?)))
+               :class "form-control"
+               :type "password"
+               :placeholder (cell= (vocab :pwd1-placeholder s/lang))
+               :value (cell= (first pwds))
+               :on-change #(swap! pwds assoc 0 @%))
+
+             (input
+               :id pwd2-id
+               :toggle (cell= (and edit? (not s/pwd-update-success?)))
+               :class "form-control"
+               :type "password"
+               :placeholder (cell= (vocab :pwd2-placeholder s/lang))
+               :value (cell= (second pwds))
+               :on-change #(swap! pwds assoc 1 @%))))
+
+         #_(bs/form-group
            (bs/control-label :col [:sm label-cols] :for number-id (text "~(vocab :number-label s/lang)"))
            (div
              :col [:xs value-cols]
@@ -198,7 +245,7 @@
                :value number
                :on-change #(number! (val-id number-id)))))
 
-         (bs/form-group
+         #_(bs/form-group
            (bs/control-label :col [:sm label-cols] :for description-id (text "~(vocab :description-label s/lang)"))
            (div
              :col [:xs value-cols]
@@ -212,7 +259,7 @@
                :value description
                :on-change #(description! (val-id description-id)))))
 
-         (bs/form-group
+         #_(bs/form-group
            (bs/control-label :col [:sm label-cols] :for short-description-id (text "~(vocab :short-description-label s/lang)"))
            (div
              :col [:xs value-cols]
@@ -226,7 +273,7 @@
                :value short-description
                :on-change #(short-description! (val-id short-description-id)))))
 
-         (bs/form-group
+         #_(bs/form-group
            (bs/control-label :col [:sm label-cols] :for crop-area-id (text "~(vocab :crop-area-label s/lang)"))
            (div
              :col [:xs value-cols]
@@ -245,7 +292,7 @@
                  :on-change #(crop-area! (js/parseFloat (val-id crop-area-id))))
                (span :class "input-group-addon" "ha"))))
 
-         (bs/form-group
+         #_(bs/form-group
            (bs/control-label :col [:sm label-cols] :for irrigation-area-id (text "~(vocab :irrigation-area-label s/lang)"))
            (div
              :col [:xs value-cols]
@@ -264,7 +311,7 @@
                :on-change #(irrigation-area! (js/parseFloat (val-id irrigation-area-id))))
                (span :class "input-group-addon" "ha"))))
 
-         (fieldset
+         #_(fieldset
            (legend (text "~(vocab :soil-data-fieldset-label s/lang)"))
 
            (bs/form-group
@@ -451,7 +498,7 @@
                    )))
              ))
 
-         (bs/form-group
+         #_(bs/form-group
            (bs/control-label :col [:sm label-cols] :for groundwaterlevel-id (text "~(vocab :groundwaterlevel-label s/lang)"))
            (div
              :col [:xs value-cols]
@@ -528,7 +575,7 @@
                  ))
              ))
 
-         (bs/form-group
+         #_(bs/form-group
            (bs/control-label :col [:sm label-cols] :for notes-id (text "~(vocab :notes-label s/lang)"))
            (div
              :col [:xs 7]
@@ -542,7 +589,7 @@
                :value notes
                :on-change #(notes! (val-id notes-id)))))
 
-         (fieldset
+         #_(fieldset
            (legend (text "~(vocab :weather-data-fieldset-label s/lang)"))
 
            (bs/form-group

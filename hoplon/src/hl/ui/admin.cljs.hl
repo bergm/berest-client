@@ -35,9 +35,9 @@
                              :lang/en "Create new user"}
 
            :user-query-label {:lang/de "Nutzer-Suche"
-                         :lang/en "User-search"}
-           :query-placeholder {:lang/de "Achtung LEERE SUCHE!!"
-                                :lang/en "Attention EMPTY SEARCH!!"}
+                              :lang/en "User-search"}
+           :user-query-placeholder {:lang/de "Achtung LEERE SUCHE!!"
+                                    :lang/en "Attention EMPTY SEARCH!!"}
 
            :no-user-name-label {:lang/de "??? Nutzer ohne Name ???"
                                 :lang/en "??? User without name ???"}
@@ -75,7 +75,7 @@
         fc-first-char (cell= (.charAt lc-filter-criterium 0))
         filtered-users (cell= (if (> fc-count 0)
                                 (filter (fn [{name :user/full-name}]
-                                            (let [lc-name (.toLowerCase value)]
+                                            (let [lc-name (.toLowerCase name)]
                                                  (if (> fc-count 1)
                                                    (> (.search lc-name lc-filter-criterium) -1)
                                                    (= (.charAt lc-name 0) fc-first-char))))
@@ -92,7 +92,6 @@
          new-user-pwd (cell "")
 
          [users-id
-          new-user-id
           new-user-id-field-id
           new-user-pwd-field-id
           user-query-id] (repeatedly gensym)
@@ -135,13 +134,11 @@
         (hr)
 
         (div
-          :id new-user-id
-
           (bs/form
             :opts [:inline]
 
             (bs/form-group
-              (label :class "src-only" :for new-user-id-field-id (text "~(vocab :new-user-id-field-label s/lang)"))
+              (label :class "sr-only" :for new-user-id-field-id (text "~(vocab :new-user-id-field-label s/lang)"))
               (input
                 :id new-user-id-field-id
                 :class "form-control"
@@ -151,7 +148,7 @@
                 :on-change #(reset! new-user-id @%)))
 
             (bs/form-group
-              (label :class "src-only" :for new-user-pwd-field-id (text "~(vocab :new-user-pwd-field-label s/lang)"))
+              (label :class "sr-only" :for new-user-pwd-field-id (text "~(vocab :new-user-pwd-field-label s/lang)"))
               (input
                 :id new-user-pwd-field-id
                 :class "form-control"
@@ -177,21 +174,28 @@
 
         (div
           (loop-tpl
-            :bindings [[_ {user-db-id :db/id
-                           user-id :user/id
-                           full-name :user/full-name
-                           roles :user/roles
-                           user-farms :user/farms
-                           user-weather-stations :user/weather-stations
-                           :as user}] (cell= (sort-by :user/name filtered-users))]
+            :bindings [{user-db-id :db/id
+                        user-id :user/id
+                        full-name :user/full-name
+                        roles :user/roles
+                        user-farms :user/farms
+                        user-weather-stations :user/weather-stations
+                        :as user} (cell= (sort-by :user/name filtered-users))]
             ;:bind-ids [farm-id]
             (let [user-details-visible? (cell false)
-                  user-hover? (cell false)]
+                  user-hover? (cell false)
+                  user-hover?2 (cell false)]
                  (div
                    :mouseenter #(reset! user-hover? true)
                    :mouseleave #(reset! user-hover? false)
                    ;:hover #(swap! farm-hover? not)
+                   ;:class (cell= {:bg-info user-hover?})
+
                    (h3
+                     ;:hover #(swap! user-hover?2 not)
+                     #_:click #_#(do
+                              (reset! user-hover? false)
+                              (reset! user-details-visible? true))
                      (text "~(if full-name full-name (vocab :no-user-name-label s/lang))")
                      (div
                        (button

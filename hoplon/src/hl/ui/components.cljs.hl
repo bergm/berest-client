@@ -90,7 +90,10 @@
       :class "collapse navbar-collapse"
       (ul
         :class "nav navbar-nav"
-        (li :class (cell= {:active (= s/route "#/admin")}) (a :href "#/admin" (cell= (vocab :nav-admin s/lang))))
+        (li
+          :toggle s/admin-logged-in?
+          :class (cell= {:active (= s/route "#/admin")})
+          (a :href "#/admin" (cell= (vocab :nav-admin s/lang))))
         (li :class (cell= {:active (= s/route "#/farms")}) (a :href "#/farms" (cell= (vocab :nav-farms s/lang))))
         (li :class (cell= {:active (= s/route "#/weather")}) (a :href "#/weather" (cell= (vocab :nav-weather s/lang))))
         (li :class (cell= {:active (= s/route "#/crops")}) (a :href "#/crops" (cell= (vocab :nav-crops s/lang))))

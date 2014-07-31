@@ -13,6 +13,8 @@
 (defc state {})
 (cell= (println "state: \n" (pr-str state)))
 
+(defc pwd-update-success? nil)
+
 ;cell holding immutable minimal crops from server, these won't change and thus
 ;doesn't constitute a real stem cell
 (defc minimal-all-crops nil)
@@ -76,6 +78,9 @@
 (defc= logged-in?   (not (nil? user)))
 (cell= (println "logged-in?: "(pr-str logged-in?)))
 
+(defc= admin-logged-in? (and (not (nil? user))
+                             ((:user/roles user) :user.role/admin)))
+
 (defc= show-login?  (and #_loaded? (not logged-in?)))
 (cell= (println "show-login?: " show-login?))
 
@@ -115,6 +120,7 @@
 (def create-new-plot (mkremote 'de.zalf.berest.web.castra.api/create-new-plot state error loading))
 
 (def create-new-user (mkremote 'de.zalf.berest.web.castra.api/create-new-user state error loading))
+(def set-new-password (mkremote 'de.zalf.berest.web.castra.api/set-new-password pwd-update-success? error loading))
 
 (def create-new-farm-address (mkremote 'de.zalf.berest.web.castra.api/create-new-farm-address state error loading))
 
