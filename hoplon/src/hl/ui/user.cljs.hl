@@ -22,10 +22,16 @@
            :pwd-updated-successfully {:lang/de "Passwort wurde erfolgreich geändert"
                                       :lang/en "Password has been changed successfully"}
 
-           :description-label {:lang/de "Beschreibung"
-                               :lang/en "Description"}
-           :description-placeholder {:lang/de "Beschreibung des Schlages"
-                                     :lang/en "Description of plot"}
+           :roles-label {:lang/de "Rollen"
+                         :lang/en "Roles"}
+           :admin-role {:lang/de "Administrator"
+                         :lang/en "Administrator"}
+           :consultant-role {:lang/de "Berater"
+                             :lang/en "Consultant"}
+           :farmer-role {:lang/de "Landwirt"
+                         :lang/en "Farmer"}
+           :guest-role {:lang/de "Gast"
+                         :lang/en "Guest"}
 
            :short-description-label {:lang/de "Kurz-Beschreibung"
                                      :lang/en "Short-description"}
@@ -164,7 +170,6 @@
         ;selected-stt-substrate-group-keys (cell= (:soil.stt/substrate-groups stt))
 
         pwds (cell ["" ""])
-        _ (cell= (println "--pwds: " pwds))
         pwd-error (cell false)
         _ (cell= (if (not-any? empty? pwds)
                    (if (apply = pwds)
@@ -230,6 +235,35 @@
                :placeholder (cell= (vocab :pwd2-placeholder s/lang))
                :value (cell= (second pwds))
                :on-change #(swap! pwds assoc 1 @%))))
+
+         (bs/form-group
+           (bs/control-label :col [:sm 2] :for roles-id (text "~(vocab :roles-label s/lang)"))
+           (div
+             :col [:xs 3]
+             (select
+               :id roles-id
+               :class "form-control"
+               :multiple "multiple"
+               :size 4
+               :on-change #(#_(map type @%))
+
+               (option
+                 :value "user.role/admin"
+                 :selected (cell= (-> (roles :user.role/admin) nil? not))
+                 (text "~(vocab :admin-role s/lang)"))
+               (option
+                 :value "user.role/consultant"
+                 :selected (cell= (-> (roles :user.role/consultant) nil? not))
+                 (text "~(vocab :consultant-role s/lang)"))
+               (option
+                 :value "user.role/farmer"
+                 :selected (cell= (-> (roles :user.role/farmer) nil? not))
+                 (text "~(vocab :farmer-role s/lang)"))
+               (option
+                 :value "user.role/guest"
+                 :selected (cell= (-> (roles :user.role/guest) nil? not))
+                 (text "~(vocab :guest-role s/lang)")))))
+
 
          #_(bs/form-group
            (bs/control-label :col [:sm label-cols] :for number-id (text "~(vocab :number-label s/lang)"))

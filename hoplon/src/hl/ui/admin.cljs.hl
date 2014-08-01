@@ -184,7 +184,8 @@
             ;:bind-ids [farm-id]
             (let [user-details-visible? (cell false)
                   user-hover? (cell false)
-                  user-hover?2 (cell false)]
+                  user-hover?2 (cell false)
+                  ]
                  (div
                    :mouseenter #(reset! user-hover? true)
                    :mouseleave #(reset! user-hover? false)
