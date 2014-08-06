@@ -245,23 +245,25 @@
                :class "form-control"
                :multiple "multiple"
                :size 4
-               :on-change #(#_(map type @%))
+               :on-change #(let [role-kws (mapv keyword @%)
+                                 _ (println (pr-str role-kws) " types: " (map type role-kws))]
+                                (s/update-user-roles @id role-kws))
 
                (option
                  :value "user.role/admin"
-                 :selected (cell= (-> (roles :user.role/admin) nil? not))
+                 :selected (cell= (not (nil? (some-> roles (get ,,, :user.role/admin)))))
                  (text "~(vocab :admin-role s/lang)"))
                (option
                  :value "user.role/consultant"
-                 :selected (cell= (-> (roles :user.role/consultant) nil? not))
+                 :selected (cell= (not (nil? (some-> roles (get,,, :user.role/consultant)))))
                  (text "~(vocab :consultant-role s/lang)"))
                (option
                  :value "user.role/farmer"
-                 :selected (cell= (-> (roles :user.role/farmer) nil? not))
+                 :selected (cell= (not (nil? (some-> roles (get ,,, :user.role/farmer)))))
                  (text "~(vocab :farmer-role s/lang)"))
                (option
                  :value "user.role/guest"
-                 :selected (cell= (-> (roles :user.role/guest) nil? not))
+                 :selected (cell= (not (nil? (some-> roles (get ,,, :user.role/guest)))))
                  (text "~(vocab :guest-role s/lang)")))))
 
 

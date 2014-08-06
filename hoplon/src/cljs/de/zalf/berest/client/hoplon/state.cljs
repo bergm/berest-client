@@ -121,6 +121,7 @@
 
 (def create-new-user (mkremote 'de.zalf.berest.web.castra.api/create-new-user state error loading))
 (def set-new-password (mkremote 'de.zalf.berest.web.castra.api/set-new-password pwd-update-success? error loading))
+(def update-user-roles (mkremote 'de.zalf.berest.web.castra.api/update-user-roles state error loading))
 
 (def create-new-farm-address (mkremote 'de.zalf.berest.web.castra.api/create-new-farm-address state error loading))
 
