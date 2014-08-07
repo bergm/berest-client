@@ -33,115 +33,15 @@
            :guest-role {:lang/de "Gast"
                          :lang/en "Guest"}
 
-           :short-description-label {:lang/de "Kurz-Beschreibung"
-                                     :lang/en "Short-description"}
-           :short-description-placeholder {:lang/de "Kurzbeschreibung des Schlages"
-                                           :lang/en "Short description of plot"}
-
-           :crop-area-label {:lang/de "Anbaufläche"
-                             :lang/en "Cropping area"}
-           :crop-area-placeholder {:lang/de "Fläche des Schlages"
-                                   :lang/en "Cropping area of plot"}
-
-           :groundwaterlevel-label {:lang/de "Grundwasserstand"
-                                    :lang/en "Groundwaterlevel"}
-           :groundwaterlevel-placeholder {:lang/de "Niveau des Grundwasserstandes"
-                                          :lang/en "Groundwaterlevel"}
-
-           :irrigation-area-label {:lang/de "Beregnete Fläche"
-                                   :lang/en "Irrigated area"}
-           :irrigation-area-placeholder {:lang/de "Fläche unter Beregnung"
-                                         :lang/en "Area under irrigation"}
-
-           :stt-label {:lang/de "Standorttyp (MMK STT)"
-                       :lang/en "MMK STT"}
-
-           :slope-label {:lang/de "Hangneigung (MMK NFT)"
-                         :lang/en "Slope (MMK NFT)"}
-
-           :field-capacities-label {:lang/de "Feldkapazitäten"
-                                    :lang/en "Field capacities"}
-
-           :permanent-wilting-points-label {:lang/de "Permanente Welkepunkte"
-                                            :lang/en "Permanent wilting points"}
-
-           :ka5-soil-types-label {:lang/de "KA5 Bodentypen"
-                                  :lang/en "KA5 soil types"}
-
-           :substrate-groups-label {:lang/de "Substratgruppen für"
-                                    :lang/en "Substrate groups for"}
-
-           :soil-data-fieldset-label {:lang/de "Bodendaten/Bodenschichtungsdaten"
-                                      :lang/en "Soil data/soil layer data"}
-
-           :fc-pwp-data-fieldset-label {:lang/de "Feldkapazitäten/Permanente Welkepunkte"
-                                      :lang/en "Field capacities/permenent wilting points"}
-
-           :fc-pwp-unit-label {:lang/de "FK/PWP Einheit"
-                               :lang/en "FC/PWP unit"}
-
-           :pFK {:lang/de "% FK"
-                 :lang/en "% FC"}
-
-           :pNFK {:lang/de "% NFK"
-                 :lang/en "% NFC"}
-
-           :volP {:lang/de "Vol.%"
-                 :lang/en "vol.%"}
-
-           :mm {:lang/de "mm"
-                :lang/en "mm"}
-
-
-           :weather-data-fieldset-label {:lang/de "Wetterdaten"
-                                         :lang/en "Weather data"}
-
-           :weather-station-label {:lang/de "lokale Wetterstation"
-                                   :lang/en "Local weather station"}
-
-           :weather-data-label {:lang/de "Manuelle Wetterdaten"
-                                :lang/en "Manual weather data"}
-
-           :notes-label {:lang/de "Notizen"
-                         :lang/en "Notes"}
-           :notes-placeholder {:lang/de "Hier können Notizen zum Schlag gemacht werden ..."
-                               :lang/en "Here you can keep notes regarding the plot ..."}
-
-           :show-data {:lang/de "Daten anzeigen"
-                       :lang/en "Show data"}
+           :available-weathers-station-label {:lang/de "Verfügbare Wetterstationen"
+                                              :lang/en "Available weather stations"}
+           :select-weather-stations-button-label {:lang/de "Station(en) hinzufügen ->"
+                                              :lang/en "Add station(s) ->"}
+           :unselect-weather-stations-button-label {:lang/de "<- Station(en) entfernen"
+                                              :lang/en "<- Remove station(s)"}
 
            :edit-user-button-label {:lang/de "Ändern"
                                     :lang/en "Edit"}
-
-           :add-layer-label {:lang/de "Schicht hinzufügen"
-                             :lang/en "Add layer"}
-           :remove-layer-label {:lang/de "Schicht entfernen"
-                                :lang/en "Remove layer"}
-           :depth-placeholder {:lang/de "Tiefe [cm]"
-                               :lang/en "Depth [cm]"}
-           :value-placeholder {:lang/de "Wert"
-                               :lang/en "Value"}
-
-
-           :chart-header {:lang/de "Wetterdaten"
-                          :lang/en "Weather data"}
-           :chart-subheader {:lang/de "Quelle: DWD Station"
-                             :lang/en "Source: DWD station"}
-
-           :dc {:lang/de "BEREST DC Code"
-                :lang/en "BEREST DC code"}
-
-           :cover-degree {:lang/de "Bedeckungsgrad"
-                          :lang/en "Cover degree"}
-
-           :extraction-depth {:lang/de "Entzugstiefe"
-                              :lang/en "Extraction depth"}
-
-           :aet-pet {:lang/de "Quotient AET/PET"
-                     :lang/en "Quotient AET/PET"}
-
-           :transpiration-factor {:lang/de "Transpirations-Faktor"
-                                  :lang/en "Transpiration factor"}
            }
           [element (or lang :lang/de)] "UNKNOWN element"))
 
@@ -165,9 +65,12 @@
          pwd-id
          pwd2-id
          roles-id
-         weather-stations-id
-         farms-id] (repeatedly gensym)
-        ;selected-stt-substrate-group-keys (cell= (:soil.stt/substrate-groups stt))
+         selected-weather-stations-id
+         farms-id
+         all-weather-stations-id] (repeatedly gensym)
+
+        newly-selected-weather-stations (cell [])
+        selected-weather-stations (cell= (concat weather-stations newly-selected-weather-stations))
 
         pwds (cell ["" ""])
         pwd-error (cell false)
@@ -265,6 +168,72 @@
                  :value "user.role/guest"
                  :selected (cell= (not (nil? (some-> roles (get ,,, :user.role/guest)))))
                  (text "~(vocab :guest-role s/lang)")))))
+
+         (bs/form-group
+           (bs/control-label :col [:sm label-cols] :for all-weather-stations-id
+                             (text "~(vocab :available-weathers-station-label s/lang)"))
+           (div
+             :col [:xs (- 12 label-cols)]
+             (div
+               :class "container"
+               :style "margin-left: 0px; padding-left: 0px"
+               (div
+                 :class "row"
+                 (div
+                   :col [:xs 4]
+
+                   (select
+                     :toggle edit?
+                     :id all-weather-stations-id
+                     :class "form-control"
+                     :multiple "multiple"
+                     (loop-tpl
+                       :bindings [{ws-id :weather-station/id
+                                   ws-name :weather-station/name}
+                                  (cell= (sort-by #(if-let [name (:weather-station/name %)]
+                                                           name
+                                                           (:weather-station/id %)) s/all-weather-stations))]
+                       (option
+                         :value ws-id
+                         (text "~(or ws-name ws-id)")))))
+
+                 (div
+                   :col [:xs 2]
+
+                   (button
+                     :class "btn btn-primary"
+                     :click #( ;println "val-id: " (pr-str (map identity (val-id all-weather-stations-id)))
+                              s/add-user-weather-stations @id (map identity (val-id all-weather-stations-id))
+                                                          )
+                     (text "~(vocab :select-weather-stations-button-label s/lang)"))
+
+                   (div
+                     :style "padding-top: 10px")
+
+                   (button
+                     :class "btn btn-primary"
+                     :click #(s/remove-user-weather-stations @id (map identity (val-id selected-weather-stations-id)))
+                     (text "~(vocab :unselect-weather-stations-button-label s/lang)"))
+
+                   )
+
+                 (div
+                   :col [:xs 4]
+
+                   (select
+                     :toggle edit?
+                     :id selected-weather-stations-id
+                     :class "form-control"
+                     :multiple "multiple"
+                     (loop-tpl
+                       :bindings [{ws-id :weather-station/id
+                                   ws-name :weather-station/name}
+                                  (cell= (sort-by #(if-let [name (:weather-station/name %)]
+                                                           name
+                                                           (:weather-station/id %)) selected-weather-stations))]
+                       (option
+                         :value ws-id
+                         (text "~(or ws-name ws-id)")))))))))
 
 
          #_(bs/form-group

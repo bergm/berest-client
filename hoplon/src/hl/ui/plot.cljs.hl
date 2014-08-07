@@ -610,6 +610,6 @@
                                                 (:weather-station/id %)) s/user-weather-stations))]
                    (option :value ws-db-id
                            :selected (cell= (= ws-id (:weather-station/id weather-station)))
-                           (text "~{ws-name}")))))))
+                           (text "~(or ws-name ws-id)")))))))
 
          )) (dissoc attrs :fields :opts) kids)))

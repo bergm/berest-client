@@ -15,11 +15,6 @@
 
 (defc pwd-update-success? nil)
 
-;cell holding immutable minimal crops from server, these won't change and thus
-;doesn't constitute a real stem cell
-(defc minimal-all-crops nil)
-#_(cell= (println "minimal-all-crops:\n " (pr-str minimal-all-crops)))
-
 ;cell holding static app state, which will hardly change
 (defc static-state nil)
 #_(cell= (println "static-state:\n " (pr-str static-state)))
@@ -30,6 +25,8 @@
 (defc= ka5-soil-types (into {} (map (juxt :soil.type.ka5/name identity) (:ka5-soil-types static-state))))
 (defc= crop->dcs (:crop->dcs static-state))
 #_(defc= stt-descriptions (into {} (map (juxt :soil.stt/key :soil.stt/description) stts)))
+(defc= minimal-all-crops (:minimal-all-crops static-state))
+(defc= all-weather-stations (:all-weather-stations static-state))
 
 ;local state
 (defc weather-station-data {})
@@ -105,7 +102,7 @@
   ((mkremote 'de.zalf.berest.web.castra.api/get-weather-station-data
              result-cell error loading) weather-station-id years))
 
-(def load-minimal-all-crops
+#_(def load-minimal-all-crops
   (mkremote 'de.zalf.berest.web.castra.api/get-minimal-all-crops minimal-all-crops error loading))
 
 (def load-static-state
@@ -122,6 +119,8 @@
 (def create-new-user (mkremote 'de.zalf.berest.web.castra.api/create-new-user state error loading))
 (def set-new-password (mkremote 'de.zalf.berest.web.castra.api/set-new-password pwd-update-success? error loading))
 (def update-user-roles (mkremote 'de.zalf.berest.web.castra.api/update-user-roles state error loading))
+(def add-user-weather-stations (mkremote 'de.zalf.berest.web.castra.api/add-user-weather-stations state error loading))
+(def remove-user-weather-stations (mkremote 'de.zalf.berest.web.castra.api/remove-user-weather-stations state error loading))
 
 (def create-new-farm-address (mkremote 'de.zalf.berest.web.castra.api/create-new-farm-address state error loading))
 
@@ -143,7 +142,7 @@
 
 
 (defn init-after-login []
-  (when-not @minimal-all-crops (load-minimal-all-crops))
+  #_(when-not @minimal-all-crops (load-minimal-all-crops))
   #_(get-state)
   #_(js/setInterval #(if @logged-in? (get-state)) 100))
 
