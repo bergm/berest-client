@@ -23,6 +23,8 @@
                              :lang/en "New farm"}
            :new-plot-button {:lang/de "Neuer Schlag"
                              :lang/en "New plot"}
+           :new-plot-annual-button {:lang/de "Neues Jahr"
+                                    :lang/en "New year"}
 
            :delete-plot-button {:lang/de "Schlag löschen"
                                 :lang/en "Delete plot"}
@@ -375,6 +377,7 @@
                             selected-annual (cell= (first (filter #(= selected-annual-year (:plot.annual/year %)) annuals)))]
 
                         (div
+                          :class "container"
 
                           (div
                             :class "row"
@@ -408,6 +411,13 @@
                                     (option :value year
                                             :selected (cell= (= year selected-annual-year))
                                             (text "~{year}"))))))))
+
+                          (button
+                            ;:toggle farm-hover?
+                            :style "float:right"
+                            :class "btn btn-warning"
+                            :click #(s/create-new-plot-annual @id)
+                            (text "~(vocab :new-plot-annual-button s/lang)"))
 
                           (cell-let
                             [{db-id :db/id

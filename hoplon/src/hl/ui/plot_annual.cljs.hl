@@ -207,7 +207,9 @@
         calc-until-abs-day (cell nil)
         calc-until-abs-day* (cell= (if calc-until-abs-day
                                      calc-until-abs-day
-                                     (util/dmy-date->doy 31 12 year)))
+                                     (if (= year (cstc/year (cstc/now)))
+                                       (util/cljs-time-date->doy (cstc/now))
+                                       (util/dmy-date->doy 31 12 year))))
         ;_ (cell= (println "calc-until-abs-day*: " (pr-str calc-until-abs-day*)))
 
         calc-result (cell nil)
@@ -381,7 +383,7 @@
                                   (#(nth % series-index) ,,,)
                                   (.setData (clj->js data))))
 
-        _ (cell= (println "..." (pr-str (map (juxt :abs-day :sm-0-10) soil-moistures))))
+        ;_ (cell= (println "..." (pr-str (map (juxt :abs-day :sm-0-10) soil-moistures))))
 
         create-ordered-curve-data (fn [data key year & {:keys [f] :or {f identity}}]
                                     (->> data
