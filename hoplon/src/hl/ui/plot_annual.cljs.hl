@@ -1,5 +1,6 @@
 (ns ui.plot-annual
-  (:require [ui.elements :as uie]
+  (:require [clojure.set :as set]
+            [ui.elements :as uie]
             [ui.technology :as technology]
             [ui.addresses :as addr]
             [bootstrap-util :as bs]
@@ -77,8 +78,10 @@
            :show-data {:lang/de "Daten anzeigen"
                        :lang/en "Show data"}
 
-           :edit-plot-button-label {:lang/de "Ändern"
-                                      :lang/en "Edit"}
+           :edit-plot-annual-button-label {:lang/de "Ändern"
+                                           :lang/en "Edit"}
+           :delete-plot-annual-button-label {:lang/de "Löschen"
+                                             :lang/en "Delete"}
 
            :add-layer-label {:lang/de "Schicht hinzufügen"
                              :lang/en "Add layer"}
@@ -181,7 +184,9 @@
 
             crop-instances
 
-            donations]} :fields
+            donations
+
+            incomplete]} :fields
     {:keys [edit? label-cols value-cols]} :opts
     toggle :toggle
     :as attrs}
@@ -189,6 +194,28 @@
   (let [toggle (cell= toggle)
         edit? (cell (if (cell? edit?) @edit? edit?))
         no-edit? (cell= (not edit?))
+
+        incomplete* (cell #{})
+        incomplete (cell= (set/union incomplete incomplete*))
+
+        _ (cell= (println "incomplete: " (pr-str incomplete)))
+
+        abs-day-of-initial-soil-moisture-measurement
+        (cell= (do
+                 (swap! ~(cell incomplete*) (if abs-day-of-initial-soil-moisture-measurement disj conj) :abs-day-of-initial-soil-moisture-measurement)
+                 abs-day-of-initial-soil-moisture-measurement))
+
+        initial-soil-moistures (cell= (do
+                                        (swap! ~(cell incomplete*) (if initial-soil-moistures disj conj) :initial-soil-moistures)
+                                        initial-soil-moistures))
+
+        technology (cell= (do
+                            (swap! ~(cell incomplete*) (if ui.technology disj conj) :technology)
+                            technology))
+
+        crop-instances (cell= (do
+                                (swap! ~(cell incomplete*) (if crop-instances disj conj) :crop-instances)
+                                crop-instances))
 
         [plot-annual-form-name
          year-id
@@ -218,7 +245,7 @@
 
 
         calc-fn (fn [plot-id until-abs-day year]
-                    (when (and plot-id until-abs-day year)
+                    (when (and plot-id until-abs-day year (empty? @incomplete))
                           (s/calculate-from-db calc-result plot-id until-abs-day year)))
 
         ;only calc plot if chart is visible
@@ -429,9 +456,15 @@
 
          (button
            :style "float:right"
+           :class "btn btn-danger"
+           :click #(s/delete-db-entity @db-id)
+           (text "~(vocab :delete-plot-annual-button-label s/lang)"))
+
+         (button
+           :style "float:right"
            :class "btn btn-info"
            :click #(swap! edit? not)
-           (text "~(vocab :edit-plot-button-label s/lang)"))
+           (text "~(vocab :edit-plot-annual-button-label s/lang)"))
 
          (bs/form-group
            (bs/control-label :col [:sm label-cols] :for year-id (text "~(vocab :year-label s/lang)"))
@@ -468,7 +501,7 @@
                  :class "form-control"
                  :type "date"
                  :placeholder (cell= (vocab :abs-day-of-initial-soil-moisture-measurement-id-placeholder s/lang))
-                 :value (cell= (->> (util/doy->cljs-time-date abs-day-of-initial-soil-moisture-measurement year)
+                 :value (cell= (->> (util/doy->cljs-time-date (or abs-day-of-initial-soil-moisture-measurement 1) year)
                                     (cstf/unparse (cstf/formatters :date) ,,,)))
                  :on-change #(abs-day-of-initial-soil-moisture-measurement!
                               (util/cljs-time-date->doy (cstf/parse (cstf/formatters :date)
@@ -505,7 +538,8 @@
                                (text "~(vocab :initial-soil-moistures-label s/lang)"))
              (let [depth* (cell nil)
                    sm* (cell nil)
-                   unit* (cell= (vocab (keyword ((fnil clojure.core/name "") initial-sm-unit)) s/lang))]
+                   unit* (cell= (vocab (keyword ((fnil clojure.core/name "") initial-sm-unit)) s/lang))
+                   _ (println "initial-soil-moistures: " (pr-str initial-soil-moistures))]
                (div
                  :col [:xs (min (+ value-cols 2) (- 12 label-cols))]
                  #_(p :toggle no-edit? :class "form-control-static" (text "~{irrigation-area}"))

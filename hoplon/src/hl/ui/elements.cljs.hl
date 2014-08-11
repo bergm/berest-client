@@ -31,6 +31,11 @@
                                :lang/en "Amount of donation"}
            :dc-placeholder {:lang/de "DC"
                             :lang/en "DC"}
+           :add-dc-assertion-label {:lang/de "DC Stadium hinzufügen"
+                                    :lang/en "Add DC assertion"}
+           :remove-dc-assertion-label {:lang/de "DC Stadium entfernen"
+                                       :lang/en "Remove DC assertion"}
+
 
            }
           [element (or lang :lang/de)] "UNKNOWN element"))
@@ -346,12 +351,10 @@
                           :btn-danger (not (nil? row-no))
                           :btn-warning (nil? row-no)})
            :type "button"
-           :value (cell= (if row-no (vocab :remove-donation-label s/lang) (vocab :add-donation-label s/lang)))
+           :value (cell= (if row-no
+                           (vocab :remove-dc-assertion-label s/lang)
+                           (vocab :add-dc-assertion-label s/lang)))
            :on-click #(row-action! (some-> row-no deref))))
-
-
-
-
 
        ) (dissoc attrs :fields :opts) kids)))
 

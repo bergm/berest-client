@@ -279,7 +279,7 @@
                              (cell= (sort-by :plot/name (:plots farm)))]
                   :bind-ids [annual-years-id]
                   (let [plot-details-visible? (cell false)
-                        plot-annual-details-visible? (cell false)
+
                         plot-hover? (cell false)]
                     (div
                       :hover #(swap! plot-hover? not)
@@ -366,6 +366,12 @@
                                                      (map :plot.annual/year ,,,)
                                                      sort))
 
+                            _ (print "annual-years: " (pr-str annual-years))
+
+                            plot-annual-details-visible?* (cell false)
+                            plot-annual-details-visible? (cell= (and plot-annual-details-visible?*
+                                                                     (seq annual-years)))
+
                             current-year (.getFullYear (js/Date.))
 
                             selected-annual-year* (cell nil)
@@ -378,6 +384,7 @@
 
                         (div
                           :class "container"
+                          :style "width:100%; padding-left:0px"
 
                           (div
                             :class "row"
@@ -387,11 +394,11 @@
                               (span
                                 :class "glyphicon glyphicon-plus"
                                 :toggle (cell= (not plot-annual-details-visible?))
-                                :on-click #(reset! plot-annual-details-visible? true))
+                                :on-click #(reset! plot-annual-details-visible?* true))
                               (span
                                 :toggle plot-annual-details-visible?
                                 :class "glyphicon glyphicon-minus"
-                                :click #(reset! plot-annual-details-visible? false))
+                                :click #(reset! plot-annual-details-visible?* false))
                               (span (text " ~(vocab :show-plot-annual-details s/lang)")))
 
                             (div
@@ -410,14 +417,14 @@
                                     :bindings [year annual-years]
                                     (option :value year
                                             :selected (cell= (= year selected-annual-year))
-                                            (text "~{year}"))))))))
+                                            (text "~{year}")))))))
 
-                          (button
-                            ;:toggle farm-hover?
-                            :style "float:right"
-                            :class "btn btn-warning"
-                            :click #(s/create-new-plot-annual @id)
-                            (text "~(vocab :new-plot-annual-button s/lang)"))
+                            (button
+                              ;:toggle farm-hover?
+                              :style "float:right"
+                              :class "btn btn-warning"
+                              :click #(s/create-new-plot-annual @id)
+                              (text "~(vocab :new-plot-annual-button s/lang)")))
 
                           (cell-let
                             [{db-id :db/id
