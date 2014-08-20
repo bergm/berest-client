@@ -118,20 +118,47 @@
                                       :name (vocab :precip @s/lang)
                                       :yAxis 1
                                       :tooltip {:valueSuffix " mm"}
-                                      :color "blue"
+                                      :color "#0000FF"
                                       :data []}
                                      {:type "column"
                                       :name (vocab :evap @s/lang)
                                       :yAxis 1
                                       :tooltip {:valueSuffix " mm"}
                                       :color "#FF6600"
-                                      :data []}]}
+                                      :data []}
+
+                                     {:type "line"
+                                      :name (str (vocab :tavg @s/lang) " ???")
+                                      :yAxis 0
+                                      :tooltip {:valueSuffix " °C"}
+                                      :color "#FF8080"
+                                      :data []
+                                      :visible false}
+                                     {:type "column"
+                                      :name (str (vocab :precip @s/lang) " ???")
+                                      :yAxis 1
+                                      :tooltip {:valueSuffix " mm"}
+                                      :color "#8080FF"
+                                      :data []
+                                      :visible false}
+                                     {:type "column"
+                                      :name (str (vocab :evap @s/lang) " ???")
+                                      :yAxis 1
+                                      :tooltip {:valueSuffix " mm"}
+                                      :color "#FFB280"
+                                      :data []
+                                      :visible false}
+                                     ]}
               _ (with-timeout 0 (js/Highcharts.Chart. (clj->js chart-config)))
 
-              measured-data (cell= (->> weather-data
-                                        (filter #(not (:weather-data/prognosis-data? (second %))),,,)
-                                        (map second,,,)
-                                        flatten))
+              prognosis?-or-measured-data
+              (cell= (->> weather-data
+                          (map second ,,,)
+                          (apply concat ,,,)
+                          (group-by :weather-data/prognosis-data? ,,,)))
+              measured-data (cell= (prognosis?-or-measured-data false))
+              prognosis-data (cell= (prognosis?-or-measured-data true))
+
               ;_ (cell= (println "measured-data: " (pr-str measured-data)))
 
               #_prognosis-data #_(cell= (->> selected-data
@@ -158,6 +185,11 @@
               _ (cell= (set-series-data 0 (create-ordered-curve-data measured-data :weather-data/average-temperature)))
               _ (cell= (set-series-data 1 (create-ordered-curve-data measured-data :weather-data/precipitation)))
               _ (cell= (set-series-data 2 (create-ordered-curve-data measured-data :weather-data/evaporation :f -)))
+
+              _ (cell= (set-series-data 3 (create-ordered-curve-data prognosis-data :weather-data/average-temperature)))
+              _ (cell= (set-series-data 4 (create-ordered-curve-data prognosis-data :weather-data/precipitation)))
+              _ (cell= (set-series-data 5 (create-ordered-curve-data prognosis-data :weather-data/evaporation :f -)))
+
               ]
 
           (div
@@ -178,14 +210,14 @@
               (bs/control-label :col [:sm 2] :for name-input (text "~(vocab :name-label s/lang)"))
               (div
                 :col [:xs 3]
-                (p :toggle no-edit? :class "form-control-static" (text "~{name}"))
+                (p :toggle no-edit? :class "form-control-static" (text "~(or name id)"))
                 (input
                   :id name-input
                   :toggle edit?
                   :class "form-control"
                   :type "text"
                   :placeholder (cell= (vocab :name-placeholder s/lang))
-                  :value name
+                  :value (cell= (or name (str "(Id: " id ")")))
                   :on-change #(swap! station-data assoc :name (val-id name-input)))))
 
             (bs/form-group
