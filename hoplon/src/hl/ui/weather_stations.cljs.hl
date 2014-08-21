@@ -108,6 +108,7 @@
                                      :align "center" #_"right"
                                      :verticalAlign "top" #_"middle"
                                      :borderWidth 0}
+                            :plotOptions {:series {:marker {:enabled false}}}
                             :series [{:type "line"
                                       :name (vocab :tavg @s/lang)
                                       :yAxis 0

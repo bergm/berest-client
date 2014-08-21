@@ -282,9 +282,10 @@
             #_hide-at-abs-day]} :opts
     :as attrs} kids]
 
-  (let [[#_at-abs-day-id abs-day-id dc-id dc-select-id] (repeatedly gensym)]
-    ((div
-       :class "row"
+  (let [year (cell= (or year (cstc/year (cstc/now))))
+        [#_at-abs-day-id abs-day-id dc-id dc-select-id] (repeatedly gensym)]
+       ((div
+          :class "row"
        #_(div
          :toggle (cell= (not hide-at-abs-day))
          :col [:xs 3]
@@ -310,10 +311,11 @@
            :class "form-control"
            :type "date"
            ;:placeholder (cell= (vocab :abs-day-placeholder s/lang))
-           :value (cell= (if (and abs-day year)
-                           (->> (util/doy->cljs-time-date abs-day year)
-                                (cstf/unparse (cstf/formatters :date),,,))
-                           (str year "-01-01")))
+           :value (cell= (if abs-day
+                           (util/cljs-time-date->iso-y-m-d (util/doy->cljs-time-date abs-day year))
+                           (if (= year (cstc/year (cstc/now)))
+                             (util/cljs-time-date->iso-y-m-d (cstc/now))
+                             (str year "-01-01"))))
            :on-change #(abs-day! (util/cljs-time-date->doy (cstf/parse (cstf/formatters :date)
                                                                        (val-id abs-day-id))))))
 

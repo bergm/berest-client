@@ -44,6 +44,10 @@
   (cstc/in-days (cstc/interval (cstc/date-time (or year 2010) 1 1)
                                (cstc/plus (cstc/date-time (or year 2010) month day) (cstc/days 1)))))
 
+(defn cljs-time-date->iso-y-m-d
+  [date]
+  (cstf/unparse (cstf/formatters :date) date))
+
 (defn is-leap-year [year]
   (= 0 (rem (- 2012 year) 4)))
 

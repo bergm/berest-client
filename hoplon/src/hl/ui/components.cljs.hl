@@ -146,8 +146,9 @@
         (bs/control-label :col [:sm 2] :for "user" (text "~(vocab :username s/lang)"))
         (div
           :col [:xs 3]
-          (bs/input
+          (input
             :id "user"
+            :class "form-control"
             :type "text"
             :autofocus "autofocus")))
 
@@ -155,7 +156,10 @@
         (bs/control-label :col [:sm 2] :for "pwd" (text "~(vocab :password s/lang)"))
         (div
           :col [:xs 3]
-          (bs/input :id "pwd" :type "password")))
+          (input
+            :id "pwd"
+            :class "form-control"
+            :type "password")))
 
       (bs/form-group
         (div
