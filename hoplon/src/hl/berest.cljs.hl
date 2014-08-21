@@ -105,7 +105,6 @@
 #_(add-initfn! highcharts-test)
 
 (s/login! "zalf" "fLAz")
-#_(cell= (when logged-in? (s/init-after-login)))
 
 #_(cell= (when (and s/logged-in? (not s/minimal-all-crops)) (s/load-minimal-all-crops)))
 (cell= (when (and s/logged-in? (not s/static-state)) (s/load-static-state)))
