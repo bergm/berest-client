@@ -210,7 +210,7 @@
                                         initial-soil-moistures))
 
         technology (cell= (do
-                            (swap! ~(cell incomplete*) (if ui.technology disj conj) :technology)
+                            (swap! ~(cell incomplete*) (if technology disj conj) :technology)
                             technology))
 
         crop-instances (cell= (do
@@ -615,23 +615,23 @@
                  ;:toggle plot-annual-details-visible?
                  :fields {:db-id tec-db-id
 
-                          :cycle-days cycle-days :cycle-days! #(s/update-db-entity @db-id :technology/cycle-days %)
+                          :cycle-days cycle-days :cycle-days! #(s/update-db-entity @tec-db-id :technology/cycle-days %)
 
                           :outlet-height outlet-height
-                          :outlet-height! #(s/update-db-entity @db-id :technology/outlet-height %)
+                          :outlet-height! #(s/update-db-entity @tec-db-id :technology/outlet-height %)
 
                           :sprinkle-loss-factor sprinkle-loss-factor
-                          :sprinkle-loss-factor! #(s/update-db-entity @db-id :technology/sprinkle-loss-factor %)
+                          :sprinkle-loss-factor! #(s/update-db-entity @tec-db-id :technology/sprinkle-loss-factor %)
 
-                          :type type :type! #(s/update-db-entity @db-id :technology/type %)
+                          :type type :type! #(s/update-db-entity @tec-db-id :technology/type %)
 
-                          :donation-min donation-min :donation-min! #(s/update-db-entity @db-id :donation/min %)
+                          :donation-min donation-min :donation-min! #(s/update-db-entity @tec-db-id :donation/min %)
 
-                          :donation-max donation-max :donation-max! #(s/update-db-entity @db-id :donation/max %)
+                          :donation-max donation-max :donation-max! #(s/update-db-entity @tec-db-id :donation/max %)
 
-                          :donation-opt donation-opt :donation-opt! #(s/update-db-entity @db-id :donation/opt %)
+                          :donation-opt donation-opt :donation-opt! #(s/update-db-entity @tec-db-id :donation/opt %)
 
-                          :step-size step-size :step-size! #(s/update-db-entity @db-id :donation/step-size %)}
+                          :step-size step-size :step-size! #(s/update-db-entity @tec-db-id :donation/step-size %)}
                  :opts {:edit? true
                         :label-cols 2
                         :value-cols 3})))
