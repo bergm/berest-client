@@ -270,7 +270,8 @@
                                     (:soil-moistures calc-result)))
 
         inputs (cell= (:inputs calc-result))
-        _ (cell= (println "inputs: " (pr-str inputs)))
+        _ (cell= (println "inputs: " (pr-str inputs)
+                          "\n chart-id: " chart-id))
         recommendation (cell= (:recommendation calc-result))
 
         chart-config {:chart {:renderTo chart-id
@@ -285,7 +286,14 @@
                       :xAxis {:type "datetime"
                               :labels {:format "{value: %d.%m.%Y}"
                                        :rotation 45
-                                       :align "left"}}
+                                       :align "left"}
+                              #_:plotBands #_[{:color "#FCFFC5"
+                                           :from  (.getTime (util/doy->js-date 200 2014))
+                                           :to    (.getTime (util/doy->js-date (+ 5 200) 2014))}]
+                              :plotLines [{:color "red"
+                                           ;:dashStyle "longdashdot"
+                                           :value (.getTime (util/doy->js-date (dec 200) 2014))
+                                           :width 3}]}
                       :yAxis [{:title {:text (str (vocab :aet-pet @s/lang) " []")}}
                               {:title {:text (str (vocab :sm @s/lang) "/"
                                                   (vocab :donation @s/lang) "/"
@@ -440,6 +448,40 @@
         _ (cell= (set-series-data 9 (create-ordered-curve-data soil-moistures :pet year)))
 
         _ (cell= (set-series-data 10 (create-ordered-curve-data inputs :extraction-depth-cm year)))
+
+
+        tt (fn [series-index data]
+                            (some-> chart-id
+                                    by-id
+                                    js/jQuery
+                                    .highcharts
+                                    .-series
+                                    (#(do (println "tt: " (pr-str %)) %),,,)
+                                    #_(#(nth % series-index) ,,,)
+                                    #_(.setData (clj->js data))))
+
+        _ (cell= (tt calc-until-abs-day* 0
+
+                     #_(some-> chart-id
+                         (#(do (println "1 " calc-until-abs-day* " " (pr-str %))
+                               %))
+                         by-id
+                         (#(do (println "2 " (pr-str %))
+                               %))
+                         js/jQuery
+                         (#(do (println "2.5 " (pr-str %))
+                               %))
+                         .highcharts
+                         (#(do (println "3 " (pr-str %))
+                               %))
+                         .-xAxis
+                         ;first
+
+                         #_(#(do (println (pr-str %))
+                               %))
+                         #_(.addPlotBand,,, {:color "#FCFFC5"
+                                           :from  (.getTime (util/doy->js-date calc-until-abs-day* 2014))
+                                           :to    (.getTime (util/doy->js-date (+ 5 calc-until-abs-day*) 2014))}))))
 
         #_sms-0-10 #_(cell= (->> soil-moistures
                             (mapv (fn [{:keys [abs-day sm-0-10]}]
