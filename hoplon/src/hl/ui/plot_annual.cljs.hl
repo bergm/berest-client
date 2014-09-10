@@ -290,7 +290,7 @@
                               #_:plotBands #_[{:color "#FCFFC5"
                                            :from  (.getTime (util/doy->js-date 200 2014))
                                            :to    (.getTime (util/doy->js-date (+ 5 200) 2014))}]
-                              :plotLines [{:color "red"
+                              #_:plotLines #_[{:color "red"
                                            ;:dashStyle "longdashdot"
                                            :value (.getTime (util/doy->js-date (dec 200) 2014))
                                            :width 3}]}
@@ -450,7 +450,7 @@
         _ (cell= (set-series-data 10 (create-ordered-curve-data inputs :extraction-depth-cm year)))
 
 
-        tt (fn [series-index data]
+        #_tt #_(fn [series-index data]
                             (some-> chart-id
                                     by-id
                                     js/jQuery
@@ -460,7 +460,7 @@
                                     #_(#(nth % series-index) ,,,)
                                     #_(.setData (clj->js data))))
 
-        _ (cell= (tt calc-until-abs-day* 0
+        #__ #_(cell= (tt calc-until-abs-day* 0
 
                      #_(some-> chart-id
                          (#(do (println "1 " calc-until-abs-day* " " (pr-str %))

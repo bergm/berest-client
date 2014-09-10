@@ -1,6 +1,7 @@
 #!/usr/bin/env boot
 
-#tailrecursion.boot.core/version "2.5.0"
+#_#tailrecursion.boot.core/version "2.5.0"
+#tailrecursion.boot.core/version "2.5.1"
 
 (set-env!
  :project      'berest-hoplon-client
@@ -12,8 +13,10 @@
                 "jboss" "https://repository.jboss.org/nexus/content/groups/public/"
                 }
 
- :dependencies '[[tailrecursion/boot.task   "2.2.3"]
-                 [tailrecursion/hoplon      "5.10.14"]
+ :dependencies '[#_[tailrecursion/boot.task   "2.2.3"]
+                 [tailrecursion/boot.task   "2.2.4"]
+                 #_[tailrecursion/hoplon      "5.10.14"]
+                 [tailrecursion/hoplon      "5.10.23"]
                  [tailrecursion/boot.notify "2.0.2"]
                  [tailrecursion/boot.ring   "0.2.1"]
                  #_[org.clojure/clojurescript "0.0-2202"]
