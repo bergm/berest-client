@@ -11,7 +11,7 @@
 
 ;stem cell
 (defc state {})
-(cell= (println "state: \n" (pr-str state)))
+#_(cell= (println "state: \n" (pr-str state)))
 
 (defc pwd-update-success? nil)
 
@@ -39,7 +39,7 @@
 (defc= users (:users state))
 
 (defc= user-weather-stations (:weather-stations state))
-(cell= (println "user-weather-stations: " (pr-str user-weather-stations)))
+#_(cell= (println "user-weather-stations: " (pr-str user-weather-stations)))
 
 (defc= technology-cycle-days (-> state :technology :technology/cycle-days))
 (defn set-technology-cycle-days
@@ -52,7 +52,21 @@
   (swap! state update-in [:technology :technology/cycle-days] value))
 
 
-(def route (h/route-cell "#/"))
+(defc routeHash (.. js/window -location -hash))
+(def full-route (h/route-cell routeHash #(reset! routeHash %)))
+(defc= route+params (str/split full-route #"\?|\&|="))
+(defc= route (first route+params))
+#_(cell= (println "route+params: " (pr-str route+params)))
+(defc= route-params (into {} (for [[k v] (partition 2 (rest route+params))]
+                               [(keyword k) v])))
+#_(cell= (println "route-params: " (pr-str route-params)))
+(defn set-route-params
+  [& params]
+  (->> (merge @route-params (into {} (for [[k v] (partition 2 params)] [k v])))
+       (map (fn [[k v]] (str (name k) "=" v)) ,,,)
+       (str/join "&" ,,,)
+       (str @route "?" ,,,)
+       (reset! routeHash ,,,)))
 
 (defc error nil)
 (defc loading [])
@@ -67,19 +81,19 @@
 (defc= user (:user-credentials state))
 
 (defc= lang (:language state))
-(cell= (println "lang: " (pr-str lang)))
+#_(cell= (println "lang: " (pr-str lang)))
 
 (defc= loaded?      (not= {} state))
 (defc= loading?     (seq loading))
 
 (defc= logged-in?   (not (nil? user)))
-(cell= (println "logged-in?: "(pr-str logged-in?)))
+#_(cell= (println "logged-in?: "(pr-str logged-in?)))
 
 (defc= admin-logged-in? (and (not (nil? user))
                              ((:user/roles user) :user.role/admin)))
 
 (defc= show-login?  (and #_loaded? (not logged-in?)))
-(cell= (println "show-login?: " show-login?))
+#_(cell= (println "show-login?: " show-login?))
 
 (defc= show-content?  (and loaded? logged-in?))
 

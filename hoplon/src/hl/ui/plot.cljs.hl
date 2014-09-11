@@ -211,7 +211,6 @@
            :click #(swap! edit? not)
            (text "~(vocab :edit-plot-button-label s/lang)"))
 
-
          (bs/form-group
            (bs/control-label :col [:sm label-cols] :for name-id (text "~(vocab :name-label s/lang)"))
            (div

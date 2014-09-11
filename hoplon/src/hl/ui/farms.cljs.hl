@@ -154,14 +154,22 @@
          [new-farm-id new-plot-id query-id] (repeatedly gensym)
 
          selected-farm (cell nil)
-         _ (cell= (println "selected-farm: " (pr-str selected-farm)))
+         _ (cell= (when-let [fid (:farm-id s/route-params)]
+                            (when-let [fs (:farms s/state)]
+                                      (when-let [f (fs (UUID. fid))]
+                                                (reset! ~(cell selected-farm) f)))))
+         ;_ (cell= (println "selected-farm: " (pr-str selected-farm)))
 
          selected-plot (cell nil)
-         _ (cell= (println "selected-plot: " (pr-str selected-plot)))
+         _ (cell= (when-let [pid (:plot-id s/route-params)]
+                            (when-let [ps (:plots selected-farm)]
+                                      (when-let [p (ps (UUID. pid))]
+                                                (reset! ~(cell selected-plot) p)))))
+         ;_ (cell= (println "selected-plot: " (pr-str selected-plot)))
 
          farms-count (cell= (count (:farms s/state)))
          many-farms? (cell= (> farms-count 1))
-         _ (cell= (when (= farms-count 1) (reset! selected-farm (first (:farms s/state)))))
+         _ (cell= (when (= farms-count 1) (reset! selected-farm (second (first (:farms s/state))))))
          ]
 
     (div
@@ -232,6 +240,7 @@
                        :mouseenter #(reset! hover? true)
                        :mouseleave #(reset! hover? false)
                        :click #(dosync
+                                (s/set-route-params :farm-id @id)
                                 (reset! selected-farm @farm)
                                 (reset! selected-plot nil))
 
@@ -360,7 +369,9 @@
                                                       :success selected?})
                                        :mouseenter #(reset! hover? true)
                                        :mouseleave #(reset! hover? false)
-                                       :click #(reset! selected-plot @plot)
+                                       :click #(do
+                                                (s/set-route-params :plot-id @plot-id)
+                                                (reset! selected-plot @plot))
 
                                        (td (text "~(or plot-name plot-id)"))
                                        (td (text "~(or plot-number \"\")"))
@@ -511,40 +522,56 @@
 
                               (div :class "row" (div :col [:xs 12] (hr)))
 
-                              (let [annual-years (cell= (->> annuals
+                              (let [recalc-count (cell 0)
+                                    _ (cell= (println "recalc-count: " recalc-count))
+
+                                    annual-years (cell= (->> annuals
                                                              (map :plot.annual/year,,,)
                                                              sort))
+                                    ;_ (cell= (print "annual-years: " (pr-str annual-years)))
 
-                                    _ (print "annual-years: " (pr-str annual-years))
-
-                                    plot-annual-details-visible?* (cell false)
-                                    plot-annual-details-visible? (cell= (and plot-annual-details-visible?*
-                                                                             (seq annual-years)))
+                                    annual-plot-details-visible?* (cell true)
+                                    annual-plot-details-visible? (cell= (and (seq annual-years)
+                                                                             annual-plot-details-visible?*))
 
                                     current-year (.getFullYear (js/Date.))
 
                                     selected-annual-year* (cell nil)
-
+                                    _ (cell= (when-let [year (:year s/route-params)]
+                                                       (reset! ~(cell selected-annual-year*) (js/parseInt year))))
                                     selected-annual-year (cell= (or selected-annual-year*
                                                                     ((into #{} annual-years) current-year)
                                                                     (last annual-years)))
+                                    ;_ (cell= (println "selected-annual-year: " selected-annual-year))
 
-                                    selected-annual (cell= (first (filter #(= selected-annual-year (:plot.annual/year %)) annuals)))]
+                                    selected-annual (cell= (first (filter #(= selected-annual-year (:plot.annual/year %)) annuals)))
+                                    ;_ (cell= (when selected-annual (swap! ~(cell recalc-count) inc)))
+                                    ;_ (cell= (println "selected-annual: " (pr-str selected-annual)))
+                                    ]
+
 
                                    [(div
                                       :class "row"
 
-                                      (div
-                                        :col [:xs 2]
-                                        (h4
-                                          (text "~(vocab :annual-plot-data-label s/lang) ~(when plot-name plot-name) ~(when-not plot-details-visible? \" ...\")")))
+                                      (let
+                                        [hover? (cell false)]
+                                        (div
+                                          :col [:xs 2]
+                                          :mouseenter #(reset! hover? true)
+                                          :mouseleave #(reset! hover? false)
+                                          :class (cell= {:bg-warning hover?})
+                                          :click #(swap! annual-plot-details-visible?* not)
+                                          (h4
+                                            (text "~(vocab :annual-plot-data-label s/lang) ~(when plot-name plot-name) ~(when-not annual-plot-details-visible? \" ...\")"))))
 
                                       (div
                                         :col [:xs 1]
                                         (select
                                           :id annual-years-id
                                           :class "form-control"
-                                          :on-change #(reset! selected-annual-year* (js/parseInt (val-id annual-years-id)))
+                                          :on-change #(let [year (js/parseInt (val-id annual-years-id))]
+                                                       (s/set-route-params :year year)
+                                                       (reset! selected-annual-year* year))
                                           (loop-tpl
                                             :bindings [year annual-years]
                                             (option :value year
@@ -572,7 +599,7 @@
 
                                       (plot-annual/plot-annual
                                         :style "margin-top: 20px"
-                                        :toggle plot-annual-details-visible?
+                                        :toggle annual-plot-details-visible?
                                         :fields {:plot-id plot-id
 
                                                  :db-id ann-db-id
@@ -591,522 +618,9 @@
 
                                                  :crop-instances crop-instances
 
-                                                 :donations donations}
+                                                 :donations donations
+
+                                                 :recalc-count recalc-count}
                                         :opts {:edit? true
                                                :label-cols 2
-                                               :value-cols 3}))])]))
-
-                      #_(div
-                        (loop-tpl
-                          :bindings [[_ {db-id :db/id
-                                         id :plot/id
-                                         name :plot/name
-                                         number :plot/number
-                                         description :plot/description
-                                         short-description :plot/short-description
-                                         crop-area :plot/crop-area
-                                         irrigation-area :plot/irrigation-area
-                                         stt :plot/stt
-                                         slope :plot/slope
-                                         field-capacities :plot/field-capacities
-                                         fc-pwp-unit :plot/fc-pwp-unit
-                                         permanent-wilting-points :plot/permanent-wilting-points
-                                         pwp-unit :plot/pwp-unit
-                                         ka5-soil-types :plot/ka5-soil-types
-                                         groundwaterlevel :plot/groundwaterlevel
-                                         annuals :plot/annuals
-                                         weather-station :plot/weather-station
-                                         weather-data :plot/weather-data
-                                         location-coords :plot/location-coords
-                                         notes :plot/notes
-                                         az-glz :plot/az-glz
-                                         nft :plot/nft
-                                         bse :plot/bse
-                                         sse :plot/sse
-                                         bwb :plot/bwb
-                                         irrigation-well :plot/irrigation-well}]
-                                     (cell= (sort-by :plot/name (:plots farm)))]
-                          :bind-ids [annual-years-id]
-                          (let [plot-details-visible? (cell false)
-
-                                plot-hover? (cell false)]
-                               (div
-                                 :hover #(swap! plot-hover? not)
-                                 (h4
-                                   (text "~(if name name (vocab :no-plot-name-label s/lang))")
-                                   (button
-                                     :toggle plot-hover?
-                                     :style "float:right"
-                                     :class "btn btn-danger"
-                                     :click #(s/delete-db-entity @db-id)
-                                     (text "~(vocab :delete-plot-button s/lang)")))
-
-                                 (span
-                                   :class "glyphicon glyphicon-plus"
-                                   :toggle (cell= (not plot-details-visible?))
-                                   :on-click #(reset! plot-details-visible? true))
-                                 (span
-                                   :toggle plot-details-visible?
-                                   :class "glyphicon glyphicon-minus"
-                                   :click #(reset! plot-details-visible? false))
-                                 (span (text " ~(vocab :show-plot-details s/lang)"))
-
-                                 (plot/plot
-                                   :toggle plot-details-visible?
-                                   :fields {:id id
-                                            :name name :name! #(s/update-db-entity @db-id :plot/name %)
-                                            :number number :number! #(s/update-db-entity @db-id :plot/number %)
-                                            :description description :description! #(s/update-db-entity @db-id :plot/description %)
-
-                                            :short-description short-description
-                                            :short-description! #(s/update-db-entity @db-id :plot/short-description %)
-
-                                            :crop-area crop-area :crop-area! #(s/update-db-entity @db-id :plot/crop-area %)
-
-                                            :irrigation-area irrigation-area
-                                            :irrigation-area! #(s/update-db-entity @db-id :plot/irrigation-area %)
-
-                                            :stt stt :stt! #(s/update-db-entity @db-id :plot/stt [:soil.stt/key %])
-                                            :slope slope :slope! #(s/update-db-entity @db-id :plot/slope [:slope/key %])
-
-                                            :field-capacities field-capacities
-                                            ;:field-capacities! #(s/update-db-entity @db-id :plot/field-capacities %)
-
-                                            :fc-pwp-unit fc-pwp-unit :fc-pwp-unit! #(s/update-db-entity @db-id :plot/fc-pwp-unit %)
-
-                                            :permanent-wilting-points permanent-wilting-points
-                                            ;:permanent-wilting-points! #(s/update-db-entity @db-id :plot/permanent-wilting-points %)
-
-                                            :pwp-unit pwp-unit :pwp-unit! #(s/update-db-entity @db-id :plot/pwp-unit %)
-
-                                            :ka5-soil-types ka5-soil-types
-                                            :ka5-soil-types! #(s/update-db-entity @db-id :plot/ka5-soil-types %)
-
-                                            :groundwaterlevel groundwaterlevel
-                                            :groundwaterlevel! #(s/update-db-entity @db-id :plot/groundwaterlevel %)
-
-                                            :annuals annuals
-
-                                            :weather-station weather-station
-                                            :weather-station! #(s/update-db-entity @db-id :plot/weather-station %)
-
-                                            :weather-data weather-data
-
-                                            :location-coords location-coords
-                                            :location-coords! #(s/update-db-entity @db-id :plot/location-coords %)
-
-                                            :notes notes :notes! #(s/update-db-entity @db-id :plot/notes %)
-
-                                            :az-glz az-glz :az-glz! #(s/update-db-entity @db-id :plot/az-glz %)
-                                            :nft nft :nft! #(s/update-db-entity @db-id :plot/nft %)
-                                            :bse bse :bse! #(s/update-db-entity @db-id :plot/bse %)
-                                            :sse sse :sse! #(s/update-db-entity @db-id :plot/sse %)
-                                            :bwb bwb :bwb! #(s/update-db-entity @db-id :plot/bwb %)
-
-                                            ;:irrigation-well irrigation-well
-                                            ;irrigation-well! #(s/update-db-entity @db-id :plot/irrigation-well %)
-                                            }
-                                   :opts {:edit? true
-                                          :label-cols 2
-                                          :value-cols 3})
-
-
-                                 (let [annual-years (cell= (->> annuals
-                                                                (map :plot.annual/year,,,)
-                                                                sort))
-
-                                       _ (print "annual-years: " (pr-str annual-years))
-
-                                       plot-annual-details-visible?* (cell false)
-                                       plot-annual-details-visible? (cell= (and plot-annual-details-visible?*
-                                                                                (seq annual-years)))
-
-                                       current-year (.getFullYear (js/Date.))
-
-                                       selected-annual-year* (cell nil)
-
-                                       selected-annual-year (cell= (or selected-annual-year*
-                                                                       ((into #{} annual-years) current-year)
-                                                                       (last annual-years)))
-
-                                       selected-annual (cell= (first (filter #(= selected-annual-year (:plot.annual/year %)) annuals)))]
-
-                                      (div
-                                        :class "container"
-                                        :style "width:100%; padding-left:0px"
-
-                                        (div
-                                          :class "row"
-
-                                          (div
-                                            :col [:xs 3]
-                                            (span
-                                              :class "glyphicon glyphicon-plus"
-                                              :toggle (cell= (not plot-annual-details-visible?))
-                                              :on-click #(reset! plot-annual-details-visible?* true))
-                                            (span
-                                              :toggle plot-annual-details-visible?
-                                              :class "glyphicon glyphicon-minus"
-                                              :click #(reset! plot-annual-details-visible?* false))
-                                            (span (text " ~(vocab :show-plot-annual-details s/lang)")))
-
-                                          (div
-                                            :col [:xs 4]
-                                            (bs/form
-                                              :opts [:horizontal]
-
-                                              (bs/control-label :col [:sm 4] :for annual-years-id (text "~(vocab :annual-years-label s/lang)"))
-                                              (div
-                                                :col [:xs 8]
-                                                (select
-                                                  :id annual-years-id
-                                                  :class "form-control"
-                                                  :on-change #(reset! selected-annual-year* (js/parseInt (val-id annual-years-id)))
-                                                  (loop-tpl
-                                                    :bindings [year annual-years]
-                                                    (option :value year
-                                                            :selected (cell= (= year selected-annual-year))
-                                                            (text "~{year}")))))))
-
-                                          (button
-                                            ;:toggle farm-hover?
-                                            :style "float:right"
-                                            :class "btn btn-warning"
-                                            :click #(s/create-new-plot-annual @id)
-                                            (text "~(vocab :new-plot-annual-button s/lang)")))
-
-                                        (cell-let
-                                          [{db-id :db/id
-                                            year :plot.annual/year
-                                            abs-day-of-initial-soil-moisture-measurement :plot.annual/abs-day-of-initial-soil-moisture-measurement
-                                            initial-soil-moistures :plot.annual/initial-soil-moistures
-                                            initial-sm-unit :plot.annual/initial-sm-unit
-                                            technology :plot.annual/technology
-                                            crop-instances :plot.annual/crop-instances
-                                            donations :plot.annual/donations
-                                            } selected-annual]
-
-                                          (plot-annual/plot-annual
-                                            :style "margin-top: 20px"
-                                            :toggle plot-annual-details-visible?
-                                            :fields {:plot-id id
-
-                                                     :db-id db-id
-
-                                                     :year year :year! #(s/update-db-entity @db-id :plot.annual/year %)
-
-                                                     :abs-day-of-initial-soil-moisture-measurement abs-day-of-initial-soil-moisture-measurement
-                                                     :abs-day-of-initial-soil-moisture-measurement! #(s/update-db-entity @db-id :plot.annual/abs-day-of-initial-soil-moisture-measurement %)
-
-                                                     :initial-soil-moistures initial-soil-moistures
-
-                                                     :initial-sm-unit initial-sm-unit
-                                                     :initial-sm-unit! #(s/update-db-entity @db-id :plot.annual/initial-sm-unit %)
-
-                                                     :technology technology
-
-                                                     :crop-instances crop-instances
-
-                                                     :donations donations}
-                                            :opts {:edit? true
-                                                   :label-cols 2
-                                                   :value-cols 3}))))
-
-                                 (hr)))))
-
-                      ]))
-
-
-
-
-
-      #_(div
-        (loop-tpl
-          :bindings [[_ {farm-db-id :db/id
-                         farm-id :farm/id
-                         farm-name :farm/name
-                         addresses :farm/addresses
-                         farm-notes :farm/notes
-                         authorative-weather-station :farm/authorative-weather-station
-                         weather-station :farm/weather-station
-                         weather-data :farm/weather-data
-                         :as farm}] (cell= (sort-by #(-> % second :farm/name) filtered-farms))]
-          ;:bind-ids [farm-id]
-          (let [farm-details-visible? (cell false)
-                farm-hover? (cell false)]
-            (div
-              :mouseenter #(reset! farm-hover? true)
-              :mouseleave #(reset! farm-hover? false)
-              ;:hover #(swap! farm-hover? not)
-              (h3
-                (text "~(if farm-name farm-name (vocab :no-farm-name-label s/lang))")
-                (div
-                  (button
-                    :toggle farm-hover?
-                    :style "float:right"
-                    :class "btn btn-danger"
-                    :click #(do (println "delete farm id: " @farm-id " name: " @farm-name)
-                                (s/delete-db-entity @farm-db-id))
-                    (text "~(vocab :delete-farm-button s/lang)"))
-
-                  (button
-                    :toggle farm-hover?
-                    :style "float:right"
-                    :class "btn btn-warning"
-                    :click #(s/create-new-plot @farm-id)
-                    (text "~(vocab :new-plot-button s/lang)"))
-                  ))
-
-              (span
-                :class "glyphicon glyphicon-plus"
-                :toggle (cell= (not farm-details-visible?))
-                :on-click #(reset! farm-details-visible? true))
-              (span
-                :toggle farm-details-visible?
-                :class "glyphicon glyphicon-minus"
-                :click #(reset! farm-details-visible? false))
-              (span (text " ~(vocab :show-farm-details s/lang)"))
-
-              (farm/farm
-                :toggle farm-details-visible?
-                :fields {:id farm-id
-                         :name farm-name :name! #(s/update-db-entity @farm-db-id :farm/name %)
-                         :addresses addresses
-                         :notes farm-notes :notes! #(s/update-db-entity @farm-db-id :farm/notes %)
-
-                         :authorative-weather-station authorative-weather-station
-                         :authorative-weather-station! #(s/update-db-entity @farm-db-id :farm/authorative-weather-station %)
-
-                         :weather-station weather-station
-                         :weather-station! #(s/update-db-entity @farm-db-id :farm/weather-station %)
-
-                         :weather-data weather-data}
-                :opts {:edit? true
-                       :label-cols 2
-                       :value-cols 3})
-
-              (hr)
-
-              (div
-                (loop-tpl
-                  :bindings [[_ {db-id :db/id
-                                 id :plot/id
-                                 name :plot/name
-                                 number :plot/number
-                                 description :plot/description
-                                 short-description :plot/short-description
-                                 crop-area :plot/crop-area
-                                 irrigation-area :plot/irrigation-area
-                                 stt :plot/stt
-                                 slope :plot/slope
-                                 field-capacities :plot/field-capacities
-                                 fc-pwp-unit :plot/fc-pwp-unit
-                                 permanent-wilting-points :plot/permanent-wilting-points
-                                 pwp-unit :plot/pwp-unit
-                                 ka5-soil-types :plot/ka5-soil-types
-                                 groundwaterlevel :plot/groundwaterlevel
-                                 annuals :plot/annuals
-                                 weather-station :plot/weather-station
-                                 weather-data :plot/weather-data
-                                 location-coords :plot/location-coords
-                                 notes :plot/notes
-                                 az-glz :plot/az-glz
-                                 nft :plot/nft
-                                 bse :plot/bse
-                                 sse :plot/sse
-                                 bwb :plot/bwb
-                                 irrigation-well :plot/irrigation-well}]
-                             (cell= (sort-by :plot/name (:plots farm)))]
-                  :bind-ids [annual-years-id]
-                  (let [plot-details-visible? (cell false)
-
-                        plot-hover? (cell false)]
-                    (div
-                      :hover #(swap! plot-hover? not)
-                      (h4
-                        (text "~(if name name (vocab :no-plot-name-label s/lang))")
-                        (button
-                          :toggle plot-hover?
-                          :style "float:right"
-                          :class "btn btn-danger"
-                          :click #(s/delete-db-entity @db-id)
-                          (text "~(vocab :delete-plot-button s/lang)")))
-
-                      (span
-                        :class "glyphicon glyphicon-plus"
-                        :toggle (cell= (not plot-details-visible?))
-                        :on-click #(reset! plot-details-visible? true))
-                      (span
-                        :toggle plot-details-visible?
-                        :class "glyphicon glyphicon-minus"
-                        :click #(reset! plot-details-visible? false))
-                      (span (text " ~(vocab :show-plot-details s/lang)"))
-
-                      (plot/plot
-                        :toggle plot-details-visible?
-                        :fields {:id id
-                                 :name name :name! #(s/update-db-entity @db-id :plot/name %)
-                                 :number number :number! #(s/update-db-entity @db-id :plot/number %)
-                                 :description description :description! #(s/update-db-entity @db-id :plot/description %)
-
-                                 :short-description short-description
-                                 :short-description! #(s/update-db-entity @db-id :plot/short-description %)
-
-                                 :crop-area crop-area :crop-area! #(s/update-db-entity @db-id :plot/crop-area %)
-
-                                 :irrigation-area irrigation-area
-                                 :irrigation-area! #(s/update-db-entity @db-id :plot/irrigation-area %)
-
-                                 :stt stt :stt! #(s/update-db-entity @db-id :plot/stt [:soil.stt/key %])
-                                 :slope slope :slope! #(s/update-db-entity @db-id :plot/slope [:slope/key %])
-
-                                 :field-capacities field-capacities
-                                 ;:field-capacities! #(s/update-db-entity @db-id :plot/field-capacities %)
-
-                                 :fc-pwp-unit fc-pwp-unit :fc-pwp-unit! #(s/update-db-entity @db-id :plot/fc-pwp-unit %)
-
-                                 :permanent-wilting-points permanent-wilting-points
-                                 ;:permanent-wilting-points! #(s/update-db-entity @db-id :plot/permanent-wilting-points %)
-
-                                 :pwp-unit pwp-unit :pwp-unit! #(s/update-db-entity @db-id :plot/pwp-unit %)
-
-                                 :ka5-soil-types ka5-soil-types
-                                 :ka5-soil-types! #(s/update-db-entity @db-id :plot/ka5-soil-types %)
-
-                                 :groundwaterlevel groundwaterlevel
-                                 :groundwaterlevel! #(s/update-db-entity @db-id :plot/groundwaterlevel %)
-
-                                 :annuals annuals
-
-                                 :weather-station weather-station
-                                 :weather-station! #(s/update-db-entity @db-id :plot/weather-station %)
-
-                                 :weather-data weather-data
-
-                                 :location-coords location-coords
-                                 :location-coords! #(s/update-db-entity @db-id :plot/location-coords %)
-
-                                 :notes notes :notes! #(s/update-db-entity @db-id :plot/notes %)
-
-                                 :az-glz az-glz :az-glz! #(s/update-db-entity @db-id :plot/az-glz %)
-                                 :nft nft :nft! #(s/update-db-entity @db-id :plot/nft %)
-                                 :bse bse :bse! #(s/update-db-entity @db-id :plot/bse %)
-                                 :sse sse :sse! #(s/update-db-entity @db-id :plot/sse %)
-                                 :bwb bwb :bwb! #(s/update-db-entity @db-id :plot/bwb %)
-
-                                 ;:irrigation-well irrigation-well
-                                 ;irrigation-well! #(s/update-db-entity @db-id :plot/irrigation-well %)
-                                 }
-                        :opts {:edit? true
-                               :label-cols 2
-                               :value-cols 3})
-
-
-                      (let [annual-years (cell= (->> annuals
-                                                     (map :plot.annual/year ,,,)
-                                                     sort))
-
-                            _ (print "annual-years: " (pr-str annual-years))
-
-                            plot-annual-details-visible?* (cell false)
-                            plot-annual-details-visible? (cell= (and plot-annual-details-visible?*
-                                                                     (seq annual-years)))
-
-                            current-year (.getFullYear (js/Date.))
-
-                            selected-annual-year* (cell nil)
-
-                            selected-annual-year (cell= (or selected-annual-year*
-                                                            ((into #{} annual-years) current-year)
-                                                            (last annual-years)))
-
-                            selected-annual (cell= (first (filter #(= selected-annual-year (:plot.annual/year %)) annuals)))]
-
-                        (div
-                          :class "container"
-                          :style "width:100%; padding-left:0px"
-
-                          (div
-                            :class "row"
-
-                            (div
-                              :col [:xs 3]
-                              (span
-                                :class "glyphicon glyphicon-plus"
-                                :toggle (cell= (not plot-annual-details-visible?))
-                                :on-click #(reset! plot-annual-details-visible?* true))
-                              (span
-                                :toggle plot-annual-details-visible?
-                                :class "glyphicon glyphicon-minus"
-                                :click #(reset! plot-annual-details-visible?* false))
-                              (span (text " ~(vocab :show-plot-annual-details s/lang)")))
-
-                            (div
-                              :col [:xs 4]
-                              (bs/form
-                                :opts [:horizontal]
-
-                                (bs/control-label :col [:sm 4] :for annual-years-id (text "~(vocab :annual-years-label s/lang)"))
-                                (div
-                                  :col [:xs 8]
-                                  (select
-                                  :id annual-years-id
-                                  :class "form-control"
-                                  :on-change #(reset! selected-annual-year* (js/parseInt (val-id annual-years-id)))
-                                  (loop-tpl
-                                    :bindings [year annual-years]
-                                    (option :value year
-                                            :selected (cell= (= year selected-annual-year))
-                                            (text "~{year}")))))))
-
-                            (button
-                              ;:toggle farm-hover?
-                              :style "float:right"
-                              :class "btn btn-warning"
-                              :click #(s/create-new-plot-annual @id)
-                              (text "~(vocab :new-plot-annual-button s/lang)")))
-
-                          (cell-let
-                            [{db-id :db/id
-                              year :plot.annual/year
-                              abs-day-of-initial-soil-moisture-measurement :plot.annual/abs-day-of-initial-soil-moisture-measurement
-                              initial-soil-moistures :plot.annual/initial-soil-moistures
-                              initial-sm-unit :plot.annual/initial-sm-unit
-                              technology :plot.annual/technology
-                              crop-instances :plot.annual/crop-instances
-                              donations :plot.annual/donations
-                              } selected-annual]
-
-                            (plot-annual/plot-annual
-                              :style "margin-top: 20px"
-                              :toggle plot-annual-details-visible?
-                              :fields {:plot-id id
-
-                                       :db-id db-id
-
-                                       :year year :year! #(s/update-db-entity @db-id :plot.annual/year %)
-
-                                       :abs-day-of-initial-soil-moisture-measurement abs-day-of-initial-soil-moisture-measurement
-                                       :abs-day-of-initial-soil-moisture-measurement! #(s/update-db-entity @db-id :plot.annual/abs-day-of-initial-soil-moisture-measurement %)
-
-                                       :initial-soil-moistures initial-soil-moistures
-
-                                       :initial-sm-unit initial-sm-unit
-                                       :initial-sm-unit! #(s/update-db-entity @db-id :plot.annual/initial-sm-unit %)
-
-                                       :technology technology
-
-                                       :crop-instances crop-instances
-
-                                       :donations donations}
-                              :opts {:edit? true
-                                     :label-cols 2
-                                     :value-cols 3}))))
-
-                      (hr)))))
-
-              ))))
-
-
-
-      )))
+                                               :value-cols 3}))])]))])))))

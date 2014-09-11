@@ -197,8 +197,9 @@
 
         incomplete* (cell #{})
         incomplete (cell= (set/union incomplete incomplete*))
-
-        _ (cell= (println "incomplete: " (pr-str incomplete)))
+        ;_ (cell= (println "incomplete: " (pr-str incomplete)))
+        complete? (cell= (empty? incomplete))
+        ;_ (cell= (println "complete?: " complete?))
 
         abs-day-of-initial-soil-moisture-measurement
         (cell= (do
@@ -239,18 +240,15 @@
                                        (util/dmy-date->doy 31 12 year))))
         ;_ (cell= (println "calc-until-abs-day*: " (pr-str calc-until-abs-day*)))
 
+        recalc-count (cell 0)
+
         calc-result (cell nil)
         ;_ (cell= (println "calc-result: " (pr-str calc-result)))
         recommendation (cell nil)
 
-
-        calc-fn (fn [plot-id until-abs-day year]
-                    (when (and plot-id until-abs-day year (empty? @incomplete))
-                          (s/calculate-from-db calc-result plot-id until-abs-day year)))
-
         ;only calc plot if chart is visible
-        _ (cell= (when toggle
-                       (calc-fn plot-id calc-until-abs-day* year)))
+        _ (cell= (when (and plot-id calc-until-abs-day* year complete? recalc-count toggle)
+                       (with-timeout 0 (s/calculate-from-db ~(cell calc-result) plot-id calc-until-abs-day* year))))
 
         soil-moistures (cell= (mapv (fn [{:keys [abs-day soil-moistures
                                                  qu-target aet7pet aet pet] :as all}]
@@ -270,7 +268,7 @@
                                     (:soil-moistures calc-result)))
 
         inputs (cell= (:inputs calc-result))
-        _ (cell= (println "inputs: " (pr-str inputs)
+        #__ #_(cell= (println "inputs: " (pr-str inputs)
                           "\n chart-id: " chart-id))
         recommendation (cell= (:recommendation calc-result))
 
@@ -581,7 +579,7 @@
              (let [depth* (cell nil)
                    sm* (cell nil)
                    unit* (cell= (vocab (keyword ((fnil clojure.core/name "") initial-sm-unit)) s/lang))
-                   _ (println "initial-soil-moistures: " (pr-str initial-soil-moistures))]
+                   _ (cell= (println "initial-soil-moistures: " (pr-str initial-soil-moistures)))]
                (div
                  :col [:xs (min (+ value-cols 2) (- 12 label-cols))]
                  #_(p :toggle no-edit? :class "form-control-static" (text "~{irrigation-area}"))
@@ -625,16 +623,7 @@
                  :on-change #()
                  (option "Schlauchtrommel")
                  (option "Tropfenbewässerung")
-                 (option "Linearregner")
-                 #_(loop-tpl
-                   :bindings [{key :soil.stt/key
-                               symbol :soil.stt/symbol
-                               description :soil.stt/description
-                               subs-groups :soil.stt/substrate-groups}
-                              (cell= (sort-by :soil.stt/symbol s/stts))]
-                   (option :value key
-                           :selected (cell= (= key (:soil.stt/key stt)))
-                           (text "~{symbol} | ~{description}"))))))
+                 (option "Linearregner"))))
 
            (cell-let
              [{tec-db-id :db/id
@@ -845,8 +834,7 @@
              :col [:xs 2]
              (span
                :class "glyphicon glyphicon-refresh"
-               :on-click #(calc-fn @plot-id @calc-until-abs-day* @year)))))
-
+               :on-click #(swap! recalc-count inc #_(calc-fn @plot-id @calc-until-abs-day* @year))))))
 
          (div
            :id chart-id
@@ -861,7 +849,7 @@
 
                 (div
                   :toggle (cell= (= action :irrigate))
-                  :col [:xs 2]
+                  :col [:xs 10]
                   (div
                     :class "input-group"
                     (input
@@ -885,10 +873,7 @@
 
                 (div
                   :col [:xs 6]
-                  (p :class "form-control-static" (strong (text "~(s/lang rec-text)"))))
-                )
-
-           )
+                  (p :class "form-control-static" (strong (text "~(when rec-text (rec-text s/lang))"))))))
 
 
          )) (dissoc attrs :fields :opts) kids)))
