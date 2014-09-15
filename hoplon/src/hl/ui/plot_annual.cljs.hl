@@ -230,7 +230,8 @@
          donations-id
          calc-until-id
          chart-id
-         recommended-donation-id] (repeatedly gensym)
+         recommended-donation-id
+         plot-line-id plot-band-id] (repeatedly gensym)
 
         calc-until-abs-day (cell nil)
         calc-until-abs-day* (cell= (if calc-until-abs-day
@@ -286,11 +287,12 @@
                                        :rotation 45
                                        :align "left"}
                               #_:plotBands #_[{:color "#FCFFC5"
-                                           :from  (.getTime (util/doy->js-date 200 2014))
-                                           :to    (.getTime (util/doy->js-date (+ 5 200) 2014))}]
+                                           :from  (.getTime (util/doy->js-date 200 1995))
+                                           :to    (.getTime (util/doy->js-date (+ 5 200) 1995))}]
                               #_:plotLines #_[{:color "red"
+                                           :id "bla"
                                            ;:dashStyle "longdashdot"
-                                           :value (.getTime (util/doy->js-date (dec 200) 2014))
+                                           :value (.getTime (util/doy->js-date (dec 200) 1995))
                                            :width 3}]}
                       :yAxis [{:title {:text (str (vocab :aet-pet @s/lang) " []")}}
                               {:title {:text (str (vocab :sm @s/lang) "/"
@@ -447,39 +449,25 @@
 
         _ (cell= (set-series-data 10 (create-ordered-curve-data inputs :extraction-depth-cm year)))
 
-
-        #_tt #_(fn [series-index data]
-                            (some-> chart-id
-                                    by-id
-                                    js/jQuery
-                                    .highcharts
-                                    .-series
-                                    (#(do (println "tt: " (pr-str %)) %),,,)
-                                    #_(#(nth % series-index) ,,,)
-                                    #_(.setData (clj->js data))))
-
-        #__ #_(cell= (tt calc-until-abs-day* 0
-
-                     #_(some-> chart-id
-                         (#(do (println "1 " calc-until-abs-day* " " (pr-str %))
-                               %))
-                         by-id
-                         (#(do (println "2 " (pr-str %))
-                               %))
-                         js/jQuery
-                         (#(do (println "2.5 " (pr-str %))
-                               %))
-                         .highcharts
-                         (#(do (println "3 " (pr-str %))
-                               %))
-                         .-xAxis
-                         ;first
-
-                         #_(#(do (println (pr-str %))
-                               %))
-                         #_(.addPlotBand,,, {:color "#FCFFC5"
-                                           :from  (.getTime (util/doy->js-date calc-until-abs-day* 2014))
-                                           :to    (.getTime (util/doy->js-date (+ 5 calc-until-abs-day*) 2014))}))))
+        _ (cell= (when soil-moistures
+                       (some-> chart-id
+                               by-id
+                               js/jQuery
+                               .highcharts
+                               .-xAxis
+                               (nth,,, 0)
+                               (#(do
+                                  (.removePlotLine % plot-line-id)
+                                  (.addPlotLine % (clj->js {:id plot-line-id
+                                                            :color "red"
+                                                            ;:dashStyle "longdashdot"
+                                                            :value (.getTime (util/doy->js-date (dec calc-until-abs-day*) year))
+                                                            :width 3}))
+                                  (.removePlotBand % plot-band-id)
+                                  (.addPlotLine % (clj->js {:id plot-band-id
+                                                            :color "#FCFFC5"
+                                                            :from (.getTime (util/doy->js-date calc-until-abs-day* year))
+                                                            :to (.getTime (util/doy->js-date (+ 5 calc-until-abs-day*) year))})))) ,,, )))
 
         #_sms-0-10 #_(cell= (->> soil-moistures
                             (mapv (fn [{:keys [abs-day sm-0-10]}]
@@ -873,6 +861,37 @@
 
                 (div
                   :col [:xs 6]
+
+                  (button
+                    :name "bli"
+                    :click (fn [] (some-> chart-id
+                                          by-id
+                                          js/jQuery
+                                   (#(do (println "1") %),,,)
+                                   .highcharts
+                                   (#(do (println "2") %),,,)
+                                   .-xAxis
+                                   (#(do (println "3 xAxis.height: " (.-height (nth % 0))
+                                                  " from: " (.getTime (util/doy->js-date (dec 200) 1995))
+                                                  " to: " (.getTime (util/doy->js-date (dec 220) 1995))) %),,,)
+                                   #_(nth ,,, 0)
+                                   (#(do (println "4") %),,,)
+                                   (nth ,,, 0)
+                                   #_(.removePlotLine ,,, "bla")
+                                   #_(#(.getPrototypeOf js/Object %) ,,,)
+                                   (.addPlotLine ,,, {:color "green"
+                                                      ;:dashStyle "longdashdot"
+                                                      :value (.getTime (util/doy->js-date (dec 220) 1995))
+                                                      :width 3}))
+                                   #_(#(.addPlotBand (nth % 0) {:color "red" #_"#FCFFC5"
+                                                              :from  (.getTime (util/doy->js-date (- calc-until-abs-day* 5) year))
+                                                              :to    (.getTime (util/doy->js-date calc-until-abs-day* year))}) ,,,)
+                                   #_.-series
+                                   #_.-data
+                                   #_(#(nth % 0),,,)
+                                   #_(#(do (println "5") %) ,,,))
+                    "blalbga")
+
                   (p :class "form-control-static" (strong (text "~(when rec-text (rec-text s/lang))"))))))
 
 
