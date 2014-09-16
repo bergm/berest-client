@@ -6,6 +6,7 @@
             [de.zalf.berest.client.hoplon.util :as util]
             [de.zalf.berest.client.hoplon.state :as s]
             [ui.elements :as uie]
+            [ui.components :as uic]
             [ui.farm :as farm]
             [ui.plot :as plot]
             [ui.plot-annual :as plot-annual]
@@ -295,7 +296,12 @@
                            (div
                              :col [:xs 1]
 
-                             (let [checked? (cell nil)]
+                             (uic/safe-delete-button
+                               :action! #(do (println "delete farm id: " @farm-id " name: " @farm-name)
+                                             (s/delete-db-entity @farm-db-id))
+                               :value (cell= (vocab :delete-farm-button s/lang s/lang)))
+
+                             #_(let [checked? (cell nil)]
                                   (div
                                     :class "input-group" #_"input-group pull-right"
 
@@ -442,24 +448,10 @@
                                   ;:style "background: blue"
                                   ;:class "pull-right"
 
-                                  (let [checked? (cell nil)]
-                                       (div
-                                         :class "input-group"
-                                         (input
-                                           :type "button"
-                                           :class (cell= {:form-control true
-                                                          :btn true
-                                                          :btn-danger true
-                                                          :btn-block true
-                                                          :disabled (not checked?)})
-                                           :click #(do (println "delete plot id: " @plot-id " name: " @plot-name)
-                                                       (s/delete-db-entity @plot-db-id))
-                                           :value (cell= (vocab :delete-plot-button s/lang)))
-                                         (span
-                                           :class "input-group-addon"
-                                           (input
-                                             :type "checkbox"
-                                             :change #(reset! checked? (-> % .-target .-checked))))))))
+                                  (uic/safe-delete-button
+                                    :action! #(do (println "delete plot id: " @plot-id " name: " @plot-name)
+                                                  (s/delete-db-entity @plot-db-id))
+                                    :value (cell= (vocab :delete-plot-button s/lang)))))
 
                               (plot/plot
                                 :toggle plot-details-visible?
@@ -528,7 +520,7 @@
                                     annual-years (cell= (->> annuals
                                                              (map :plot.annual/year,,,)
                                                              sort))
-                                    ;_ (cell= (print "annual-years: " (pr-str annual-years)))
+                                    _ (cell= (print "annual-years: " (pr-str annual-years)))
 
                                     annual-plot-details-visible?* (cell true)
                                     annual-plot-details-visible? (cell= (and (seq annual-years)

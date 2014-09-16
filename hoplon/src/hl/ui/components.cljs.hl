@@ -167,3 +167,26 @@
           (button
             :class "form-control btn btn-primary"
             :type "submit" "Login"))))))
+
+
+(defelem safe-delete-button
+      [{:keys [action! value]
+        :as attrs} kids]
+      ((let [checked? (cell nil)]
+            (div
+              :class "input-group"
+              (input
+                :type "button"
+                :class (cell= {:form-control true
+                               :btn true
+                               :btn-danger true
+                               :btn-block true
+                               :disabled (not checked?)})
+                :click action!
+                :value value)
+              (span
+                :class "input-group-addon"
+                (input
+                  :type "checkbox"
+                  :change #(reset! checked? (-> % .-target .-checked))))))
+       (dissoc attrs :action! value) kids))
