@@ -69,7 +69,11 @@
 
 
            :ci-name-label {:lang/de "Name"
-                             :lang/en "Name"}
+                           :lang/en "Name"}
+           :ci-name-placeholder {:lang/de "Name der Fruchtart"
+                                 :lang/en "Name of crop"}
+           :delete-ci-button-label {:lang/de "F. Löschen"
+                                    :lang/en "Delete c."}
 
            :dc-assertions-label {:lang/de "DC Stadien melden"
                                  :lang/en "DC states"}
@@ -198,7 +202,7 @@
 
         incomplete* (cell #{})
         incomplete (cell= (set/union incomplete incomplete*))
-        ;_ (cell= (println "incomplete: " (pr-str incomplete)))
+        _ (cell= (println "incomplete: " (pr-str incomplete)))
         complete? (cell= (empty? incomplete))
         ;_ (cell= (println "complete?: " complete?))
 
@@ -208,6 +212,7 @@
                  abs-day-of-initial-soil-moisture-measurement))
 
         initial-soil-moistures (cell= (do
+                                        (println "crop-instances: " (pr-str crop-instances))
                                         (swap! ~(cell incomplete*) (if initial-soil-moistures disj conj) :initial-soil-moistures)
                                         initial-soil-moistures))
 
@@ -216,7 +221,13 @@
                             technology))
 
         crop-instances (cell= (do
-                                (swap! ~(cell incomplete*) (if crop-instances disj conj) :crop-instances)
+                                (swap! ~(cell incomplete*)
+                                       (if (and crop-instances
+                                                (reduce #(and %1 %2) true
+                                                        (map :crop.instance/assertions crop-instances)))
+                                         disj
+                                         conj)
+                                       :crop-instances)
                                 crop-instances))
 
         [plot-annual-form-name
@@ -477,7 +488,6 @@
                               ,,,)
                             (sort-by first ,,,)))
         ;_ (cell= (set-series-data 0 sms-0-10))
-
         ]
        ((bs/form
        :opts [:horizontal]
@@ -486,7 +496,7 @@
        (bs/form-group
          (div
            :col [:xs 1]
-           :col [:xs-offset 11]
+           :class "col-xs-offset-11"
            (uic/safe-delete-button
              :action! #(do (println "delete annual plot id: " @db-id " year: " @year)
                            (s/delete-db-entity @db-id))
@@ -540,7 +550,7 @@
                     :type "date"
                     :placeholder (cell= (vocab :abs-day-of-initial-soil-moisture-measurement-id-placeholder s/lang))
                     :value (cell= (->> (util/doy->cljs-time-date (or abs-day-of-initial-soil-moisture-measurement 1) year)
-                                       (cstf/unparse (cstf/formatters :date),,,)))
+                                       (cstf/unparse (cstf/formatters :date) ,,,)))
                     :on-change #(abs-day-of-initial-soil-moisture-measurement!
                                  (util/cljs-time-date->doy (cstf/parse (cstf/formatters :date)
                                                                        (val-id abs-day-of-initial-soil-moisture-measurement-id)))))))
@@ -670,42 +680,42 @@
             (fieldset
               (legend :click #(swap! visible? not) (text "~(vocab :crop-instances-fieldset-label s/lang)"))
 
-              (let [show-select (cell false)]
+              (div
+                :toggle visible?
+                :class "row"
 
-                   (div
-                     :toggle visible?
-                     :class "row"
+                (div
+                  :col [:xs 3]
+                  :class "col-xs-offset-8"
 
-                     (div
-                       :col [:xs 2]
-                       (button
-                         ;:toggle no-edit?
-                         ;:style "float:right"
-                         :class "btn btn-warning"
-                         :click #(reset! show-select true)
-                         (text "~(vocab :new-crop-instance-button-label s/lang)")))
+                  (select
+                    ;:toggle show-select
+                    :id new-crop-instance-id
+                    :class "form-control"
+                    (option "")
+                    (loop-tpl
+                      :bindings [{id :crop/id
+                                  name :crop/name
+                                  symbol :crop/symbol}
+                                 (cell= (sort-by :crop/name s/minimal-all-crops))]
+                      (option :value id
+                              (text "~{id} | ~{symbol} | ~{name}")))))
 
-                     (div
-                       :col [:xs 3]
+                (div
+                  :col [:xs 1]
+                  (button
+                    :class "btn btn-warning"
+                    :click #(when-let [ci-id (val-id new-crop-instance-id)]
+                                      (s/create-new-crop-instance @db-id ci-id))
+                    (text "~(vocab :new-crop-instance-button-label s/lang)"))))
 
-                       (select
-                         :toggle show-select
-                         :id new-crop-instance-id
-                         :class "form-control"
-                         :on-change #(do
-                                      (s/create-new-crop-instance @db-id (val-id new-crop-instance-id))
-                                      (reset! show-select false))
-                         (option "")
-                         (loop-tpl
-                           :bindings [{id :crop/id
-                                       name :crop/name
-                                       symbol :crop/symbol}
-                                      (cell= (sort-by :crop/name s/minimal-all-crops))]
-                           (option :value id
-                                   (text "~{symbol} | ~{name}")))))
-                     ))
-
-              #_(hr)
+              (div
+                :toggle visible?
+                :class "row"
+                (div
+                  :col [:xs 11]
+                  :class "col-xs-offset-1"
+                  (hr)))
 
               (loop-tpl
                 :bindings [{ci-db-id :db/id
@@ -715,65 +725,77 @@
                            (cell= (sort-by #(apply min (map :assertion/abs-assert-dc-day (:crop.instance/assertions %)))
                                            crop-instances))]
                 :bind-ids [ci-name-id dc-assertions-id]
-                (fieldset
-                  :toggle visible?
-                  :style "font-size: 18px; margin-left: 5%; width:95%"
-                  (legend (text "~{ci-name}"))
+                (div
+                  :class "row"
 
-                  (bs/form-group
-                    (bs/control-label :col [:sm (+ 1 label-cols)] :for ci-name-id (text "~(vocab :ci-name-label s/lang)"))
-                    (div
-                      :col [:xs value-cols]
-                      (p :toggle no-edit? :class "form-control-static" (text "~{ci-name}"))
-                      (input
-                        :id ci-name-id
-                        :toggle edit?
-                        :class "form-control"
-                        :type "text"
-                        :placeholder (cell= (vocab :ci-name-placeholder s/lang))
-                        :value ci-name
-                        :on-change #(s/update-db-entity @ci-db-id :crop.instance/name (val-id ci-name-id)))))
+                  (fieldset
+                    :toggle visible?
+                    :col [:xs 10]
+                    :class "col-xs-offset-1"
+                    ;:style "font-size: 18px; margin-left: 5%; width:95%"
+                    (legend (text "~{ci-name}"))
 
-                  (bs/form-group
-                    (bs/control-label :col [:sm (+ 1 label-cols)] :for dc-assertions-id
-                                      (text "~(vocab :dc-assertions-label s/lang)"))
-                    (let [abs-day* (cell nil)
-                          ;at-abs-day* (cell nil)
-                          dc* (cell nil)
-                          dc->names (cell= (get s/crop->dcs template-id))]
-                         (div
-                           :col [:xs (min (+ value-cols 4) (- 12 label-cols))]
-                           #_(p :toggle no-edit? :class "form-control-static" (text "~{irrigation-area}"))
+                    (bs/form-group
+                      (bs/control-label :col [:sm (+ 1 label-cols)] :for ci-name-id (text "~(vocab :ci-name-label s/lang)"))
+                      (div
+                        :col [:xs value-cols]
+                        (p :toggle no-edit? :class "form-control-static" (text "~{ci-name}"))
+                        (input
+                          :id ci-name-id
+                          :toggle edit?
+                          :class "form-control"
+                          :type "text"
+                          :placeholder (cell= (vocab :ci-name-placeholder s/lang))
+                          :value ci-name
+                          :on-change #(s/update-db-entity @ci-db-id :crop.instance/name (val-id ci-name-id)))))
 
-                           (loop-tpl
-                             :bindings [[row-no {a-db-id :db/id
-                                                 abs-day :assertion/abs-assert-dc-day
-                                                 dc :assertion/assert-dc
-                                                 #_at-abs-day #_:assertion/at-abs-day}]
-                                        (cell= (util/indexed (sort-by :assertion/abs-assert-dc-day dc-assertions)))]
+                    (bs/form-group
+                      (bs/control-label :col [:sm (+ 1 label-cols)] :for dc-assertions-id
+                                        (text "~(vocab :dc-assertions-label s/lang)"))
+                      (let [abs-day* (cell nil)
+                            ;at-abs-day* (cell nil)
+                            dc* (cell nil)
+                            dc->names (cell= (get s/crop->dcs template-id))]
+                           (div
+                             :col [:xs (min (+ value-cols 4) (- 12 label-cols))]
+                             #_(p :toggle no-edit? :class "form-control-static" (text "~{irrigation-area}"))
+
+                             (loop-tpl
+                               :bindings [[row-no {a-db-id :db/id
+                                                   abs-day :assertion/abs-assert-dc-day
+                                                   dc :assertion/assert-dc
+                                                   #_at-abs-day #_:assertion/at-abs-day}]
+                                          (cell= (util/indexed (sort-by :assertion/abs-assert-dc-day dc-assertions)))]
+                               (uie/create-dc-assertion-inputs
+                                 :fields {:row-no row-no
+                                          :row-action! #(s/delete-db-entity @a-db-id)
+                                          :dc->names dc->names
+                                          :year year
+                                          :abs-day abs-day :abs-day! #(s/update-db-entity @a-db-id :assertion/abs-assert-dc-day %)
+                                          ;:at-abs-day at-abs-day :at-abs-day! #(s/update-db-entity @a-db-id :assertion/at-abs-day %)
+                                          :dc dc :dc! #(s/update-db-entity @a-db-id :assertion/assert-dc %)}
+                                 #_:opts #_{:link-abs-days false
+                                  :hide-at-abs-day false}))
                              (uie/create-dc-assertion-inputs
-                               :fields {:row-no row-no
-                                        :row-action! #(s/delete-db-entity @a-db-id)
+                               :fields {:row-action! #(when (and @abs-day* @dc* #_@at-abs-day*)
+                                                            (s/create-new-dc-assertion @ci-db-id @abs-day* @dc* #_@at-abs-day*)
+                                                            (reset! abs-day* nil)
+                                                            (reset! dc* nil))
                                         :dc->names dc->names
                                         :year year
-                                        :abs-day abs-day :abs-day! #(s/update-db-entity @a-db-id :assertion/abs-assert-dc-day %)
-                                        ;:at-abs-day at-abs-day :at-abs-day! #(s/update-db-entity @a-db-id :assertion/at-abs-day %)
-                                        :dc dc :dc! #(s/update-db-entity @a-db-id :assertion/assert-dc %)}
+                                        :abs-day abs-day* :abs-day! #(reset! abs-day* %)
+                                        ;:at-abs-day at-abs-day* :at-abs-day! #(reset! at-abs-day* %)
+                                        :dc dc* :dc! #(reset! dc* %)}
                                #_:opts #_{:link-abs-days false
-                                :hide-at-abs-day false}))
-                           (uie/create-dc-assertion-inputs
-                             :fields {:row-action! #(when (and @abs-day* @dc* #_@at-abs-day*)
-                                                          (s/create-new-dc-assertion @ci-db-id @abs-day* @dc* #_@at-abs-day*)
-                                                          (reset! abs-day* nil)
-                                                          (reset! dc* nil))
-                                      :dc->names dc->names
-                                      :year year
-                                      :abs-day abs-day* :abs-day! #(reset! abs-day* %)
-                                      ;:at-abs-day at-abs-day* :at-abs-day! #(reset! at-abs-day* %)
-                                      :dc dc* :dc! #(reset! dc* %)}
-                             #_:opts #_{:link-abs-days false
-                              :hide-at-abs-day false})
-                           )))))))
+                                :hide-at-abs-day false})
+                             ))))
+
+                  (div
+                    :toggle visible?
+                    :col [:xs 1]
+                    (uic/safe-delete-button
+                      :action! #(s/delete-db-entity @ci-db-id)
+                      :value (cell= (vocab :delete-ci-button-label s/lang))))))))
 
        (let [visible? (cell true)]
             (fieldset

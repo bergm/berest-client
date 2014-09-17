@@ -172,7 +172,7 @@
 (defelem safe-delete-button
       [{:keys [action! value]
         :as attrs} kids]
-      ((let [checked? (cell nil)]
+      ((let [checked? (cell false)]
             (div
               :class "input-group"
               (input
@@ -182,11 +182,14 @@
                                :btn-danger true
                                :btn-block true
                                :disabled (not checked?)})
-                :click action!
+                :click #(do
+                         (reset! checked? false)
+                         (action!))
                 :value value)
               (span
                 :class "input-group-addon"
                 (input
                   :type "checkbox"
+                  :value checked?
                   :change #(reset! checked? (-> % .-target .-checked))))))
        (dissoc attrs :action! value) kids))

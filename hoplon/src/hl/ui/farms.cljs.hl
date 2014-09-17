@@ -517,8 +517,10 @@
                               (let [recalc-count (cell 0)
                                     _ (cell= (println "recalc-count: " recalc-count))
 
+                                    _ (cell= (print "annuals: " (pr-str annuals)))
+
                                     annual-years (cell= (->> annuals
-                                                             (map :plot.annual/year,,,)
+                                                             (map :plot.annual/year ,,,)
                                                              sort))
                                     _ (cell= (print "annual-years: " (pr-str annual-years)))
 
