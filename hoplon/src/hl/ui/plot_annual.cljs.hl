@@ -224,7 +224,7 @@
                                 (swap! ~(cell incomplete*)
                                        (if (and crop-instances
                                                 (reduce #(and %1 %2) true
-                                                        (map :crop.instance/assertions crop-instances)))
+                                                        (map :crop.instance/dc-assertions crop-instances)))
                                          disj
                                          conj)
                                        :crop-instances)
@@ -353,26 +353,28 @@
                                 :name (vocab :sm-0-30 @s/lang)
                                 :yAxis 1
                                 :tooltip {:valueSuffix " mm"}
-                                ;:color "#FF0000"
+                                :color "#000000"
                                 :data []}
                                {:type "line"
                                 :name (vocab :sm-30-60 @s/lang)
                                 :yAxis 1
                                 :tooltip {:valueSuffix " mm"}
-                                ;:color "#FF0000"
-                                :data []}
+                                :color "#505050"
+                                :data []
+                                :visible false}
                                {:type "line"
                                 :name (vocab :sm-60-90 @s/lang)
                                 :yAxis 1
                                 :tooltip {:valueSuffix " mm"}
-                                ;:color "#FF0000"
-                                :data []}
+                                :color "#A0A0A0"
+                                :data []
+                                :visible false}
 
                                {:type "column"
                                 :name (vocab :donation @s/lang)
                                 :yAxis 1
                                 :tooltip {:valueSuffix " mm"}
-                                :color "blue"
+                                :color "#000099"
                                 :data []}
                                {:type "column"
                                 :name (vocab :evap @s/lang)
@@ -384,20 +386,20 @@
                                 :name (vocab :precip @s/lang)
                                 :yAxis 1
                                 :tooltip {:valueSuffix " mm"}
-                                ;:color "#FF6600"
+                                :color "#0066FF"
                                 :data []}
 
                                {:type "line"
                                 :name (vocab :aet-pet @s/lang)
                                 :yAxis 0
                                 ;:tooltip {:valueSuffix " mm"}
-                                ;:color "#FF0000"
+                                :color "#CC00FF"
                                 :data []}
                                {:type "line"
                                 :name (vocab :target-aet-pet @s/lang)
                                 :yAxis 0
                                 ;:tooltip {:valueSuffix " mm"}
-                                ;:color "#FF0000"
+                                :color "#00FF00"
                                 :data []}
 
                                {:type "line"
@@ -405,20 +407,23 @@
                                 :yAxis 2
                                 ;:tooltip {:valueSuffix " mm"}
                                 ;:color "#FF0000"
-                                :data []}
+                                :data []
+                                :visible false}
                                {:type "line"
                                 :name "pet"
                                 :yAxis 2
                                 ;:tooltip {:valueSuffix " mm"}
                                 ;:color "#FF0000"
-                                :data []}
+                                :data []
+                                :visible false}
 
                                {:type "line"
                                 :name "Wtiefe"
                                 :yAxis 3
                                 ;:tooltip {:valueSuffix " mm"}
                                 ;:color "#FF0000"
-                                :data []}]}
+                                :data []
+                                :visible false}]}
         _ (with-timeout 0 (js/Highcharts.Chart. (clj->js chart-config)))
 
         set-series-data (fn [series-index data]
