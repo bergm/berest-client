@@ -1,15 +1,12 @@
 (ns ui.weather-stations
-  #_(:require-macros [tailrecursion.javelin :refer :all]
-                   [tailrecursion.hoplon :refer :all])
-  (:require #_[tailrecursion.javelin :refer :all]
-            #_[tailrecursion.hoplon :refer :all]
-    [de.zalf.berest.client.hoplon.util :as util]
-    [de.zalf.berest.client.hoplon.state :as s]
-    [ui.elements :as uie]
-    [bootstrap-util :as bs]
-            #_[cljs-time.coerce :as cstcoe]
-    [clojure.set :as set]))
-
+  (:require [de.zalf.berest.client.hoplon.util :as util]
+            [de.zalf.berest.client.hoplon.state :as s]
+            [ui.elements :as uie]
+            [bootstrap-util :as bs]
+            [cljs-time.core :as cstc]
+            [cljs-time.format :as cstf]
+            [cljs-time.coerce :as cstcoe]
+            [clojure.set :as set]))
 
 (defn vocab
   "translatable vocabulary for this page"
@@ -26,6 +23,9 @@
                         :lang/en "Longitude"}
            :long-placeholder {:lang/de "Längengrad"
                               :lang/en "Longitude"}
+
+           :th-weather-station-name {:lang/de "Name"
+                                     :lang/en "Name"}
 
            :show-data {:lang/de "Daten anzeigen"
                        :lang/en "Show data"}
@@ -51,12 +51,51 @@
 (defn weather-stations-pane
   []
   (let [selected-weather-station (cell nil)
-        _ (cell= (println "selected-ws: " (pr-str selected-weather-station)))]
+        _ (cell= (println "selected-ws: " (pr-str selected-weather-station)))
+
+        weather-stations-count (cell= (count (:weather-stations s/state)))
+        many-weather-stations? (cell= (> weather-stations-count 1))
+        _ (cell= (when (= weather-stations-count 1) (reset! selected-weather-station (first (:weather-stations s/state)))))
+        ]
        (div
          :id "weather-stations-pane"
          :do-toggle (cell= (= s/route "#/weather"))
 
          (div
+           :class "row"
+
+           (div
+             :col [:xs 12]
+
+             (table
+               :class "table"
+               :toggle many-weather-stations?
+
+               (thead
+                 (tr
+                   (th (text "~(vocab :th-weather-station-name s/lang)"))
+                   #_(th (text "~(vocab :th-farm-state s/lang)"))))
+
+               (tbody
+                 (loop-tpl
+                   :bindings [{id :weather-station/id
+                               name :weather-station/name
+                               :as weather-station}
+                              (cell= (sort-by #(if-let [n (:weather-station/name %)] n (:weather-station/id %))
+                                              (:weather-stations s/state)))]
+                   (let [hover? (cell false)
+                         selected? (cell= (= id (:weather-station/id selected-weather-station)))]
+                        (tr
+                          :class (cell= {:warning (and hover? (not selected?))
+                                         :success selected?})
+                          :mouseenter #(reset! hover? true)
+                          :mouseleave #(reset! hover? false)
+                          :click #(reset! selected-weather-station @weather-station)
+
+                          (td (text "~(or name id)"))
+                          #_(td (span :class "glyphicon glyphicon-ok")))))))))
+
+         #_(div
            :class "row"
 
            (div
@@ -82,7 +121,12 @@
                         :click #(reset! selected-weather-station @weather-station)
                         (p (text "~(or name id)"))))))))
 
-         (div :class "row" (div :col [:xs 12] (hr)))
+         (div
+           :class "row"
+           :toggle many-weather-stations?
+           (div
+             :col [:xs 12]
+             (hr)))
 
          (bs/form
            :opts [:horizontal]
@@ -96,7 +140,7 @@
                 long :geo-coord/longitude} :weather-station/geo-coord} selected-weather-station]
 
              (let [[name-input lat-input long-input chart-id years-id] (repeatedly gensym)
-                   edit? (cell false)
+                   edit? (cell true)
                    no-edit? (cell= (not edit?))
 
                    station-data (cell {:name nil
@@ -111,6 +155,12 @@
                    ;_ (cell= (println "loaded-data-ws-id: " (pr-str loaded-data-ws-id)))
 
                    selected-years-set (cell nil)
+                   _ (cell= (when-not (seq selected-years-set)
+                                      (let [current-year (cstc/year (cstc/now))]
+                                           (when (and id (= ((into #{} years) current-year)))
+                                                 (reset! ~(cell selected-years-set) #{current-year})
+                                                 (s/load-weather-station-data ~(cell weather-station-data)
+                                                                              id [current-year])))))
 
                    _ (cell= (when (and weather-data loaded-data-ws-id (not= id loaded-data-ws-id))
                                   (let [load-years (or (some-> (set/intersection (into #{} years) selected-years-set)
@@ -260,7 +310,7 @@
                           :value (cell= (or name (str "(Id: " id ")")))
                           :on-change #(swap! station-data assoc :name (val-id name-input)))))
 
-                    (bs/form-group
+                    #_(bs/form-group
                       (bs/control-label :col [:sm 2] :for lat-input (text "~(vocab :lat-label s/lang)"))
                       (div
                         :col [:xs 3]
@@ -274,7 +324,7 @@
                           :value lat
                           :on-change #(swap! station-data assoc :lat (val-id lat-input)))))
 
-                    (bs/form-group
+                    #_(bs/form-group
                       (bs/control-label :col [:sm 2] :for long-input (text "~(vocab :long-label s/lang)"))
                       (div
                         :col [:xs 3]
