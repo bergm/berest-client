@@ -28,6 +28,17 @@
            :symbol-placeholder {:lang/de "Symbol der Fruchtart"
                               :lang/en "Symbol of crop"}
 
+           :th-crop-number {:lang/de "Nummer"
+                            :lang/en "Number"}
+           :th-crop-cultivation-type {:lang/de "Kultivierungstyp"
+                                      :lang/en "Cultivation-type"}
+           :th-crop-usage {:lang/de "Nutzung"
+                           :lang/en "Usage"}
+           :th-crop-name {:lang/de "Name"
+                          :lang/en "Name"}
+           :th-crop-symbol {:lang/de "Symbol"
+                            :lang/en "Symbol"}
+
            :show-data {:lang/de "Daten anzeigen"
                        :lang/en "Show data"}
            :edit {:lang/de "Ändern"
@@ -73,7 +84,12 @@
                                                 (= (.charAt lc-name 0) fc-first-char)))
                                             true))
                                         s/minimal-all-crops)
-                                s/minimal-all-crops))]
+                                s/minimal-all-crops))
+
+        selected-crop (cell nil)
+        _ (cell= (println "selected-crop: " (pr-str selected-crop)))
+        _ (cell= (when filtered-crops
+                       (reset! ~(cell selected-crop) nil)))]
 
     (div
       :id "crops-pane"
@@ -105,9 +121,216 @@
               :value filter-criterium
               :on-change #(reset! filter-criterium (val-id "crop-query-input-id"))))))
 
-      (hr)
+      (div :class "row" (div :col [:xs 12] (hr)))
+
+      (div
+        :class "row"
+
+        (div
+          :col [:xs 12]
+
+          (table
+            :class "table"
+
+            (thead
+              (tr
+                (th (text "~(vocab :th-crop-number s/lang)"))
+                (th (text "~(vocab :th-crop-cultivation-type s/lang)"))
+                (th (text "~(vocab :th-crop-usage s/lang)"))
+                (th (text "~(vocab :th-crop-name s/lang)"))
+                (th (text "~(vocab :th-crop-symbol s/lang)"))))
+
+            (tbody
+              (loop-tpl
+                :bindings [{id :crop/id
+                            name :crop/name
+                            symbol :crop/symbol
+                            number :crop/number
+                            cultivation-type :crop/cultivation-type
+                            usage :crop/usage
+                            :as crop}
+                           (cell= (sort-by :crop/name filtered-crops))]
+                (let [hover? (cell false)
+                      selected? (cell= (= id (:crop/id selected-crop)))]
+                     (tr
+                       :class (cell= {:warning (and hover? (not selected?))
+                                      :success selected?})
+                       :mouseenter #(reset! hover? true)
+                       :mouseleave #(reset! hover? false)
+                       :click #(reset! selected-crop @crop)
+
+                       (td (text "~{number}"))
+                       (td (text "~{cultivation-type}"))
+                       (td (text "~{usage}"))
+                       (td (text "~{name}"))
+                       (td (text "~{symbol}")))))))))
+
+      (div :class "row" (div :col [:xs 12] (hr)))
 
       (bs/form
+        :opts [:horizontal]
+        :name "crops-form"
+
+        (cell-let [{id :crop/id
+                    name :crop/name
+                    symbol :crop/symbol} selected-crop]
+
+          (let [[name-id symbol-id chart-id] (repeatedly gensym)
+                edit? (cell false)
+                no-edit? (cell= (not edit?))
+
+                form-data {:name nil
+                           :symbol nil}
+
+                crop-data (cell nil)
+                _ (cell= (when crop-data (println "crop-data: " (pr-str crop-data))))
+
+                _ (cell= (when (and id (not= id (:crop/id crop-data)))
+                               (s/load-crop-data ~(cell crop-data) id)))
+
+                ;keep crop data in sync with currently activated elements as these
+                ;are backed by stem cell state
+                #__ #_(cell= (when (and crop-data (not= id (:crop/id crop-data)))
+                               (reset! ~(cell data-visible?) false)
+                               (reset! ~(cell crop-data) nil)))
+
+                chart-config {:chart {:renderTo chart-id
+                                      :defaultSeriesType "line"
+                                      :zoomType "x"
+                                      #_:spacingTop #_50}
+                              :title {:text "" #_(vocab :chart-header @s/lang)
+                                      :x 0 #_-20}
+                              :xAxis {:title {:text "relative DC Tage"}
+                                      ;:type "datetime"
+                                      #_:labels #_{:format "{value: %d.%m.%Y}"
+                                             :rotation 45
+                                             :align "left"}}
+                              :yAxis [{:title {:text (str (vocab :dc @s/lang) " []")}}
+                                      {:title {:text (str (vocab :cover-degree @s/lang) " [%]")}}
+                                      {:title {:text (str (vocab :extraction-depth @s/lang) " [dm]")}}
+                                      {:title {:text (str (vocab :aet-pet @s/lang) " [°C]")}
+                                       :opposite true}
+                                      {:title {:text (str (vocab :transpiration-factor @s/lang) " []")}
+                                       :opposite true}]
+                              :tooltip {:shared true
+                                        :crosshairs true}
+                              :legend {:layout "horizontal" #_"vertical"
+                                       :align "center" #_"right"
+                                       :verticalAlign "top" #_"middle"
+                                       :borderWidth 0}
+                              :series [{:name (vocab :dc @s/lang)
+                                        :yAxis 0
+                                        ;:tooltip {:valueSuffix " "}
+                                        ;:color "#FF6600"
+                                        :data []}
+                                       {:name (vocab :cover-degree @s/lang)
+                                        :yAxis 1
+                                        :tooltip {:valueSuffix " %"}
+                                        ;:color "#FF0000"
+                                        :data []}
+                                       {:name (vocab :extraction-depth @s/lang)
+                                        :yAxis 2
+                                        :tooltip {:valueSuffix " dm"}
+                                        ;:color "blue"
+                                        :data []}
+                                       {:name (vocab :aet-pet @s/lang)
+                                        :yAxis 3
+                                        ;:tooltip {:valueSuffix " mm"}
+                                        ;:color "#FF6600"
+                                        :data []}
+                                       {:name (vocab :transpiration-factor @s/lang)
+                                        :yAxis 4
+                                        ;:tooltip {:valueSuffix " "}
+                                        ;:color "#FF6600"
+                                        :data []}]}
+                _ (with-timeout 0 (js/Highcharts.Chart. (clj->js chart-config)))
+
+                set-series-data (fn [series-index data]
+                                    (some-> chart-id
+                                            by-id
+                                            js/jQuery
+                                            .highcharts
+                                            .-series
+                                            (#(nth % series-index),,,)
+                                            (.setData (clj->js data))))
+
+                dc (cell= (->> (:crop/dc-to-rel-dc-days crop-data)
+                               (mapv (fn [[k v]] {:name (str "<b>" (get (:crop/dc-to-developmental-state-names crop-data) k) "</b>")
+                                                  :x v :y k})
+                                 ,,,)
+                               (sort-by :x ,,,)))
+                _ (cell= (set-series-data 0 dc))
+
+                cover-degrees (cell= (->> (:crop/rel-dc-day-to-cover-degrees crop-data)
+                                          (into [],,,)
+                                          (sort-by first,,,)))
+                _ (cell= (set-series-data 1 cover-degrees))
+
+                extraction-depths (cell= (->> (:crop/rel-dc-day-to-extraction-depths crop-data)
+                                              (into [],,,)
+                                              (sort-by first,,,)))
+                _ (cell= (set-series-data 2 extraction-depths))
+
+                aet-pet (cell= (->> (:crop/rel-dc-day-to-quotient-aet-pets crop-data)
+                                    (into [],,,)
+                                    (sort-by first,,,)))
+                _ (cell= (set-series-data 3 aet-pet))
+
+                transpiration-factors (cell= (->> (:crop/rel-dc-day-to-transpiration-factors crop-data)
+                                                  (into [],,,)
+                                                  (sort-by first,,,)))
+                _ (cell= (set-series-data 4 transpiration-factors))
+
+                ]
+
+               (div
+                 #_(button
+                   ;:toggle no-edit?
+                   :style "float:right"
+                   :class "btn btn-primary"
+                   :click #(swap! edit? not)
+                   (text "~(vocab :edit s/lang)"))
+                 #_(button
+                   :toggle edit?
+                   :style "float:right"
+                   :class "btn btn-danger"
+                   :click #()
+                   (text "~(vocab :save-edit s/lang)"))
+
+                 (bs/form-group
+                   (bs/control-label :col [:sm 2] :for name-id (text "~(vocab :name-label s/lang)"))
+                   (div
+                     :col [:xs 3]
+                     (p :toggle no-edit? :class "form-control-static" (text "~{name}"))
+                     (input
+                       :id name-id
+                       :toggle edit?
+                       :class "form-control"
+                       :type "text"
+                       :placeholder (cell= (vocab :name-placeholder s/lang))
+                       :value name
+                       :on-change #(swap! form-data assoc :name (val-id name-id)))))
+
+                 (bs/form-group
+                   (bs/control-label :col [:sm 2] :for symbol-id (text "~(vocab :symbol-label s/lang)"))
+                   (div
+                     :col [:xs 3]
+                     (p :toggle no-edit? :class "form-control-static" (text "~{symbol}"))
+                     (input
+                       :id symbol-id
+                       :toggle edit?
+                       :class "form-control"
+                       :type "text"
+                       :placeholder (cell= (vocab :symbol-placeholder s/lang))
+                       :value long
+                       :on-change #(swap! form-data assoc :symbol (val-id symbol-id)))))
+
+                 (div
+                   :id chart-id
+                   ;:style "width:100%"
+                   :col [:xs 12])))))
+
+      #_(bs/form
         :opts [:horizontal]
         :name "crops-form"
 
