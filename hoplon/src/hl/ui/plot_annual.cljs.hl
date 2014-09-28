@@ -402,14 +402,14 @@
                                 :color "#00FF00"
                                 :data []}
 
-                               {:type "line"
+                               #_{:type "line"
                                 :name "aet"
                                 :yAxis 2
                                 ;:tooltip {:valueSuffix " mm"}
                                 ;:color "#FF0000"
                                 :data []
                                 :visible false}
-                               {:type "line"
+                               #_{:type "line"
                                 :name "pet"
                                 :yAxis 2
                                 ;:tooltip {:valueSuffix " mm"}
@@ -417,7 +417,7 @@
                                 :data []
                                 :visible false}
 
-                               {:type "line"
+                               #_{:type "line"
                                 :name "Wtiefe"
                                 :yAxis 3
                                 ;:tooltip {:valueSuffix " mm"}
@@ -461,10 +461,9 @@
         _ (cell= (set-series-data 6 (create-ordered-curve-data soil-moistures :aet7pet year)))
         _ (cell= (set-series-data 7 (create-ordered-curve-data soil-moistures :target-aet7pet year)))
 
-        _ (cell= (set-series-data 8 (create-ordered-curve-data soil-moistures :aet year)))
-        _ (cell= (set-series-data 9 (create-ordered-curve-data soil-moistures :pet year)))
-
-        _ (cell= (set-series-data 10 (create-ordered-curve-data inputs :extraction-depth-cm year)))
+        ;_ (cell= (set-series-data 8 (create-ordered-curve-data soil-moistures :aet year)))
+        ;_ (cell= (set-series-data 9 (create-ordered-curve-data soil-moistures :pet year)))
+        ;_ (cell= (set-series-data 10 (create-ordered-curve-data inputs :extraction-depth-cm year)))
 
         _ (cell= (when soil-moistures
                        #_(println "soil-moistures: " (pr-str soil-moistures))
