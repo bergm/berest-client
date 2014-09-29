@@ -263,7 +263,11 @@
                          #_(swap! edit-new-farm? not))
             (text "~(vocab :new-farm-button s/lang)"))))
 
-      (div :class "row" (div :col [:xs 12] (hr)))
+      (div
+        :class "row"
+        :toggle (cell= (not (nil? selected-farm)))
+
+        (div :col [:xs 12] (hr)))
 
       (cell-let [{farm-db-id :db/id
                   farm-id :farm/id
@@ -280,6 +284,7 @@
                       _ (cell= (when (= plots-count 1) (reset! ~(cell selected-plot) (second (first (:plots selected-farm))))))]
                      [(div
                         :class "row"
+                        :toggle (cell= (not (nil? selected-farm)))
 
                         (let
                           [hover? (cell false)]
@@ -299,30 +304,10 @@
                              (uic/safe-delete-button
                                :action! #(do (println "delete farm id: " @farm-id " name: " @farm-name)
                                              (s/delete-db-entity @farm-db-id))
-                               :value (cell= (vocab :delete-farm-button s/lang s/lang)))
-
-                             #_(let [checked? (cell nil)]
-                                  (div
-                                    :class "input-group" #_"input-group pull-right"
-
-                                    (input
-                                      :type "button"
-                                      :class (cell= {:form-control true
-                                                     :btn true
-                                                     :btn-danger true
-                                                     :btn-block true
-                                                     :disabled (not checked?)})
-                                      :click #(do (println "delete farm id: " @farm-id " name: " @farm-name)
-                                                  (s/delete-db-entity @farm-db-id))
-                                      :value (cell= (vocab :delete-farm-button s/lang s/lang)))
-                                    (span
-                                      :class "input-group-addon"
-                                      (input
-                                        :type "checkbox"
-                                        :change #(reset! checked? (-> % .-target .-checked)))))))]))
+                               :value (cell= (vocab :delete-farm-button s/lang s/lang))))]))
 
                       (farm/farm
-                        :toggle farm-details-visible?
+                        :toggle (cell= (and selected-farm farm-details-visible?))
                         :fields {:id farm-id
                                  :name farm-name :name! #(s/update-db-entity @farm-db-id :farm/name %)
                                  :addresses addresses
@@ -341,13 +326,14 @@
 
                       (div
                         :class "row"
-                        ;:toggle many-plots?
+                        :toggle (cell= (not (nil? selected-farm))) #_many-plots?
                         (div
                           :col [:xs 12]
                           (hr)))
 
                       (div
                         :class "row"
+                        :toggle (cell= (not (nil? selected-farm)))
 
                         (div
                           :col [:xs 11]
@@ -392,7 +378,11 @@
                             :click #(s/create-new-plot @farm-id)
                             (text "~(vocab :new-plot-button s/lang)"))))
 
-                      (div :class "row" (div :col [:xs 12] (hr)))
+                      (div
+                        :class "row"
+                        :toggle (cell= (not (nil? selected-farm)))
+
+                        (div :col [:xs 12] (hr)))
 
                       (cell-let
                         [{plot-db-id :db/id
@@ -430,6 +420,7 @@
 
                              [(div
                                 :class "row"
+                                :toggle (cell= (not (nil? selected-farm)))
 
                                 (let
                                   [hover? (cell false)]
@@ -454,7 +445,7 @@
                                     :value (cell= (vocab :delete-plot-button s/lang)))))
 
                               (plot/plot
-                                :toggle plot-details-visible?
+                                :toggle (cell= (and selected-farm plot-details-visible?))
                                 :fields {:id plot-id
                                          :name plot-name :name! #(s/update-db-entity @plot-db-id :plot/name %)
                                          :number number :number! #(s/update-db-entity @plot-db-id :plot/number %)
@@ -512,7 +503,11 @@
                                        :label-cols 2
                                        :value-cols 3})
 
-                              (div :class "row" (div :col [:xs 12] (hr)))
+                              (div
+                                :class "row"
+                                :toggle (cell= (not (nil? selected-farm)))
+
+                                (div :col [:xs 12] (hr)))
 
                               (let [recalc-count (cell 0)
                                     _ (cell= (println "recalc-count: " recalc-count))
@@ -546,6 +541,7 @@
 
                                    [(div
                                       :class "row"
+                                      :toggle (cell= (not (nil? selected-farm)))
 
                                       (let
                                         [hover? (cell false)]
@@ -593,7 +589,7 @@
 
                                       (plot-annual/plot-annual
                                         :style "margin-top: 20px"
-                                        :toggle annual-plot-details-visible?
+                                        :toggle (cell= (and selected-farm annual-plot-details-visible?))
                                         :fields {:plot-id plot-id
 
                                                  :db-id ann-db-id

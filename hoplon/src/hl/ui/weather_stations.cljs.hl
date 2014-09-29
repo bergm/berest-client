@@ -123,12 +123,13 @@
 
          (div
            :class "row"
-           :toggle many-weather-stations?
+           :toggle (cell= (and selected-weather-station many-weather-stations?))
            (div
              :col [:xs 12]
              (hr)))
 
          (bs/form
+           :toggle (cell= (not (nil? selected-weather-station)))
            :opts [:horizontal]
            :name "weather-station-form"
 

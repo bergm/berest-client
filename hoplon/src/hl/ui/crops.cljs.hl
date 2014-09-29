@@ -121,7 +121,10 @@
               :value filter-criterium
               :on-change #(reset! filter-criterium (val-id "crop-query-input-id"))))))
 
-      (div :class "row" (div :col [:xs 12] (hr)))
+      (div
+        :class "row"
+
+        (div :col [:xs 12] (hr)))
 
       (div
         :class "row"
@@ -165,9 +168,14 @@
                        (td (text "~{name}"))
                        (td (text "~{symbol}")))))))))
 
-      (div :class "row" (div :col [:xs 12] (hr)))
+      (div
+        :class "row"
+        :toggle (cell= (not (nil? selected-crop)))
+
+        (div :col [:xs 12] (hr)))
 
       (bs/form
+        :toggle (cell= (not (nil? selected-crop)))
         :opts [:horizontal]
         :name "crops-form"
 
