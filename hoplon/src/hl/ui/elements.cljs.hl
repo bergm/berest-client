@@ -36,6 +36,9 @@
            :remove-dc-assertion-label {:lang/de "DC Stadium entfernen"
                                        :lang/en "Remove DC assertion"}
 
+           :locked?-donation-label {:lang/de "Gesperrt?"
+                                    :lang/en "Locked?"}
+
 
            }
           [element (or lang :lang/de)] "UNKNOWN element"))
@@ -43,22 +46,31 @@
 
 
 (defmethod tailrecursion.hoplon/do! :selected
-  [elem key value]
-  (let [e (js/jQuery elem)
-        k (name key)]
-    (cond
-      (= false value) (.removeAttr e k)
-      (= true value) (.attr e k k)
-      :else (.attr e k (str value)))))
+           [elem key value]
+           (let [e (js/jQuery elem)
+                 k (name key)]
+                (cond
+                  (= false value) (.removeAttr e k)
+                  (= true value) (.attr e k k)
+                  :else (.attr e k (str value)))))
 
 (defmethod tailrecursion.hoplon/do! :disabled
-  [elem key value]
-  (let [e (js/jQuery elem)
-        k (name key)]
-    (cond
-      (= false value) (.removeAttr e k)
-      (= true value) (.attr e k k)
-      :else (.attr e k (str value)))))
+           [elem key value]
+           (let [e (js/jQuery elem)
+                 k (name key)]
+                (cond
+                  (= false value) (.removeAttr e k)
+                  (= true value) (.attr e k k)
+                  :else (.attr e k (str value)))))
+
+(defmethod tailrecursion.hoplon/do! :checked
+           [elem key value]
+           (let [e (js/jQuery elem)
+                 k (name key)]
+                (cond
+                  (= false value) (.removeAttr e k)
+                  (= true value) (.attr e k k)
+                  :else (.attr e k (str value)))))
 
 (defn create-option
   [value selected-value & [display-value]]
@@ -103,6 +115,7 @@
           :placeholder "Menge [mm]"
           :value amount
           :on-change #(set-amount! (some-> row-no deref) (js/parseInt (val-id month-id)))))
+
       (input
         :class "btn btn-default"
         :type "button"
@@ -222,15 +235,16 @@
   [{{:keys [row-no row-action!
             year
             abs-day abs-day!
-            amount amount!]} :fields
+            amount amount!
+            locked? set-locked?!]} :fields
     opts :opts
     :as attrs} kids]
 
-  (let [[abs-day-id amount-id] (repeatedly gensym)]
+  (let [[abs-day-id amount-id locked?-id] (repeatedly gensym)]
     ((div
        :class "row"
        (div
-         :col [:xs 5]
+         :col [:xs 4]
          (input
            :id abs-day-id
            :class "form-control"
@@ -259,7 +273,20 @@
            (span :class "input-group-addon" "mm")))
 
        (div
-         :col [:xs 4]
+         :col [:xs 2]
+         (label
+           :class "checkbox-inline"
+           (input
+             :id locked?-id
+             ;:class "form-control"
+             :type "checkbox"
+             :checked locked?
+             :value "lock?"
+             :on-change #(set-locked?! (val-id locked?-id)))
+           (text "~(vocab :locked?-donation-label s/lang)")))
+
+       (div
+         :col [:xs 3]
          (input
            :class (cell= {:btn true
                           :btn-danger (not (nil? row-no))

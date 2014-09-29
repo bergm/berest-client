@@ -97,6 +97,9 @@
            :value-placeholder {:lang/de "Wert"
                                :lang/en "Value"}
 
+           :recalc-button-label {:lang/de "Neu-Berechnung"
+                                 :lang/en "Re-Calculate"}
+
 
            :chart-header {:lang/de "Wetterdaten"
                           :lang/en "Weather data"}
@@ -809,7 +812,8 @@
                 :toggle visible?
                 (bs/control-label :col [:sm label-cols] :for donations-id (text "~(vocab :donations-label s/lang)"))
                 (let [abs-day* (cell nil)
-                      amount* (cell nil)]
+                      amount* (cell nil)
+                      locked?* (cell false)]
                      (div
                        :col [:xs (min (+ value-cols 4) (- 12 label-cols))]
                        #_(p :toggle no-edit? :class "form-control-static" (text "~{irrigation-area}"))
@@ -817,22 +821,26 @@
                        (loop-tpl
                          :bindings [[row-no {don-db-id :db/id
                                              abs-day :donation/abs-day
-                                             amount :donation/amount}]
+                                             amount :donation/amount
+                                             locked-rec? :donation/locked-recommendation?}]
                                     (cell= (util/indexed (sort-by :donation/abs-day donations)))]
                          (uie/create-donation-inputs
                            :fields {:row-no row-no
                                     :row-action! #(s/delete-db-entity @don-db-id)
                                     :year year
                                     :abs-day abs-day :abs-day! #(s/update-db-entity @don-db-id :donation/abs-day %)
-                                    :amount amount :amount! #(s/update-db-entity @don-db-id :donation/amount % :value-type :double)}))
+                                    :amount amount :amount! #(s/update-db-entity @don-db-id :donation/amount % :value-type :double)
+                                    :locked? locked-rec? :set-locked?! #(s/update-db-entity @don-db-id :donation/locked-recommendation? %)}))
                        (uie/create-donation-inputs
                          :fields {:row-action! #(when (and @abs-day* @amount*)
-                                                      (s/create-new-donation @db-id @abs-day* @amount*)
+                                                      (s/create-new-donation @db-id @abs-day* @amount* @locked?*)
                                                       (reset! abs-day* nil)
-                                                      (reset! amount* nil))
+                                                      (reset! amount* nil)
+                                                      (reset! locked?* false))
                                   :year year
                                   :abs-day abs-day* :abs-day! #(reset! abs-day* %)
-                                  :amount amount* :amount! #(reset! amount* %)})
+                                  :amount amount* :amount! #(reset! amount* %)
+                                  :locked? locked?* :set-locked?! #(reset! locked?* %)})
                        )))))
 
        (fieldset
@@ -854,11 +862,26 @@
                :on-change #(reset! calc-until-abs-day (util/cljs-time-date->doy (cstf/parse (cstf/formatters :date)
                                                                                             (val-id calc-until-id))))))
 
-           (bs/control-label
+           #_(div
+             :col [:xs 2]
+
+             (button
+               :style "float:right"
+               :class "btn btn-warning"
+               :click #(swap! recalc-count inc)
+               (text "~(vocab :recalc-button-label s/lang)")))
+
+           #_(bs/control-label
              :col [:xs 2]
              (span
                :class "glyphicon glyphicon-refresh"
-               :on-click #(swap! recalc-count inc #_(calc-fn @plot-id @calc-until-abs-day* @year))))))
+               :on-click #(swap! recalc-count inc #_(calc-fn @plot-id @calc-until-abs-day* @year))))
+
+           (button
+             :style "float:right"
+             :class "btn btn-warning"
+             :click #(swap! recalc-count inc)
+             (text "~(vocab :recalc-button-label s/lang)"))))
 
        (div
          :id chart-id
@@ -892,7 +915,9 @@
                 :col [:xs 1]
                 (button
                   :class "btn btn-warning"
-                  :click #(s/create-new-donation @db-id @calc-until-abs-day* (or @donation* @donation))
+                  :click #(do
+                           (s/create-new-donation @db-id @calc-until-abs-day* (or @donation* @donation) true)
+                           (swap! recalc-count inc))
                   (text "~(vocab :lock-recommended-donation s/lang)")))
 
               (div
