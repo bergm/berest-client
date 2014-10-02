@@ -172,7 +172,8 @@
 (defelem safe-delete-button
       [{:keys [action! value]
         :as attrs} kids]
-      ((let [checked? (cell false)]
+      ((let [checked? (cell false)
+             checked-id (gensym)]
             (div
               :class "input-group"
               (input
@@ -187,9 +188,26 @@
                          (action!))
                 :value value)
               (span
+                :id checked-id
                 :class "input-group-addon"
                 (input
                   :type "checkbox"
                   :value checked?
-                  :change #(reset! checked? (-> % .-target .-checked))))))
+                  :change #(reset! checked? (val-id checked-id) #_(-> % .-target .-checked))))))
        (dissoc attrs :action! value) kids))
+
+(defelem hover-activate-wrapper
+         [{:keys [action!]
+           :as attrs} elem]
+         (let [hover? (cell false)]
+              (elem
+                :mouseenter #(reset! hover? true)
+                :mouseleave #(reset! hover? false)
+                :class (cell= {:bg-warning hover?})
+                :click #(action!))
+              #_((elem
+                 :mouseenter #(reset! hover? true)
+                 :mouseleave #(reset! hover? false)
+                 :class (cell= {:bg-warning hover?})
+                 :click #(action!)) (dissoc attrs action!))))
+

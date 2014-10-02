@@ -145,8 +145,10 @@
 (def create-new-donation (mkremote 'de.zalf.berest.web.castra.api/create-new-donation state error loading))
 (def create-new-crop-instance (mkremote 'de.zalf.berest.web.castra.api/create-new-crop-instance state error loading))
 (def create-new-dc-assertion (mkremote 'de.zalf.berest.web.castra.api/create-new-dc-assertion state error loading))
+(def create-new-weather-data (mkremote 'de.zalf.berest.web.castra.api/create-new-weather-data state error loading))
 
 (def update-db-entity (mkremote 'de.zalf.berest.web.castra.api/update-db-entity state error loading))
+(def retract-db-value (mkremote 'de.zalf.berest.web.castra.api/retract-db-value state error loading))
 
 (def delete-db-entity (mkremote 'de.zalf.berest.web.castra.api/delete-db-entity state error loading))
 (def delete-db-entities (mkremote 'de.zalf.berest.web.castra.api/delete-db-entity state error loading))

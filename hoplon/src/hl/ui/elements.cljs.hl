@@ -39,6 +39,26 @@
            :locked?-donation-label {:lang/de "Gesperrt?"
                                     :lang/en "Locked?"}
 
+           :tavg-placeholder {:lang/de "Tmit"
+                              :lang/en "Tavg"}
+
+           :globrad-placeholder {:lang/de "Globalstrahlung"
+                                 :lang/en "Global radiation"}
+
+           :evap-placeholder {:lang/de "Verdunstung"
+                             :lang/en "Evaporation"}
+
+           :precip-placeholder {:lang/de "Niederschlag"
+                                :lang/en "Precipitation"}
+
+           :prog?-label {:lang/de "Prognose?"
+                         :lang/en "Prognosis?"}
+
+           :remove-weather-data-label {:lang/de "Entfernen"
+                                       :lang/en "Remove"}
+
+           :add-weather-data-label {:lang/de "Hinzufügen"
+                                    :lang/en "Add"}
 
            }
           [element (or lang :lang/de)] "UNKNOWN element"))
@@ -236,7 +256,7 @@
             year
             abs-day abs-day!
             amount amount!
-            locked? set-locked?!]} :fields
+            locked? locked?!]} :fields
     opts :opts
     :as attrs} kids]
 
@@ -282,7 +302,7 @@
              :type "checkbox"
              :checked locked?
              :value "lock?"
-             :on-change #(set-locked?! (val-id locked?-id)))
+             :on-change #(locked?! (val-id locked?-id)))
            (text "~(vocab :locked?-donation-label s/lang)")))
 
        (div
@@ -295,6 +315,118 @@
            :value (cell= (if row-no (vocab :remove-donation-label s/lang) (vocab :add-donation-label s/lang)))
            :on-click #(row-action! (some-> row-no deref)))))
      (dissoc attrs :fields :opts) kids)))
+
+(defelem
+  create-weather-data-inputs
+  [{{:keys [row-no row-action!
+            date date!
+            tavg tavg!
+            globrad globrad!
+            precip precip!
+            evap evap!
+            prog? prog?!]} :fields
+    opts :opts
+    :as attrs} kids]
+
+  (let [[date-id tavg-id tavg-checked-id globrad-id globrad-checked-id precip-id evap-id prog?-id] (repeatedly gensym)]
+       ((div
+          :class "row"
+          (div
+            :col [:xs 2]
+            (input
+              :id date-id
+              :class "form-control"
+              :type "date"
+              :value (cell= (->> (if date (cstcoe/from-date date) (cstc/now))
+                                 (cstf/unparse (cstf/formatters :date),,,))
+                            #_(if date
+                              (->> (cstcoe/from-date date)
+                                   (cstf/unparse (cstf/formatters :date),,,))
+                              (str (cstc/year (cstc/now)) "-01-01")))
+              :on-change #(date! (cstcoe/to-date (cstf/parse (cstf/formatters :date)
+                                                             (val-id date-id))))))
+
+          (div
+            :col [:xs 2]
+            (div
+              :class "input-group"
+              (input
+                :id tavg-id
+                :class "form-control"
+                :type "number"
+                :placeholder (cell= (vocab :tavg-placeholder s/lang))
+                :step 0.1
+                :min -70
+                :max 70
+                :value tavg
+                :on-change #(tavg! (js/parseFloat (val-id tavg-id))))
+              (span :class "input-group-addon" "°C"))
+            (div
+              :class "input-group"
+              (input
+                :id globrad-id
+                :class "form-control"
+                :type "number"
+                :placeholder (cell= (vocab :globrad-placeholder s/lang))
+                :step 0.1
+                ;:min -70
+                ;:max 70
+                :value globrad
+                :on-change #(globrad! (js/parseFloat (val-id globrad-id))))
+              (span :class "input-group-addon" "J/cm²")))
+
+          (div
+            :col [:xs 2]
+            (div
+              :class "input-group"
+              (input
+                :id evap-id
+                :class "form-control"
+                :type "number"
+                :placeholder (cell= (vocab :evap-placeholder s/lang))
+                :step 0.1
+                :min 0
+                :value evap
+                :on-change #(evap! (js/parseFloat (val-id evap-id))))
+              (span :class "input-group-addon" "mm")))
+
+          (div
+            :col [:xs 2]
+            (div
+              :class "input-group"
+              (input
+                :id precip-id
+                :class "form-control"
+                :type "number"
+                :placeholder (cell= (vocab :precip-placeholder s/lang))
+                :step 0.1
+                :min 0
+                :value precip
+                :on-change #(precip! (js/parseFloat (val-id precip-id))))
+              (span :class "input-group-addon" "mm")))
+
+          (div
+            :col [:xs 1]
+            (label
+              :class "checkbox-inline"
+              (input
+                :id prog?-id
+                :type "checkbox"
+                :checked prog?
+                :value "prog?"
+                :on-change #(prog?! (val-id prog?-id)))
+              (text "~(vocab :prog?-label s/lang)")))
+
+          (div
+            :col [:xs 2]
+            (input
+              :class (cell= {:btn true
+                             :btn-danger (not (nil? row-no))
+                             :btn-warning (nil? row-no)})
+              :type "button"
+              :value (cell= (if row-no (vocab :remove-weather-data-label s/lang) (vocab :add-weather-data-label s/lang)))
+              :on-click #(row-action! (some-> row-no deref)))))
+        (dissoc attrs :fields :opts) kids)))
 
 
 (defelem

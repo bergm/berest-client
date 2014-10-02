@@ -1,8 +1,7 @@
 (ns ui.farms
-  #_(:require-macros [tailrecursion.javelin :refer :all]
-                   [tailrecursion.hoplon :refer :all])
-  (:require #_[tailrecursion.javelin :refer :all]
-            #_[tailrecursion.hoplon :refer :all]
+  (:require [cljs-time.core :as cstc]
+            [cljs-time.format :as cstf]
+            [cljs-time.coerce :as cstcoe]
             [de.zalf.berest.client.hoplon.util :as util]
             [de.zalf.berest.client.hoplon.state :as s]
             [ui.elements :as uie]
@@ -10,8 +9,7 @@
             [ui.farm :as farm]
             [ui.plot :as plot]
             [ui.plot-annual :as plot-annual]
-            [bootstrap-util :as bs]
-            #_[cljs-time.coerce :as cstcoe]))
+            [bootstrap-util :as bs]))
 
 
 (defn vocab
@@ -534,7 +532,7 @@
                                     ;_ (cell= (println "selected-annual-year: " selected-annual-year))
 
                                     selected-annual (cell= (first (filter #(= selected-annual-year (:plot.annual/year %)) annuals)))
-                                    ;_ (cell= (when selected-annual (swap! ~(cell recalc-count) inc)))
+                                    _ (cell= (when (and selected-plot selected-annual) (swap! ~(cell recalc-count) inc)))
                                     ;_ (cell= (println "selected-annual: " (pr-str selected-annual)))
                                     ]
 
@@ -609,6 +607,9 @@
                                                  :crop-instances crop-instances
 
                                                  :donations donations
+
+                                                 :weather-data (cell= (filter #(= year (cstc/year (cstcoe/from-date (:weather-data/date %))))
+                                                                              weather-data))
 
                                                  :recalc-count recalc-count}
                                         :opts {:edit? true

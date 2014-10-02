@@ -64,6 +64,12 @@
            :donations-fieldset-label {:lang/de "Bewässerungsdaten"
                                       :lang/en "Irrigation data"}
 
+           :weather-data-fieldset-label {:lang/de "Wetterdaten"
+                                      :lang/en "Weather data"}
+
+           :weather-data-label {:lang/de "Datensätze"
+                                :lang/en "Datasets"}
+
            :donations-label {:lang/de "Bewässerungsgaben"
                              :lang/en "Irrigation donations"}
 
@@ -194,6 +200,10 @@
 
             donations
 
+            weather-data
+
+            recalc-count
+
             incomplete]} :fields
     {:keys [edit? label-cols value-cols]} :opts
     toggle :toggle
@@ -215,7 +225,7 @@
                  abs-day-of-initial-soil-moisture-measurement))
 
         initial-soil-moistures (cell= (do
-                                        (println "crop-instances: " (pr-str crop-instances))
+                                        #_(println "crop-instances: " (pr-str crop-instances))
                                         (swap! ~(cell incomplete*) (if initial-soil-moistures disj conj) :initial-soil-moistures)
                                         initial-soil-moistures))
 
@@ -256,14 +266,16 @@
                                        (util/dmy-date->doy 31 12 year))))
         ;_ (cell= (println "calc-until-abs-day*: " (pr-str calc-until-abs-day*)))
 
-        recalc-count (cell 0)
+        recalc-count* (cell 0)
+        recalc-count** (cell= (+ recalc-count* recalc-count))
+        _ (cell= (println "recalc-count**: " recalc-count**))
 
         calc-result (cell nil)
         ;_ (cell= (println "calc-result: " (pr-str calc-result)))
         recommendation (cell nil)
 
         ;only calc plot if chart is visible
-        _ (cell= (when (and plot-id calc-until-abs-day* year complete? recalc-count toggle)
+        _ (cell= (when (and plot-id calc-until-abs-day* year complete? recalc-count** toggle)
                        (with-timeout 0 (s/calculate-from-db ~(cell calc-result) plot-id calc-until-abs-day* year))))
 
         soil-moistures (cell= (mapv (fn [{:keys [abs-day soil-moistures
@@ -515,7 +527,7 @@
          :click #(s/delete-db-entity @db-id)
          (text "~(vocab :delete-plot-annual-button-label s/lang)"))
 
-       (button
+       #_(button
          :style "float:right"
          :class "btn btn-info"
          :click #(swap! edit? not)
@@ -540,6 +552,90 @@
            ))
 
        (let [visible? (cell false)]
+            (uic/hover-activate-wrapper
+              :action! #(swap! visible? not)
+              #_(div "blajljgljalgjalkjg")
+              (fieldset
+              (legend #_:click #_#(swap! visible? not) (text "~(vocab :soil-moisture-data-fieldset-label s/lang)"))
+
+              (bs/form-group
+                :toggle visible?
+                (bs/control-label :col [:sm label-cols] :for abs-day-of-initial-soil-moisture-measurement-id
+                                  (text "~(vocab :abs-day-of-initial-soil-moisture-measurement-label s/lang)"))
+                (div
+                  :col [:xs value-cols]
+                  (p :toggle no-edit? :class "form-control-static" (text "~{abs-day-of-initial-soil-moisture-measurement-id}"))
+                  (input
+                    :id abs-day-of-initial-soil-moisture-measurement-id
+                    :toggle edit?
+                    :class "form-control"
+                    :type "date"
+                    :placeholder (cell= (vocab :abs-day-of-initial-soil-moisture-measurement-id-placeholder s/lang))
+                    :value (cell= (->> (util/doy->cljs-time-date (or abs-day-of-initial-soil-moisture-measurement 1) year)
+                                       (cstf/unparse (cstf/formatters :date) ,,,)))
+                    :on-change #(abs-day-of-initial-soil-moisture-measurement!
+                                 (util/cljs-time-date->doy (cstf/parse (cstf/formatters :date)
+                                                                       (val-id abs-day-of-initial-soil-moisture-measurement-id)))))))
+
+
+              (bs/form-group
+                :toggle (cell= (and edit? visible?))        ;we don't have to show this for read-only mode
+                (bs/control-label :col [:sm label-cols] :for initial-sm-unit-id
+                                  (text "~(vocab :initial-sm-unit-label s/lang)"))
+                (div
+                  :col [:xs 2]
+                  (select
+                    :disabled "disabled"
+                    :id initial-sm-unit-id
+                    :class "form-control"
+                    :on-change #(initial-sm-unit! (keyword (val-id initial-sm-unit-id)))
+                    (option :value "soil-moisture.unit/pFK"
+                            :selected (cell= (= initial-sm-unit :soil-moisture.unit/pFK))
+                            (text "~(vocab :pFK s/lang)"))
+                    (option :value "soil-moisture.unit/pNFK"
+                            :selected (cell= (= initial-sm-unit :soil-moisture.unit/pNFK))
+                            (text "~(vocab :pNFK s/lang)"))
+                    (option :value "soil-moisture.unit/volP"
+                            :selected (cell= (= initial-sm-unit :soil-moisture.unit/volP))
+                            (text "~(vocab :volP s/lang)"))
+                    (option :value "soil-moisture.unit/mm"
+                            :selected (cell= (= initial-sm-unit :soil-moisture.unit/mm))
+                            (text "~(vocab :mm s/lang)")))))
+
+              (bs/form-group
+                :toggle visible?
+                (bs/control-label :col [:sm label-cols] :for initial-soil-moistures-id
+                                  (text "~(vocab :initial-soil-moistures-label s/lang)"))
+                (let [depth* (cell nil)
+                      sm* (cell nil)
+                      unit* (cell= (vocab (keyword ((fnil clojure.core/name "") initial-sm-unit)) s/lang))
+                      _ (cell= (println "initial-soil-moistures: " (pr-str initial-soil-moistures)))]
+                     (div
+                       :col [:xs (min (+ value-cols 2) (- 12 label-cols))]
+                       #_(p :toggle no-edit? :class "form-control-static" (text "~{irrigation-area}"))
+
+                       (loop-tpl
+                         :bindings [[row-no {db-id :db/id
+                                             sm :soil/soil-moisture
+                                             depth :soil/upper-boundary-depth}]
+                                    (cell= (util/indexed (sort-by :soil/upper-boundary-depth initial-soil-moistures)))]
+                         (uie/create-soil-data-inputs
+                           :fields {:row-no row-no
+                                    :row-action! #(s/delete-db-entity @db-id)
+                                    :unit unit*
+                                    :depth depth :depth! #(s/update-db-entity @db-id :soil/upper-boundary-depth %)
+                                    :value sm :value! #(s/update-db-entity @db-id :soil/soil-moisture % :value-type :double)}))
+                       (uie/create-soil-data-inputs
+                         :fields {:row-action! #(when (and @depth* @sm*)
+                                                      (s/create-new-soil-data-layer :db/id @db-id @depth* :sm @sm*)
+                                                      (reset! depth* nil)
+                                                      (reset! sm* nil))
+                                  :unit unit*
+                                  :depth depth* :depth! #(reset! depth* %)
+                                  :value sm* :value! #(reset! sm* %)})
+                       ))))))
+
+       #_(let [visible? (cell false)]
             (fieldset
               (legend :click #(swap! visible? not) (text "~(vocab :soil-moisture-data-fieldset-label s/lang)"))
 
@@ -840,8 +936,64 @@
                                   :year year
                                   :abs-day abs-day* :abs-day! #(reset! abs-day* %)
                                   :amount amount* :amount! #(reset! amount* %)
-                                  :locked? locked?* :set-locked?! #(reset! locked?* %)})
+                                  :locked? locked?* :locked?! #(reset! locked?* %)})
                        )))))
+
+       (let [visible? (cell false)]
+            (fieldset
+              (legend :click #(swap! visible? not) (text "~(vocab :weather-data-fieldset-label s/lang)"))
+
+              (bs/form-group
+                :toggle visible?
+                (bs/control-label :col [:sm label-cols] :for donations-id (text "~(vocab :weather-data-label s/lang)"))
+                (let [date* (cell nil)
+                      tavg* (cell nil)
+                      globrad* (cell nil)
+                      evap* (cell nil)
+                      precip* (cell nil)
+                      prog?* (cell false)
+                      _ (cell= (println "date*: " date* " tavg*: " tavg* " globrad*: " globrad*
+                                        " evap*: " evap* " precip*: " precip* " prog?*: " prog?*))]
+                     (div
+                       :col [:xs (min #_(+ value-cols 4) (- 12 label-cols))]
+
+                       (loop-tpl
+                         :bindings [[row-no {db-id :db/id
+                                             date :weather-data/date
+                                             tavg :weather-data/average-temperature
+                                             globrad :weather-data/global-radiation
+                                             evap :weather-data/evaporation
+                                             precip :weather-data/precipitation
+                                             prog-date :weather-data/prognosis-date}]
+                                    (cell= (util/indexed (sort-by (comp util/js-date->doy :weather-data/date) weather-data)))]
+                         (uie/create-weather-data-inputs
+                           :fields {:row-no row-no
+                                    :row-action! #(s/delete-db-entity @db-id)
+                                    :date date :date! #(s/update-db-entity @db-id :weather-data/date (cstcoe/to-date %))
+                                    :tavg tavg :tavg! #(s/update-db-entity @db-id :weather-data/average-temperature % :value-type :double)
+                                    :globrad globrad :globrad! #(s/update-db-entity @db-id :weather-data/global-radiation % :value-type :double)
+                                    :evap evap :evap! #(s/update-db-entity @db-id :weather-data/evaporation % :value-type :double)
+                                    :precip precip :precip! #(s/update-db-entity @db-id :weather-data/precipitation % :value-type :double)
+                                    :prog? (cell= (not (nil? prog-date)))
+                                    :prog! #(if %
+                                             (s/update-db-entity @db-id :weather-data/prognosis-date date)
+                                             (s/retract-db-value @db-id :weather-data/prognosis-date date))}))
+                       (uie/create-weather-data-inputs
+                         :fields {:row-action! #(when (and @date* (or @evap* (and @tavg* @globrad*)) @precip*)
+                                                      (s/create-new-weather-data @plot-id @date* @tavg* @globrad*
+                                                                                 @evap* @precip* (when @prog?* @date*))
+                                                      (reset! date* nil)
+                                                      (reset! evap* nil)
+                                                      (reset! tavg* nil)
+                                                      (reset! globrad* nil)
+                                                      (reset! precip* nil)
+                                                      (reset! prog?* false))
+                                  :date date* :date! #(reset! date* %)
+                                  :tavg tavg* :tavg! #(reset! tavg* %)
+                                  :globrad globrad* :globrad! #(reset! globrad* %)
+                                  :evap evap* :evap! #(reset! evap* %)
+                                  :precip precip* :precip! #(reset! precip* %)
+                                  :prog? prog?* :prog?! #(reset! prog?* %)}))))))
 
        (fieldset
          (legend (text "~(vocab :calculate-fieldset-label s/lang)"))
@@ -862,25 +1014,10 @@
                :on-change #(reset! calc-until-abs-day (util/cljs-time-date->doy (cstf/parse (cstf/formatters :date)
                                                                                             (val-id calc-until-id))))))
 
-           #_(div
-             :col [:xs 2]
-
-             (button
-               :style "float:right"
-               :class "btn btn-warning"
-               :click #(swap! recalc-count inc)
-               (text "~(vocab :recalc-button-label s/lang)")))
-
-           #_(bs/control-label
-             :col [:xs 2]
-             (span
-               :class "glyphicon glyphicon-refresh"
-               :on-click #(swap! recalc-count inc #_(calc-fn @plot-id @calc-until-abs-day* @year))))
-
            (button
              :style "float:right"
              :class "btn btn-warning"
-             :click #(swap! recalc-count inc)
+             :click #(swap! recalc-count* inc)
              (text "~(vocab :recalc-button-label s/lang)"))))
 
        (div
@@ -915,9 +1052,7 @@
                 :col [:xs 1]
                 (button
                   :class "btn btn-warning"
-                  :click #(do
-                           (s/create-new-donation @db-id @calc-until-abs-day* (or @donation* @donation) true)
-                           (swap! recalc-count inc))
+                  :click #(s/create-new-donation @db-id @calc-until-abs-day* (or @donation* @donation) true)
                   (text "~(vocab :lock-recommended-donation s/lang)")))
 
               (div
