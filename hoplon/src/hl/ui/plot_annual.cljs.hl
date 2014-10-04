@@ -252,7 +252,6 @@
          technology-select-id
          crop-instances-id
          new-crop-instance-id
-         donations-id
          calc-until-id
          chart-id
          recommended-donation-id
@@ -552,92 +551,11 @@
            ))
 
        (let [visible? (cell false)]
-            (uic/hover-activate-wrapper
-              :action! #(swap! visible? not)
-              #_(div "blajljgljalgjalkjg")
-              (fieldset
-              (legend #_:click #_#(swap! visible? not) (text "~(vocab :soil-moisture-data-fieldset-label s/lang)"))
-
-              (bs/form-group
-                :toggle visible?
-                (bs/control-label :col [:sm label-cols] :for abs-day-of-initial-soil-moisture-measurement-id
-                                  (text "~(vocab :abs-day-of-initial-soil-moisture-measurement-label s/lang)"))
-                (div
-                  :col [:xs value-cols]
-                  (p :toggle no-edit? :class "form-control-static" (text "~{abs-day-of-initial-soil-moisture-measurement-id}"))
-                  (input
-                    :id abs-day-of-initial-soil-moisture-measurement-id
-                    :toggle edit?
-                    :class "form-control"
-                    :type "date"
-                    :placeholder (cell= (vocab :abs-day-of-initial-soil-moisture-measurement-id-placeholder s/lang))
-                    :value (cell= (->> (util/doy->cljs-time-date (or abs-day-of-initial-soil-moisture-measurement 1) year)
-                                       (cstf/unparse (cstf/formatters :date) ,,,)))
-                    :on-change #(abs-day-of-initial-soil-moisture-measurement!
-                                 (util/cljs-time-date->doy (cstf/parse (cstf/formatters :date)
-                                                                       (val-id abs-day-of-initial-soil-moisture-measurement-id)))))))
-
-
-              (bs/form-group
-                :toggle (cell= (and edit? visible?))        ;we don't have to show this for read-only mode
-                (bs/control-label :col [:sm label-cols] :for initial-sm-unit-id
-                                  (text "~(vocab :initial-sm-unit-label s/lang)"))
-                (div
-                  :col [:xs 2]
-                  (select
-                    :disabled "disabled"
-                    :id initial-sm-unit-id
-                    :class "form-control"
-                    :on-change #(initial-sm-unit! (keyword (val-id initial-sm-unit-id)))
-                    (option :value "soil-moisture.unit/pFK"
-                            :selected (cell= (= initial-sm-unit :soil-moisture.unit/pFK))
-                            (text "~(vocab :pFK s/lang)"))
-                    (option :value "soil-moisture.unit/pNFK"
-                            :selected (cell= (= initial-sm-unit :soil-moisture.unit/pNFK))
-                            (text "~(vocab :pNFK s/lang)"))
-                    (option :value "soil-moisture.unit/volP"
-                            :selected (cell= (= initial-sm-unit :soil-moisture.unit/volP))
-                            (text "~(vocab :volP s/lang)"))
-                    (option :value "soil-moisture.unit/mm"
-                            :selected (cell= (= initial-sm-unit :soil-moisture.unit/mm))
-                            (text "~(vocab :mm s/lang)")))))
-
-              (bs/form-group
-                :toggle visible?
-                (bs/control-label :col [:sm label-cols] :for initial-soil-moistures-id
-                                  (text "~(vocab :initial-soil-moistures-label s/lang)"))
-                (let [depth* (cell nil)
-                      sm* (cell nil)
-                      unit* (cell= (vocab (keyword ((fnil clojure.core/name "") initial-sm-unit)) s/lang))
-                      _ (cell= (println "initial-soil-moistures: " (pr-str initial-soil-moistures)))]
-                     (div
-                       :col [:xs (min (+ value-cols 2) (- 12 label-cols))]
-                       #_(p :toggle no-edit? :class "form-control-static" (text "~{irrigation-area}"))
-
-                       (loop-tpl
-                         :bindings [[row-no {db-id :db/id
-                                             sm :soil/soil-moisture
-                                             depth :soil/upper-boundary-depth}]
-                                    (cell= (util/indexed (sort-by :soil/upper-boundary-depth initial-soil-moistures)))]
-                         (uie/create-soil-data-inputs
-                           :fields {:row-no row-no
-                                    :row-action! #(s/delete-db-entity @db-id)
-                                    :unit unit*
-                                    :depth depth :depth! #(s/update-db-entity @db-id :soil/upper-boundary-depth %)
-                                    :value sm :value! #(s/update-db-entity @db-id :soil/soil-moisture % :value-type :double)}))
-                       (uie/create-soil-data-inputs
-                         :fields {:row-action! #(when (and @depth* @sm*)
-                                                      (s/create-new-soil-data-layer :db/id @db-id @depth* :sm @sm*)
-                                                      (reset! depth* nil)
-                                                      (reset! sm* nil))
-                                  :unit unit*
-                                  :depth depth* :depth! #(reset! depth* %)
-                                  :value sm* :value! #(reset! sm* %)})
-                       ))))))
-
-       #_(let [visible? (cell false)]
             (fieldset
-              (legend :click #(swap! visible? not) (text "~(vocab :soil-moisture-data-fieldset-label s/lang)"))
+              (uic/hover-activate-wrapper
+                :action! #(swap! visible? not)
+                (legend
+                  (text "~(vocab :soil-moisture-data-fieldset-label s/lang) ~(when-not visible? \" ...\")")))
 
               (bs/form-group
                 :toggle visible?
@@ -653,7 +571,7 @@
                     :type "date"
                     :placeholder (cell= (vocab :abs-day-of-initial-soil-moisture-measurement-id-placeholder s/lang))
                     :value (cell= (->> (util/doy->cljs-time-date (or abs-day-of-initial-soil-moisture-measurement 1) year)
-                                       (cstf/unparse (cstf/formatters :date) ,,,)))
+                                       (cstf/unparse (cstf/formatters :date),,,)))
                     :on-change #(abs-day-of-initial-soil-moisture-measurement!
                                  (util/cljs-time-date->doy (cstf/parse (cstf/formatters :date)
                                                                        (val-id abs-day-of-initial-soil-moisture-measurement-id)))))))
@@ -718,7 +636,10 @@
 
        (let [visible? (cell false)]
             (fieldset
-              (legend :click #(swap! visible? not) (text "~(vocab :technology-fieldset-label s/lang)"))
+              (uic/hover-activate-wrapper
+                :action! #(swap! visible? not)
+                (legend
+                  (text "~(vocab :technology-fieldset-label s/lang) ~(when-not visible? \" ...\")")))
 
               (bs/form-group
                 :toggle visible?
@@ -781,7 +702,10 @@
 
        (let [visible? (cell false)]
             (fieldset
-              (legend :click #(swap! visible? not) (text "~(vocab :crop-instances-fieldset-label s/lang)"))
+              (uic/hover-activate-wrapper
+                :action! #(swap! visible? not)
+                (legend
+                  (text "~(vocab :crop-instances-fieldset-label s/lang) ~(when-not visible? \" ...\")")))
 
               (div
                 :toggle visible?
@@ -902,17 +826,19 @@
 
        (let [visible? (cell true)]
             (fieldset
-              (legend :click #(swap! visible? not) (text "~(vocab :donations-fieldset-label s/lang)"))
+              (uic/hover-activate-wrapper
+                :action! #(swap! visible? not)
+                (legend
+                  (text "~(vocab :donations-fieldset-label s/lang) ~(when-not visible? \" ...\")")))
 
               (bs/form-group
                 :toggle visible?
-                (bs/control-label :col [:sm label-cols] :for donations-id (text "~(vocab :donations-label s/lang)"))
+                (bs/control-label :col [:sm label-cols] (text "~(vocab :donations-label s/lang)"))
                 (let [abs-day* (cell nil)
                       amount* (cell nil)
                       locked?* (cell false)]
                      (div
                        :col [:xs (min (+ value-cols 4) (- 12 label-cols))]
-                       #_(p :toggle no-edit? :class "form-control-static" (text "~{irrigation-area}"))
 
                        (loop-tpl
                          :bindings [[row-no {don-db-id :db/id
@@ -936,16 +862,18 @@
                                   :year year
                                   :abs-day abs-day* :abs-day! #(reset! abs-day* %)
                                   :amount amount* :amount! #(reset! amount* %)
-                                  :locked? locked?* :locked?! #(reset! locked?* %)})
-                       )))))
+                                  :locked? locked?* :locked?! #(reset! locked?* %)}))))))
 
        (let [visible? (cell false)]
             (fieldset
-              (legend :click #(swap! visible? not) (text "~(vocab :weather-data-fieldset-label s/lang)"))
+              (uic/hover-activate-wrapper
+                :action! #(swap! visible? not)
+                (legend
+                  (text "~(vocab :weather-data-fieldset-label s/lang) ~(when-not visible? \" ...\")")))
 
               (bs/form-group
                 :toggle visible?
-                (bs/control-label :col [:sm label-cols] :for donations-id (text "~(vocab :weather-data-label s/lang)"))
+                (bs/control-label :col [:sm label-cols] (text "~(vocab :weather-data-label s/lang)"))
                 (let [date* (cell nil)
                       tavg* (cell nil)
                       globrad* (cell nil)
@@ -1000,7 +928,7 @@
 
          (bs/form-group
 
-           (bs/control-label :col [:sm label-cols] :for donations-id (text "~(vocab :chart-until-abs-day-label s/lang)"))
+           (bs/control-label :col [:sm label-cols] (text "~(vocab :chart-until-abs-day-label s/lang)"))
            (div
              :col [:xs 2]
              (input

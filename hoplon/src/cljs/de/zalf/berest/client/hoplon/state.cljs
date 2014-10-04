@@ -130,6 +130,7 @@
 (def create-new-farm (mkremote 'de.zalf.berest.web.castra.api/create-new-farm state error loading))
 (def create-new-plot (mkremote 'de.zalf.berest.web.castra.api/create-new-plot state error loading))
 (def create-new-plot-annual (mkremote 'de.zalf.berest.web.castra.api/create-new-plot-annual state error loading))
+(def create-new-local-user-weather-station (mkremote 'de.zalf.berest.web.castra.api/create-new-local-user-weather-station state error loading))
 
 (def create-new-user (mkremote 'de.zalf.berest.web.castra.api/create-new-user state error loading))
 (def set-new-password (mkremote 'de.zalf.berest.web.castra.api/set-new-password pwd-update-success? error loading))

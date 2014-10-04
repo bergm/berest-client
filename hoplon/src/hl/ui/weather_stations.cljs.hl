@@ -11,7 +11,17 @@
 (defn vocab
   "translatable vocabulary for this page"
   [element lang]
-  (get-in {:name-label {:lang/de "Name"
+  (get-in {:new-weather-station-button {:lang/de "Neu"
+                                        :lang/en "New"}
+           :new-weather-station-value {:lang/de "Neue lokale Wetterstation"
+                                        :lang/en "New local weather-station"}
+
+           :weather-data-fieldset-label {:lang/de "Wetterdaten"
+                                         :lang/en "Weather data"}
+           :weather-data-label {:lang/de "Datensätze"
+                                :lang/en "Datasets"}
+
+           :name-label {:lang/de "Name"
                         :lang/en "Name"}
            :name-placeholder {:lang/de "Name der Wetterstation"
                               :lang/en "Name of weather station"}
@@ -53,6 +63,8 @@
   (let [selected-weather-station (cell nil)
         _ (cell= (println "selected-ws: " (pr-str selected-weather-station)))
 
+        new-weather-station-no (cell 0)
+
         weather-stations-count (cell= (count (:weather-stations s/state)))
         many-weather-stations? (cell= (> weather-stations-count 1))
         _ (cell= (when (= weather-stations-count 1) (reset! selected-weather-station (first (:weather-stations s/state)))))
@@ -65,7 +77,7 @@
            :class "row"
 
            (div
-             :col [:xs 12]
+             :col [:xs 11]
 
              (table
                :class "table"
@@ -93,33 +105,17 @@
                           :click #(reset! selected-weather-station @weather-station)
 
                           (td (text "~(or name id)"))
-                          #_(td (span :class "glyphicon glyphicon-ok")))))))))
-
-         #_(div
-           :class "row"
+                          #_(td (span :class "glyphicon glyphicon-ok"))))))))
 
            (div
-             :col [:md 12]
+             :col [:xs 1]
 
-             (loop-tpl
-               :bindings [{id :weather-station/id
-                           name :weather-station/name
-                           :as weather-station}
-                          (cell= (sort-by #(if-let [n (:weather-station/name %)] n (:weather-station/id %))
-                                          (:weather-stations s/state)))]
-               (div
-                 :class "row"
-
-                 (let [hover? (cell false)
-                       selected? (cell= (= id (:weather-station/id selected-weather-station)))]
-                      (div
-                        :col [:xs 4]
-                        :class (cell= {:bg-warning (and hover? (not selected?))
-                                       :bg-success selected?})
-                        :mouseenter #(reset! hover? true)
-                        :mouseleave #(reset! hover? false)
-                        :click #(reset! selected-weather-station @weather-station)
-                        (p (text "~(or name id)"))))))))
+             (button
+               :class "btn btn-warning btn-block"
+               :click #(let [temp-weather-station-name (str (vocab :new-weather-station-value @s/lang) " "
+                                                            (swap! new-weather-station-no inc))]
+                            (s/create-new-local-user-weather-station temp-weather-station-name))
+               (text "~(vocab :new-weather-station-button s/lang)"))))
 
          (div
            :class "row"
@@ -174,19 +170,19 @@
                                        (reset! ~(cell selected-years-set) (into #{} load-years))
                                        (s/load-weather-station-data ~(cell weather-station-data) id load-years))))
 
-                   chart-config {:chart       {:renderTo chart-id
-                                               ;:defaultSeriesType "spline"
-                                               :zoomType "x"
-                                               #_:spacingTop #_50}
-                                 :title       {:text "" #_(vocab :chart-header @s/lang)
-                                               :x    0 #_-20}
+                   chart-config {:chart {:renderTo chart-id
+                                         ;:defaultSeriesType "spline"
+                                         :zoomType "x"
+                                         #_:spacingTop #_50}
+                                 :title {:text "" #_(vocab :chart-header @s/lang)
+                                         :x 0 #_-20}
                                  #_:subtitle #_{:text (str (vocab :chart-subheader @s/lang) " " @name)
                                        :x 0 #_-20
                                        :y -20}
-                                 :xAxis       {:type   "datetime"
-                                               :labels {:format   "{value: %d.%m.%Y}"
-                                                        :rotation 45
-                                                        :align    "left"}}
+                                 :xAxis {:type   "datetime"
+                                         :labels {:format   "{value: %d.%m.%Y}"
+                                                  :rotation 45
+                                                  :align    "left"}}
                                  :yAxis       [{:title {:text (str (vocab :tavg @s/lang) " [°C]")}}
                                                {:title    {:text (str (vocab :precip @s/lang) "/"
                                                                       (vocab :evap @s/lang) " [mm]")}
@@ -284,19 +280,6 @@
                    ]
 
                   (div
-                    #_(button
-                      ;:toggle no-edit?
-                      :style "float:right"
-                      :class "btn btn-primary"
-                      :click #(swap! edit? not)
-                      (text "~(vocab :edit s/lang)"))
-                    #_(button
-                      :toggle edit?
-                      :style "float:right"
-                      :class "btn btn-danger"
-                      :click #()
-                      (text "~(vocab :save-edit s/lang)"))
-
                     (bs/form-group
                       (bs/control-label :col [:sm 2] :for name-input (text "~(vocab :name-label s/lang)"))
                       (div
@@ -362,4 +345,70 @@
 
                       (div
                         :id chart-id
-                        :col [:xs 12])))))))))
+                        :col [:xs 12]))))))
+
+         (div
+           :class "row"
+           :toggle (cell= (and selected-weather-station many-weather-stations?))
+           (div
+             :col [:xs 12]
+             (hr)))
+
+         (let [visible? (cell false)]
+              (fieldset
+                (uic/hover-activate-wrapper
+                  :action! #(swap! visible? not)
+                  (legend
+                    (text "~(vocab :weather-data-fieldset-label s/lang) ~(when-not visible? \" ...\")")))
+
+                (bs/form-group
+                  :toggle visible?
+                  (bs/control-label :col [:xs 2] (text "~(vocab :weather-data-label s/lang)"))
+                  (let [date* (cell nil)
+                        tavg* (cell nil)
+                        globrad* (cell nil)
+                        evap* (cell nil)
+                        precip* (cell nil)
+                        prog?* (cell false)
+                        _ (cell= (println "date*: " date* " tavg*: " tavg* " globrad*: " globrad*
+                                          " evap*: " evap* " precip*: " precip* " prog?*: " prog?*))]
+                       (div
+                         :col [:xs 10]
+
+                         (loop-tpl
+                           :bindings [[row-no {db-id :db/id
+                                               date :weather-data/date
+                                               tavg :weather-data/average-temperature
+                                               globrad :weather-data/global-radiation
+                                               evap :weather-data/evaporation
+                                               precip :weather-data/precipitation
+                                               prog-date :weather-data/prognosis-date}]
+                                      (cell= (util/indexed (sort-by (comp util/js-date->doy :weather-data/date) weather-data)))]
+                           (uie/create-weather-data-inputs
+                             :fields {:row-no row-no
+                                      :row-action! #(s/delete-db-entity @db-id)
+                                      :date date :date! #(s/update-db-entity @db-id :weather-data/date (cstcoe/to-date %))
+                                      :tavg tavg :tavg! #(s/update-db-entity @db-id :weather-data/average-temperature % :value-type :double)
+                                      :globrad globrad :globrad! #(s/update-db-entity @db-id :weather-data/global-radiation % :value-type :double)
+                                      :evap evap :evap! #(s/update-db-entity @db-id :weather-data/evaporation % :value-type :double)
+                                      :precip precip :precip! #(s/update-db-entity @db-id :weather-data/precipitation % :value-type :double)
+                                      :prog? (cell= (not (nil? prog-date)))
+                                      :prog! #(if %
+                                               (s/update-db-entity @db-id :weather-data/prognosis-date date)
+                                               (s/retract-db-value @db-id :weather-data/prognosis-date date))}))
+                         (uie/create-weather-data-inputs
+                           :fields {:row-action! #(when (and @date* (or @evap* (and @tavg* @globrad*)) @precip*)
+                                                        (s/create-new-weather-data @plot-id @date* @tavg* @globrad*
+                                                                                   @evap* @precip* (when @prog?* @date*))
+                                                        (reset! date* nil)
+                                                        (reset! evap* nil)
+                                                        (reset! tavg* nil)
+                                                        (reset! globrad* nil)
+                                                        (reset! precip* nil)
+                                                        (reset! prog?* false))
+                                    :date date* :date! #(reset! date* %)
+                                    :tavg tavg* :tavg! #(reset! tavg* %)
+                                    :globrad globrad* :globrad! #(reset! globrad* %)
+                                    :evap evap* :evap! #(reset! evap* %)
+                                    :precip precip* :precip! #(reset! precip* %)
+                                    :prog? prog?* :prog?! #(reset! prog?* %)})))))))))

@@ -198,14 +198,9 @@
 
 (defelem hover-activate-wrapper
          [{:keys [action!]
-           :as attrs} elem]
+           :as attrs} [elem]]
          (let [hover? (cell false)]
-              (elem
-                :mouseenter #(reset! hover? true)
-                :mouseleave #(reset! hover? false)
-                :class (cell= {:bg-warning hover?})
-                :click #(action!))
-              #_((elem
+              ((elem
                  :mouseenter #(reset! hover? true)
                  :mouseleave #(reset! hover? false)
                  :class (cell= {:bg-warning hover?})

@@ -250,8 +250,6 @@
           :col [:xs 1]
 
           (button
-            ;:toggle no-edit?
-            ;:style "float:right"
             :class "btn btn-warning btn-block"
             :click #(let [temp-farm-name (str (vocab :new-farm-filter-value @s/lang) " "
                                               (swap! new-farm-no inc))]
@@ -284,25 +282,21 @@
                         :class "row"
                         :toggle (cell= (not (nil? selected-farm)))
 
-                        (let
-                          [hover? (cell false)]
-                          [(div
-                             :col [:xs 11]
-                             :mouseenter #(reset! hover? true)
-                             :mouseleave #(reset! hover? false)
-                             :class (cell= {:bg-warning hover?})
-                             :click #(swap! farm-details-visible? not)
+                        (div
+                          :col [:xs 11]
 
-                             (h3
-                               (text "~(vocab :farm-data-label s/lang) ~(when farm-name farm-name) ~(when-not farm-details-visible? \" ...\")")))
+                          (uic/hover-activate-wrapper
+                            :action! #(swap! farm-details-visible? not)
+                            (h3
+                              (text "~(vocab :farm-data-label s/lang) ~(when farm-name farm-name) ~(when-not farm-details-visible? \" ...\")"))))
 
-                           (div
-                             :col [:xs 1]
+                        (div
+                          :col [:xs 1]
 
-                             (uic/safe-delete-button
-                               :action! #(do (println "delete farm id: " @farm-id " name: " @farm-name)
-                                             (s/delete-db-entity @farm-db-id))
-                               :value (cell= (vocab :delete-farm-button s/lang s/lang))))]))
+                          (uic/safe-delete-button
+                            :action! #(do (println "delete farm id: " @farm-id " name: " @farm-name)
+                                          (s/delete-db-entity @farm-db-id))
+                            :value (cell= (vocab :delete-farm-button s/lang s/lang)))))
 
                       (farm/farm
                         :toggle (cell= (and selected-farm farm-details-visible?))
@@ -412,25 +406,19 @@
                           irrigation-well :plot/irrigation-well} selected-plot]
                         (let [[annual-years-id] (repeatedly gensym)
 
-                              plot-details-visible? (cell false)
-
-                              plot-hover? (cell false)]
+                              plot-details-visible? (cell false)]
 
                              [(div
                                 :class "row"
                                 :toggle (cell= (not (nil? selected-farm)))
 
-                                (let
-                                  [hover? (cell false)]
-                                  (div
-                                    :col [:xs 11]
-                                    :mouseenter #(reset! hover? true)
-                                    :mouseleave #(reset! hover? false)
-                                    :class (cell= {:bg-warning hover?})
-                                    :click #(swap! plot-details-visible? not)
+                                (div
+                                  :col [:xs 11]
 
-                                  (h4
-                                    (text "~(vocab :plot-data-label s/lang) ~(when plot-name plot-name #_(vocab :no-plot-name-label s/lang)) ~(when-not plot-details-visible? \" ...\")"))))
+                                  (uic/hover-activate-wrapper
+                                    :action! #(swap! plot-details-visible? not)
+                                    (h4
+                                      (text "~(vocab :plot-data-label s/lang) ~(when plot-name plot-name) ~(when-not plot-details-visible? \" ...\")"))))
 
                                 (div
                                   :col [:xs 1]
@@ -536,19 +524,15 @@
                                     ;_ (cell= (println "selected-annual: " (pr-str selected-annual)))
                                     ]
 
-
                                    [(div
                                       :class "row"
                                       :toggle (cell= (not (nil? selected-farm)))
 
-                                      (let
-                                        [hover? (cell false)]
-                                        (div
-                                          :col [:xs 2]
-                                          :mouseenter #(reset! hover? true)
-                                          :mouseleave #(reset! hover? false)
-                                          :class (cell= {:bg-warning hover?})
-                                          :click #(swap! annual-plot-details-visible?* not)
+                                      (div
+                                        :col [:xs 3]
+
+                                        (uic/hover-activate-wrapper
+                                          :action! #(swap! annual-plot-details-visible?* not)
                                           (h4
                                             (text "~(vocab :annual-plot-data-label s/lang) ~(when plot-name plot-name) ~(when-not annual-plot-details-visible? \" ...\")"))))
 
@@ -566,10 +550,11 @@
                                                     :selected (cell= (= year selected-annual-year))
                                                     (text "~{year}")))))
 
-                                      (div :col [:xs 8])
+                                      #_(div :col [:xs 8])
 
                                       (div
                                         :col [:xs 1]
+                                        :class "col-xs-offset-7"
                                         (button
                                           :class "btn btn-warning btn-block"
                                           :click #(s/create-new-plot-annual @plot-id)
