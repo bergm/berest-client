@@ -1,15 +1,10 @@
 (ns ui.farm
-  #_(:require-macros [tailrecursion.javelin :refer :all]
-                   [tailrecursion.hoplon :refer :all])
-  (:require #_[tailrecursion.javelin :refer :all]
-            #_[tailrecursion.hoplon :refer :all]
-    [de.zalf.berest.client.hoplon.util :as util]
-    [de.zalf.berest.client.hoplon.state :as s]
-    [ui.elements :as uie]
-    [ui.addresses :as addr]
-    [bootstrap-util :as bs]
-            #_[cljs-time.coerce :as cstcoe]))
-
+  (:require [de.zalf.berest.client.hoplon.util :as util]
+            [de.zalf.berest.client.hoplon.state :as s]
+            [ui.elements :as uie]
+            [ui.components :as uic]
+            [ui.addresses :as addr]
+            [bootstrap-util :as bs]))
 
 (defn vocab
   "translatable vocabulary for this page"
@@ -27,6 +22,9 @@
                                            :lang/en "Save new address!"}
            :delete-address-button-label {:lang/de "Adresse löschen!"
                                          :lang/en "Delete address!"}
+
+           :weather-stations-fieldset-label {:lang/de "Wetterstationen"
+                                             :lang/en "Weather stations"}
 
            :weather-data-fieldset-label {:lang/de "Wetterdaten"
                                          :lang/en "Weather data"}
@@ -197,7 +195,7 @@
                :on-change #(notes! (val-id notes-id)))))
 
          (fieldset
-           (legend (text "~(vocab :weather-data-fieldset-label s/lang)"))
+           (legend (text "~(vocab :weather-stations-fieldset-label s/lang)"))
 
            (bs/form-group
              :class (cell= {:has-error (nil? authorative-weather-station)})
@@ -253,6 +251,18 @@
                            :selected (cell= (= ws-id (:weather-station/id weather-station)))
                            (text "~(or ws-name ws-id)"))))))
 
-           )
+           (let [visible? (cell false)]
+                (fieldset
+                  (uic/hover-activate-wrapper
+                    :action! #(swap! visible? not)
+                    (legend
+                      (text "~(vocab :weather-data-fieldset-label s/lang) ~(when-not visible? \" ...\")")))
 
-         )) (dissoc attrs :fields :opts) kids)))
+                  (uie/weather-data-form-group
+                    :visible? visible?
+                    :weather-data weather-data
+                    :id-attr :farm/id
+                    :id id)))
+
+           )))
+     (dissoc attrs :fields :opts) kids)))

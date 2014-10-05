@@ -272,7 +272,7 @@
                   farm-notes :farm/notes
                   authorative-weather-station :farm/authorative-weather-station
                   weather-station :farm/weather-station
-                  weather-data :farm/weather-data
+                  farm-weather-data :farm/weather-data
                   :as farm} selected-farm]
                 (let [farm-details-visible? (cell false)
                       plots-count (cell= (count (:plots selected-farm)))
@@ -311,7 +311,7 @@
                                  :weather-station weather-station
                                  :weather-station! #(s/update-db-entity @farm-db-id :farm/weather-station %)
 
-                                 :weather-data weather-data}
+                                 :weather-data farm-weather-data}
                         :opts {:edit? true
                                :label-cols 2
                                :value-cols 3})
@@ -395,7 +395,7 @@
                           groundwaterlevel :plot/groundwaterlevel
                           annuals :plot/annuals
                           weather-station :plot/weather-station
-                          weather-data :plot/weather-data
+                          plot-weather-data :plot/weather-data
                           location-coords :plot/location-coords
                           notes :plot/notes
                           az-glz :plot/az-glz
@@ -469,7 +469,7 @@
                                          :weather-station weather-station
                                          :weather-station! #(s/update-db-entity @plot-db-id :plot/weather-station %)
 
-                                         :weather-data weather-data
+                                         :weather-data plot-weather-data
 
                                          :location-coords location-coords
                                          :location-coords! #(s/update-db-entity @plot-db-id :plot/location-coords %)
@@ -520,7 +520,9 @@
                                     ;_ (cell= (println "selected-annual-year: " selected-annual-year))
 
                                     selected-annual (cell= (first (filter #(= selected-annual-year (:plot.annual/year %)) annuals)))
-                                    _ (cell= (when (and selected-plot selected-annual) (swap! ~(cell recalc-count) inc)))
+                                    _ (cell= (when (and selected-plot selected-annual)
+                                                   farm-weather-data
+                                                   (swap! ~(cell recalc-count) inc)))
                                     ;_ (cell= (println "selected-annual: " (pr-str selected-annual)))
                                     ]
 
@@ -594,7 +596,7 @@
                                                  :donations donations
 
                                                  :weather-data (cell= (filter #(= year (cstc/year (cstcoe/from-date (:weather-data/date %))))
-                                                                              weather-data))
+                                                                              plot-weather-data))
 
                                                  :recalc-count recalc-count}
                                         :opts {:edit? true
