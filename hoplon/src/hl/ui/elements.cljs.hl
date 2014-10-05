@@ -1,11 +1,8 @@
 (ns ui.elements
-  #_(:require-macros [tailrecursion.javelin :refer :all]
-                   [tailrecursion.hoplon :refer :all])
-  (:require #_[tailrecursion.javelin :refer :all]
-            #_[tailrecursion.hoplon :refer :all]
-            [cljs-time.core :as cstc]
+  (:require [cljs-time.core :as cstc]
             [cljs-time.format :as cstf]
             [cljs-time.coerce :as cstcoe]
+            [bootstrap-util :as bs]
             [de.zalf.berest.client.hoplon.util :as util]
             [de.zalf.berest.client.hoplon.state :as s]))
 
@@ -59,6 +56,9 @@
 
            :add-weather-data-label {:lang/de "Hinzufügen"
                                     :lang/en "Add"}
+
+           :weather-data-label {:lang/de "Datensätze"
+                                :lang/en "Datasets"}
 
            }
           [element (or lang :lang/de)] "UNKNOWN element"))
@@ -337,11 +337,8 @@
               :id date-id
               :class "form-control"
               :type "date"
-              :value (cell= (->> (if date (cstcoe/from-date date) (cstc/now))
-                                 (cstf/unparse (cstf/formatters :date),,,))
-                            #_(if date
-                              (->> (cstcoe/from-date date)
-                                   (cstf/unparse (cstf/formatters :date),,,))
+              :value (cell= (if date
+                              (cstf/unparse (cstf/formatters :date) (cstcoe/from-date date))
                               (str (cstc/year (cstc/now)) "-01-01")))
               :on-change #(date! (cstcoe/to-date (cstf/parse (cstf/formatters :date)
                                                              (val-id date-id))))))
@@ -521,7 +518,63 @@
 
 
 
+(defelem weather-data-form-group
+         [{:keys [visible? weather-data
+                  id-attr id]
+           :as attrs} kids]
 
+         ((bs/form-group
+           :toggle visible?
+           (bs/control-label :col [:xs 2] (text "~(vocab :weather-data-label s/lang)"))
+           (let [date* (cell (cstcoe/to-date (cstc/now)))
+                 tavg* (cell nil)
+                 globrad* (cell nil)
+                 evap* (cell nil)
+                 precip* (cell nil)
+                 prog?* (cell false)
+                 #__ #_(cell= (println "date*: " date* " tavg*: " tavg* " globrad*: " globrad*
+                                   " evap*: " evap* " precip*: " precip* " prog?*: " prog?*))]
+                (div
+                  :col [:xs 10]
+
+                  (loop-tpl
+                    :bindings [[row-no {db-id :db/id
+                                        date :weather-data/date
+                                        tavg :weather-data/average-temperature
+                                        globrad :weather-data/global-radiation
+                                        evap :weather-data/evaporation
+                                        precip :weather-data/precipitation
+                                        prog-date :weather-data/prognosis-date}]
+                               (cell= (util/indexed (sort-by (comp util/js-date->doy :weather-data/date) weather-data)))]
+                    (create-weather-data-inputs
+                      :fields {:row-no row-no
+                               :row-action! #(s/delete-db-entity @db-id)
+                               :date date :date! #(s/update-db-entity @db-id :weather-data/date (cstcoe/to-date %))
+                               :tavg tavg :tavg! #(s/update-db-entity @db-id :weather-data/average-temperature % :value-type :double)
+                               :globrad globrad :globrad! #(s/update-db-entity @db-id :weather-data/global-radiation % :value-type :double)
+                               :evap evap :evap! #(s/update-db-entity @db-id :weather-data/evaporation % :value-type :double)
+                               :precip precip :precip! #(s/update-db-entity @db-id :weather-data/precipitation % :value-type :double)
+                               :prog? (cell= (not (nil? prog-date)))
+                               :prog! #(if %
+                                        (s/update-db-entity @db-id :weather-data/prognosis-date date)
+                                        (s/retract-db-value @db-id :weather-data/prognosis-date date))}))
+                  (create-weather-data-inputs
+                    :fields {:row-action! #(when (and @date* (or @evap* (and @tavg* @globrad*)) @precip*)
+                                                 (s/create-new-weather-data id-attr @id @date* @tavg* @globrad*
+                                                                            @evap* @precip* (when @prog?* @date*))
+                                                 (reset! date* nil)
+                                                 (reset! evap* nil)
+                                                 (reset! tavg* nil)
+                                                 (reset! globrad* nil)
+                                                 (reset! precip* nil)
+                                                 (reset! prog?* false))
+                             :date date* :date! #(reset! date* %)
+                             :tavg tavg* :tavg! #(reset! tavg* %)
+                             :globrad globrad* :globrad! #(reset! globrad* %)
+                             :evap evap* :evap! #(reset! evap* %)
+                             :precip precip* :precip! #(reset! precip* %)
+                             :prog? prog?* :prog?! #(reset! prog?* %)}))))
+          (dissoc attrs :visible? :weather-data :id-attr :id) kids))
 
 
 

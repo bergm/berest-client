@@ -2,6 +2,7 @@
   (:require [de.zalf.berest.client.hoplon.util :as util]
             [de.zalf.berest.client.hoplon.state :as s]
             [ui.elements :as uie]
+            [ui.components :as uic]
             [bootstrap-util :as bs]
             [cljs-time.core :as cstc]
             [cljs-time.format :as cstf]
@@ -18,7 +19,7 @@
 
            :weather-data-fieldset-label {:lang/de "Wetterdaten"
                                          :lang/en "Weather data"}
-           :weather-data-label {:lang/de "Datensätze"
+           #_:weather-data-label #_{:lang/de "Datensätze"
                                 :lang/en "Datasets"}
 
            :name-label {:lang/de "Name"
@@ -36,6 +37,8 @@
 
            :th-weather-station-name {:lang/de "Name"
                                      :lang/en "Name"}
+           :th-local-weather-station? {:lang/de "Lokal?"
+                                     :lang/en "Local?"}
 
            :show-data {:lang/de "Daten anzeigen"
                        :lang/en "Show data"}
@@ -60,14 +63,20 @@
 
 (defn weather-stations-pane
   []
-  (let [selected-weather-station (cell nil)
-        _ (cell= (println "selected-ws: " (pr-str selected-weather-station)))
+  (let [selected-weather-station-id (cell nil)
+
+        #_selected-weather-station #_(cell nil)
+        selected-weather-station (cell= (first (filter #(= (:weather-station/id %)
+                                                           selected-weather-station-id)
+                                                       (:weather-stations s/state))))
+        ;_ (cell= (println "selected-ws: " (pr-str selected-weather-station)))
 
         new-weather-station-no (cell 0)
 
         weather-stations-count (cell= (count (:weather-stations s/state)))
         many-weather-stations? (cell= (> weather-stations-count 1))
-        _ (cell= (when (= weather-stations-count 1) (reset! selected-weather-station (first (:weather-stations s/state)))))
+        _ (cell= (when (= weather-stations-count 1) (reset! selected-weather-station-id
+                                                            (:weather-station/id (first (:weather-stations s/state))))))
         ]
        (div
          :id "weather-stations-pane"
@@ -86,12 +95,14 @@
                (thead
                  (tr
                    (th (text "~(vocab :th-weather-station-name s/lang)"))
+                   (th (text "~(vocab :th-local-weather-station? s/lang)"))
                    #_(th (text "~(vocab :th-farm-state s/lang)"))))
 
                (tbody
                  (loop-tpl
                    :bindings [{id :weather-station/id
                                name :weather-station/name
+                               local? :weather-station/local-user-station?
                                :as weather-station}
                               (cell= (sort-by #(if-let [n (:weather-station/name %)] n (:weather-station/id %))
                                               (:weather-stations s/state)))]
@@ -102,9 +113,13 @@
                                          :success selected?})
                           :mouseenter #(reset! hover? true)
                           :mouseleave #(reset! hover? false)
-                          :click #(reset! selected-weather-station @weather-station)
+                          :click #(reset! selected-weather-station-id @id)
 
                           (td (text "~(or name id)"))
+                          (td (span :class (cell= {:glyphicon (and (not (nil? local?))
+                                                                   local?)
+                                                   :glyphicon-ok (and (not (nil? local?))
+                                                                      local?)})))
                           #_(td (span :class "glyphicon glyphicon-ok"))))))))
 
            (div
@@ -130,8 +145,10 @@
            :name "weather-station-form"
 
            (cell-let
-             [{id :weather-station/id
+             [{db-id :db/id
+               id :weather-station/id
                name :weather-station/name
+               local? :weather-station/local-user-station?
                years :available-years
                {lat  :geo-coord/latitude
                 long :geo-coord/longitude} :weather-station/geo-coord} selected-weather-station]
@@ -145,30 +162,30 @@
                                        :long nil})
 
                    weather-station-data (cell nil)
-                   weather-data (cell= (:data weather-station-data))
-                   ;_ (cell= (println "weather-data: " (pr-str weather-station-data)))
 
                    loaded-data-ws-id (cell= (:weather-station-id weather-station-data))
                    ;_ (cell= (println "loaded-data-ws-id: " (pr-str loaded-data-ws-id)))
 
-                   selected-years-set (cell nil)
-                   _ (cell= (when-not (seq selected-years-set)
-                                      (let [current-year (cstc/year (cstc/now))]
-                                           (when (and id (= ((into #{} years) current-year)))
-                                                 (reset! ~(cell selected-years-set) #{current-year})
-                                                 (s/load-weather-station-data ~(cell weather-station-data)
-                                                                              id [current-year])))))
+                   weather-data (cell= (when (= id loaded-data-ws-id)
+                                             (:data weather-station-data)))
+                   ;_ (cell= (println "weather-data: " (pr-str weather-station-data)))
 
-                   _ (cell= (when (and weather-data loaded-data-ws-id (not= id loaded-data-ws-id))
-                                  (let [load-years (or (some-> (set/intersection (into #{} years) selected-years-set)
-                                                               seq
-                                                               sort)
-                                                       [(first (sort years))])
-                                        #__ #_(println "sel-years: " (pr-str selected-years-set)
-                                                   " avail-years: " (pr-str (into #{} years))
-                                                   " -> load-years: " load-years)]
-                                       (reset! ~(cell selected-years-set) (into #{} load-years))
-                                       (s/load-weather-station-data ~(cell weather-station-data) id load-years))))
+                   available-years-set (cell= (into #{} years))
+                   selected-years-set (cell nil)
+
+                   selected-years-set* (cell= (when (seq years)
+                                                    (if (seq selected-years-set)
+                                                      (if-let [is (seq (set/intersection (into #{} years) selected-years-set))]
+                                                              (into #{} is)
+                                                              #{(first (sort years))})
+                                                      (let [current-year (cstc/year (cstc/now))]
+                                                           (if (available-years-set current-year)
+                                                             #{current-year}
+                                                             #{(first (sort years))})))))
+                   ;_ (cell= (println "selected-years-set*: " (pr-str selected-years-set*)))
+
+                   _ (cell= (when (and id selected-weather-station selected-years-set* (seq selected-years-set*))
+                                  (s/load-weather-station-data ~(cell weather-station-data) id (seq selected-years-set*))))
 
                    chart-config {:chart {:renderTo chart-id
                                          ;:defaultSeriesType "spline"
@@ -279,136 +296,96 @@
 
                    ]
 
-                  (div
-                    (bs/form-group
-                      (bs/control-label :col [:sm 2] :for name-input (text "~(vocab :name-label s/lang)"))
-                      (div
-                        :col [:xs 3]
-                        (p :toggle no-edit? :class "form-control-static" (text "~(or name id)"))
-                        (input
-                          :id name-input
-                          :toggle edit?
-                          :class "form-control"
-                          :type "text"
-                          :placeholder (cell= (vocab :name-placeholder s/lang))
-                          :value (cell= (or name (str "(Id: " id ")")))
-                          :on-change #(swap! station-data assoc :name (val-id name-input)))))
+                  [(bs/form-group
+                     (bs/control-label :col [:sm 2] :for name-input (text "~(vocab :name-label s/lang)"))
+                     (div
+                       :col [:xs 3]
+                       (p :toggle no-edit? :class "form-control-static" (text "~(or name id)"))
+                       (input
+                         :id name-input
+                         :toggle edit?
+                         :class "form-control"
+                         :type "text"
+                         :placeholder (cell= (vocab :name-placeholder s/lang))
+                         :value (cell= (or name (str "(Id: " id ")")))
+                         :on-change #(s/update-db-entity @db-id :weather-station/name (val-id name-input)))))
 
-                    #_(bs/form-group
-                      (bs/control-label :col [:sm 2] :for lat-input (text "~(vocab :lat-label s/lang)"))
-                      (div
-                        :col [:xs 3]
-                        (p :toggle no-edit? :class "form-control-static" (text "~{lat}"))
-                        (input
-                          :id lat-input
-                          :toggle edit?
-                          :class "form-control"
-                          :type "number"
-                          :placeholder (cell= (vocab :lat-placeholder s/lang))
-                          :value lat
-                          :on-change #(swap! station-data assoc :lat (val-id lat-input)))))
+                   #_(bs/form-group
+                     (bs/control-label :col [:sm 2] :for lat-input (text "~(vocab :lat-label s/lang)"))
+                     (div
+                       :col [:xs 3]
+                       (p :toggle no-edit? :class "form-control-static" (text "~{lat}"))
+                       (input
+                         :id lat-input
+                         :toggle edit?
+                         :class "form-control"
+                         :type "number"
+                         :placeholder (cell= (vocab :lat-placeholder s/lang))
+                         :value lat
+                         :on-change #(swap! station-data assoc :lat (val-id lat-input)))))
 
-                    #_(bs/form-group
-                      (bs/control-label :col [:sm 2] :for long-input (text "~(vocab :long-label s/lang)"))
-                      (div
-                        :col [:xs 3]
-                        (p :toggle no-edit? :class "form-control-static" (text "~{long}"))
-                        (input
-                          :id long-input
-                          :toggle edit?
-                          :class "form-control"
-                          :type "number"
-                          :placeholder (cell= (vocab :long-placeholder s/lang))
-                          :value long
-                          :on-change #(swap! station-data assoc :long (val-id long-input)))))
+                   #_(bs/form-group
+                     (bs/control-label :col [:sm 2] :for long-input (text "~(vocab :long-label s/lang)"))
+                     (div
+                       :col [:xs 3]
+                       (p :toggle no-edit? :class "form-control-static" (text "~{long}"))
+                       (input
+                         :id long-input
+                         :toggle edit?
+                         :class "form-control"
+                         :type "number"
+                         :placeholder (cell= (vocab :long-placeholder s/lang))
+                         :value long
+                         :on-change #(swap! station-data assoc :long (val-id long-input)))))
 
-                    (div
-                      (bs/form-group
-                        (bs/control-label :col [:sm 2] :for years-id (text "~(vocab :chart-year s/lang)"))
-                        (div
-                          :col [:xs 3]
-                          (select
-                            :id years-id
-                            :class "form-control"
-                            :multiple "multiple"
-                            ;:on-change #(s/load-weather-station-data weather-station-data @id (map js/parseInt (val-id years-id)))
-                            :click #(let [sel-years (map js/parseInt (val-id years-id))]
-                                         (reset! selected-years-set (into #{} sel-years))
-                                         (s/load-weather-station-data weather-station-data @id sel-years))
-                            (loop-tpl
-                              :bindings [year (cell= (sort years))]
-                              (option :value year
-                                      :selected (cell= (if selected-years-set
-                                                         (= (selected-years-set year) year)
-                                                         false))
-                                      (text "~{year}"))))))
 
-                      (div
-                        :id chart-id
-                        :col [:xs 12]))))))
+                   (bs/form-group
+                     :toggle (cell= (not (nil? (seq selected-years-set*))))
 
-         (div
-           :class "row"
-           :toggle (cell= (and selected-weather-station many-weather-stations?))
-           (div
-             :col [:xs 12]
-             (hr)))
-
-         (let [visible? (cell false)]
-              (fieldset
-                (uic/hover-activate-wrapper
-                  :action! #(swap! visible? not)
-                  (legend
-                    (text "~(vocab :weather-data-fieldset-label s/lang) ~(when-not visible? \" ...\")")))
-
-                (bs/form-group
-                  :toggle visible?
-                  (bs/control-label :col [:xs 2] (text "~(vocab :weather-data-label s/lang)"))
-                  (let [date* (cell nil)
-                        tavg* (cell nil)
-                        globrad* (cell nil)
-                        evap* (cell nil)
-                        precip* (cell nil)
-                        prog?* (cell false)
-                        _ (cell= (println "date*: " date* " tavg*: " tavg* " globrad*: " globrad*
-                                          " evap*: " evap* " precip*: " precip* " prog?*: " prog?*))]
-                       (div
-                         :col [:xs 10]
-
+                     (bs/control-label :col [:xs 2] :for years-id (text "~(vocab :chart-year s/lang)"))
+                     (div
+                       :col [:xs 3]
+                       (select
+                         :id years-id
+                         :class "form-control"
+                         :multiple "multiple"
+                         ;:on-change #(s/load-weather-station-data weather-station-data @id (map js/parseInt (val-id years-id)))
+                         :click #(let [sel-years (map js/parseInt (val-id years-id))]
+                                      (reset! selected-years-set (into #{} sel-years))
+                                      #_(s/load-weather-station-data weather-station-data @id sel-years))
                          (loop-tpl
-                           :bindings [[row-no {db-id :db/id
-                                               date :weather-data/date
-                                               tavg :weather-data/average-temperature
-                                               globrad :weather-data/global-radiation
-                                               evap :weather-data/evaporation
-                                               precip :weather-data/precipitation
-                                               prog-date :weather-data/prognosis-date}]
-                                      (cell= (util/indexed (sort-by (comp util/js-date->doy :weather-data/date) weather-data)))]
-                           (uie/create-weather-data-inputs
-                             :fields {:row-no row-no
-                                      :row-action! #(s/delete-db-entity @db-id)
-                                      :date date :date! #(s/update-db-entity @db-id :weather-data/date (cstcoe/to-date %))
-                                      :tavg tavg :tavg! #(s/update-db-entity @db-id :weather-data/average-temperature % :value-type :double)
-                                      :globrad globrad :globrad! #(s/update-db-entity @db-id :weather-data/global-radiation % :value-type :double)
-                                      :evap evap :evap! #(s/update-db-entity @db-id :weather-data/evaporation % :value-type :double)
-                                      :precip precip :precip! #(s/update-db-entity @db-id :weather-data/precipitation % :value-type :double)
-                                      :prog? (cell= (not (nil? prog-date)))
-                                      :prog! #(if %
-                                               (s/update-db-entity @db-id :weather-data/prognosis-date date)
-                                               (s/retract-db-value @db-id :weather-data/prognosis-date date))}))
-                         (uie/create-weather-data-inputs
-                           :fields {:row-action! #(when (and @date* (or @evap* (and @tavg* @globrad*)) @precip*)
-                                                        (s/create-new-weather-data @plot-id @date* @tavg* @globrad*
-                                                                                   @evap* @precip* (when @prog?* @date*))
-                                                        (reset! date* nil)
-                                                        (reset! evap* nil)
-                                                        (reset! tavg* nil)
-                                                        (reset! globrad* nil)
-                                                        (reset! precip* nil)
-                                                        (reset! prog?* false))
-                                    :date date* :date! #(reset! date* %)
-                                    :tavg tavg* :tavg! #(reset! tavg* %)
-                                    :globrad globrad* :globrad! #(reset! globrad* %)
-                                    :evap evap* :evap! #(reset! evap* %)
-                                    :precip precip* :precip! #(reset! precip* %)
-                                    :prog? prog?* :prog?! #(reset! prog?* %)})))))))))
+                           :bindings [year (cell= (sort years))]
+                           (option :value year
+                                   :selected (cell= (if selected-years-set*
+                                                      (= (selected-years-set* year) year)
+                                                      false))
+                                   (text "~{year}"))))))
+
+                   (div
+                     :id chart-id
+                     :toggle :toggle (cell= (not (nil? (seq selected-years-set*))))
+                     :col [:xs 12])
+
+                   (div
+                     :class "row"
+                     :toggle (cell= (and selected-weather-station many-weather-stations? local?))
+
+                     (div
+                       :col [:xs 12]
+                       (hr)))
+
+                   (let [visible? (cell false)]
+                        (fieldset
+                          :toggle (cell= (and selected-weather-station many-weather-stations? local?))
+
+                          (uic/hover-activate-wrapper
+                            :action! #(swap! visible? not)
+                            (legend
+                              (text "~(vocab :weather-data-fieldset-label s/lang) ~(when-not visible? \" ...\")")))
+
+                          (uie/weather-data-form-group
+                            :visible? visible?
+                            :weather-data (cell= (when (and local? (seq selected-years-set*))
+                                                       (apply concat (map second weather-data))))
+                            :id-attr :weather-station/id
+                            :id id)))]))))))

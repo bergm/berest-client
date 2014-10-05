@@ -871,57 +871,11 @@
                 (legend
                   (text "~(vocab :weather-data-fieldset-label s/lang) ~(when-not visible? \" ...\")")))
 
-              (bs/form-group
-                :toggle visible?
-                (bs/control-label :col [:sm label-cols] (text "~(vocab :weather-data-label s/lang)"))
-                (let [date* (cell nil)
-                      tavg* (cell nil)
-                      globrad* (cell nil)
-                      evap* (cell nil)
-                      precip* (cell nil)
-                      prog?* (cell false)
-                      _ (cell= (println "date*: " date* " tavg*: " tavg* " globrad*: " globrad*
-                                        " evap*: " evap* " precip*: " precip* " prog?*: " prog?*))]
-                     (div
-                       :col [:xs (min #_(+ value-cols 4) (- 12 label-cols))]
-
-                       (loop-tpl
-                         :bindings [[row-no {db-id :db/id
-                                             date :weather-data/date
-                                             tavg :weather-data/average-temperature
-                                             globrad :weather-data/global-radiation
-                                             evap :weather-data/evaporation
-                                             precip :weather-data/precipitation
-                                             prog-date :weather-data/prognosis-date}]
-                                    (cell= (util/indexed (sort-by (comp util/js-date->doy :weather-data/date) weather-data)))]
-                         (uie/create-weather-data-inputs
-                           :fields {:row-no row-no
-                                    :row-action! #(s/delete-db-entity @db-id)
-                                    :date date :date! #(s/update-db-entity @db-id :weather-data/date (cstcoe/to-date %))
-                                    :tavg tavg :tavg! #(s/update-db-entity @db-id :weather-data/average-temperature % :value-type :double)
-                                    :globrad globrad :globrad! #(s/update-db-entity @db-id :weather-data/global-radiation % :value-type :double)
-                                    :evap evap :evap! #(s/update-db-entity @db-id :weather-data/evaporation % :value-type :double)
-                                    :precip precip :precip! #(s/update-db-entity @db-id :weather-data/precipitation % :value-type :double)
-                                    :prog? (cell= (not (nil? prog-date)))
-                                    :prog! #(if %
-                                             (s/update-db-entity @db-id :weather-data/prognosis-date date)
-                                             (s/retract-db-value @db-id :weather-data/prognosis-date date))}))
-                       (uie/create-weather-data-inputs
-                         :fields {:row-action! #(when (and @date* (or @evap* (and @tavg* @globrad*)) @precip*)
-                                                      (s/create-new-weather-data @plot-id @date* @tavg* @globrad*
-                                                                                 @evap* @precip* (when @prog?* @date*))
-                                                      (reset! date* nil)
-                                                      (reset! evap* nil)
-                                                      (reset! tavg* nil)
-                                                      (reset! globrad* nil)
-                                                      (reset! precip* nil)
-                                                      (reset! prog?* false))
-                                  :date date* :date! #(reset! date* %)
-                                  :tavg tavg* :tavg! #(reset! tavg* %)
-                                  :globrad globrad* :globrad! #(reset! globrad* %)
-                                  :evap evap* :evap! #(reset! evap* %)
-                                  :precip precip* :precip! #(reset! precip* %)
-                                  :prog? prog?* :prog?! #(reset! prog?* %)}))))))
+              (uie/weather-data-form-group
+                :visible? visible?
+                :weather-data weather-data
+                :id-attr :plot/id
+                :id plot-id)))
 
        (fieldset
          (legend (text "~(vocab :calculate-fieldset-label s/lang)"))
