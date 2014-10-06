@@ -268,6 +268,7 @@
       (cell-let [{farm-db-id :db/id
                   farm-id :farm/id
                   farm-name :farm/name
+                  avg-irrigation-costs :farm/avg-irrigation-costs
                   addresses :farm/addresses
                   farm-notes :farm/notes
                   authorative-weather-station :farm/authorative-weather-station
@@ -304,6 +305,10 @@
                                  :name farm-name :name! #(s/update-db-entity @farm-db-id :farm/name %)
                                  :addresses addresses
                                  :notes farm-notes :notes! #(s/update-db-entity @farm-db-id :farm/notes %)
+
+                                 :avg-irrigation-costs avg-irrigation-costs
+                                 :avg-irrigation-costs! #(s/update-db-entity @farm-db-id :farm/avg-irrigation-costs %
+                                                                             :value-type :double)
 
                                  :authorative-weather-station authorative-weather-station
                                  :authorative-weather-station! #(s/update-db-entity @farm-db-id :farm/authorative-weather-station %)
@@ -598,7 +603,10 @@
                                                  :weather-data (cell= (filter #(= year (cstc/year (cstcoe/from-date (:weather-data/date %))))
                                                                               plot-weather-data))
 
-                                                 :recalc-count recalc-count}
+                                                 :recalc-count recalc-count
+
+                                                 :avg-irrigation-costs avg-irrigation-costs
+                                                 }
                                         :opts {:edit? true
                                                :label-cols 2
                                                :value-cols 3}))])]))])))))

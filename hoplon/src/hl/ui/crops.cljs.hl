@@ -30,9 +30,9 @@
 
            :th-crop-number {:lang/de "Nummer"
                             :lang/en "Number"}
-           :th-crop-cultivation-type {:lang/de "Kultivierungstyp"
-                                      :lang/en "Cultivation-type"}
-           :th-crop-usage {:lang/de "Nutzung"
+           :th-crop-cultivation-type {:lang/de "Anbauform"
+                                      :lang/en "Cultivation type"}
+           :th-crop-usage {:lang/de "Verwendungszweck"
                            :lang/en "Usage"}
            :th-crop-name {:lang/de "Name"
                           :lang/en "Name"}

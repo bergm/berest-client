@@ -84,7 +84,27 @@
            :dc-assertions-label {:lang/de "DC Stadien melden"
                                  :lang/en "DC states"}
 
+           :avg-irr-need-label {:lang/de "Mittl. Zusatzwasserbedarf"
+                                :lang/en "Average irrigation water need"}
+           :avg-irr-need-placeholder {:lang/de "Mittl. Zusatzwasserbedarf"
+                                      :lang/en "Average irrigation water need"}
 
+           :avg-yield-per-ha-label {:lang/de "Mittl. zu erwartender Ertrag pro ha"
+                                    :lang/en "Average expected yield per ha"}
+           :avg-yield-per-ha-placeholder {:lang/de "Mittl. zu erwartender Ertrag pro ha"
+                                          :lang/en "Average expected yield per ha"}
+
+           :avg-yield-per-mm-label {:lang/de "Mittl. zu erwartender Ertrag pro mm"
+                                    :lang/en "Average expected yield per mm"}
+           :avg-yield-per-mm-placeholder {:lang/de "Mittl. zu erwartender Ertrag pro mm"
+                                          :lang/en "Average expected yield per mm"}
+           :use-avg-yield-per-mm?-label {:lang/de "Eingabe mm?"
+                                    :lang/en "Enter mm?"}
+
+           :avg-profit-per-dt-label {:lang/de "Mittl. zu erwartender Gewinn pro dt"
+                                     :lang/en "Average expected profit per dt"}
+           :avg-profit-per-dt-placeholder {:lang/de "Mittl. zu erwartender Gewinn pro dt"
+                                           :lang/en "Average expected profit per dt"}
 
            :show-data {:lang/de "Daten anzeigen"
                        :lang/en "Show data"}
@@ -106,6 +126,16 @@
            :recalc-button-label {:lang/de "Neu-Berechnung"
                                  :lang/en "Re-Calculate"}
 
+           :economic-values-label {:lang/de "Wirtschaftlichkeit"
+                                   :lang/en "Cost-effectiveness"}
+           :sum-irrigation-water-label {:lang/de "Zusatzwasserbedarf"
+                                         :lang/en "Additional water need"}
+           :irrigation-costs-label {:lang/de "Beregnungskosten"
+                                    :lang/en "Irrigation costs"}
+           :profit-label {:lang/de "Gewinn"
+                          :lang/en "Profit"}
+           :revenues-label {:lang/de "Umsatz"
+                          :lang/en "Revenue"}
 
            :chart-header {:lang/de "Wetterdaten"
                           :lang/en "Weather data"}
@@ -204,6 +234,8 @@
 
             recalc-count
 
+            avg-irrigation-costs
+
             incomplete]} :fields
     {:keys [edit? label-cols value-cols]} :opts
     toggle :toggle
@@ -271,7 +303,6 @@
 
         calc-result (cell nil)
         ;_ (cell= (println "calc-result: " (pr-str calc-result)))
-        recommendation (cell nil)
 
         ;only calc plot if chart is visible
         _ (cell= (when (and plot-id calc-until-abs-day* year complete? recalc-count** toggle)
@@ -297,7 +328,27 @@
         inputs (cell= (:inputs calc-result))
         #__ #_(cell= (println "inputs: " (pr-str inputs)
                           "\n chart-id: " chart-id))
+
+        economic-values (cell= (let [relevant-inputs (filter #(and (:profit-per-dt %) (:avg-additional-yield-per-mm %)) inputs)]
+                                    (reduce (fn [{:keys [sum-irrigation-water sum-irrigation-costs sum-profit sum-revenues]}
+                                                 {:keys [profit-per-dt donation avg-additional-yield-per-mm]}]
+                                                (let [costs (* donation avg-irrigation-costs)
+                                                      add-yield-dt (* donation (/ avg-additional-yield-per-mm 100.0))
+                                                      revenue (* profit-per-dt add-yield-dt)
+                                                      ;_ (println "money: costs: " costs " add-yield-dt: " add-yield-dt " revenue: " revenue)
+                                                      ]
+                                                     {:sum-irrigation-water (+ sum-irrigation-water donation)
+                                                      :sum-irrigation-costs (+ sum-irrigation-costs costs)
+                                                      :sum-revenues (+ sum-revenues revenue)
+                                                      :sum-profit (+ sum-profit (- revenue costs))}))
+                                            {:sum-irrigation-water 0
+                                             :sum-irrigation-costs 0
+                                             :sum-revenues 0
+                                             :sum-profit 0} relevant-inputs)))
+        ;_ (cell= (println "economic-values: " (pr-str economic-values)))
+
         recommendation (cell= (:recommendation calc-result))
+        _ (cell= (println "recommendation: " (pr-str recommendation)))
 
         chart-config {:chart {:renderTo chart-id
                               ;:defaultSeriesType "spline"
@@ -748,10 +799,16 @@
                 :bindings [{ci-db-id :db/id
                             dc-assertions :crop.instance/dc-assertions
                             template-id :crop.instance/template
-                            ci-name :crop.instance/name}
+                            ci-name :crop.instance/name
+                            avg-irrigation-need :crop.instance/avg-irrigation-water-need
+                            avg-yield-per-ha :crop.instance/avg-expected-additional-yield-per-ha
+                            avg-yield-per-mm :crop.instance/avg-expected-additional-yield-per-mm
+                            avg-profit-per-dt :crop.instance/avg-expected-profit-per-dt}
                            (cell= (sort-by #(apply min (map :assertion/abs-assert-dc-day (:crop.instance/assertions %)))
                                            crop-instances))]
-                :bind-ids [ci-name-id dc-assertions-id]
+                :bind-ids [ci-name-id dc-assertions-id
+                           avg-irr-need-id avg-yield-per-ha-id avg-yield-per-mm-id avg-profit-per-dt-id
+                           enter-mm?-id]
                 (div
                   :class "row"
 
@@ -815,7 +872,132 @@
                                         :dc dc* :dc! #(reset! dc* %)}
                                #_:opts #_{:link-abs-days false
                                 :hide-at-abs-day false})
-                             ))))
+                             )))
+
+                    (let [enter-mm? (cell false)
+                          update-per-mm #(let [irr-need (js/parseFloat (val-id avg-irr-need-id))
+                                               kg-y-per-ha (* 100 (js/parseFloat (val-id avg-yield-per-ha-id)))]
+                                              (when (and irr-need (> irr-need 0) kg-y-per-ha (> kg-y-per-ha 0))
+                                                    (s/update-db-entity @ci-db-id
+                                                                        :crop.instance/avg-expected-additional-yield-per-mm (/ kg-y-per-ha irr-need)
+                                                                        :value-type :double)))
+                          clear-non-mm #(do
+                                         (s/update-db-entity @ci-db-id
+                                                             :crop.instance/avg-irrigation-water-need 0
+                                                             :value-type :double)
+                                         (s/update-db-entity @ci-db-id
+                                                             :crop.instance/avg-expected-additional-yield-per-ha 0
+                                                             :value-type :double))]
+
+                         [(bs/form-group
+                            (bs/control-label :col [:sm (+ 1 label-cols)] :for avg-irr-need-id (text "~(vocab :avg-irr-need-label s/lang)"))
+                            (div
+                              :col [:xs 2]
+                              (p :toggle no-edit? :class "form-control-static" (text "~{avg-irrigation-need}"))
+                              (div
+                                :class "input-group"
+                                (input
+                                  :id avg-irr-need-id
+                                  :toggle edit?
+                                  :class "form-control"
+                                  :disabled enter-mm?
+                                  :type "number"
+                                  :step 1
+                                  :min 0
+                                  :max 500
+                                  :placeholder (cell= (vocab :avg-irr-need-placeholder s/lang))
+                                  :value avg-irrigation-need
+                                  :on-change #(do
+                                               (s/update-db-entity @ci-db-id
+                                                                   :crop.instance/avg-irrigation-water-need (js/parseFloat (val-id avg-irr-need-id))
+                                                                   :value-type :double)
+                                               (update-per-mm)))
+                                (span :class "input-group-addon" "mm"))))
+
+                          (bs/form-group
+                            (bs/control-label :col [:sm (+ 1 label-cols)] :for avg-yield-per-ha-id (text "~(vocab :avg-yield-per-ha-label s/lang)"))
+                            (div
+                              :col [:xs 2]
+                              (p :toggle no-edit? :class "form-control-static" (text "~{avg-yield-per-ha}"))
+                              (div
+                                :class "input-group"
+                                (input
+                                  :id avg-yield-per-ha-id
+                                  :toggle edit?
+                                  :class "form-control"
+                                  :disabled enter-mm?
+                                  :type "number"
+                                  :step 1
+                                  :min 0
+                                  :max 1000
+                                  :placeholder (cell= (vocab :avg-yield-per-ha-placeholder s/lang))
+                                  :value (cell= (when avg-yield-per-ha
+                                                      (/ avg-yield-per-ha 100.0)))
+                                  :on-change #(do
+                                               (s/update-db-entity @ci-db-id
+                                                                   :crop.instance/avg-expected-additional-yield-per-ha (* 100 (js/parseFloat (val-id avg-yield-per-ha-id)))
+                                                                   :value-type :double)
+                                               (update-per-mm)))
+                                (span :class "input-group-addon" "dt/ha"))))
+
+                          (bs/form-group
+                            (bs/control-label :col [:sm (+ 1 label-cols)] :for avg-yield-per-ha-id (text "~(vocab :avg-yield-per-mm-label s/lang)"))
+                            (div
+                              :col [:xs 2]
+                              (p :toggle no-edit? :class "form-control-static" (text "~{avg-yield-per-mm}"))
+                              (div
+                                :class "input-group"
+                                (input
+                                  :id avg-yield-per-mm-id
+                                  :toggle edit?
+                                  :class "form-control"
+                                  :disabled (cell= (not enter-mm?))
+                                  :type "number"
+                                  :step 1
+                                  :min 0
+                                  :max 1000
+                                  :placeholder (cell= (vocab :avg-yield-per-mm-placeholder s/lang))
+                                  :value (cell= (util/round avg-yield-per-mm :digits 2))
+                                  :on-change #(do
+                                               (s/update-db-entity @ci-db-id
+                                                                   :crop.instance/avg-expected-additional-yield-per-mm (js/parseFloat (val-id avg-yield-per-mm-id))
+                                                                   :value-type :double)
+                                               (clear-non-mm)))
+                                (span :class "input-group-addon" "kg/mm")))
+
+                            (div
+                              :col [:xs 2]
+                              (label
+                                :class "checkbox-inline"
+                                (input
+                                  :id enter-mm?-id
+                                  :type "checkbox"
+                                  :checked enter-mm?
+                                  :value "enter-mm?"
+                                  :on-change #(reset! enter-mm? (val-id enter-mm?-id)))
+                                (text "~(vocab :use-avg-yield-per-mm?-label s/lang)"))))])
+
+                    (bs/form-group
+                      (bs/control-label :col [:sm (+ 1 label-cols)] :for avg-profit-per-dt-id (text "~(vocab :avg-profit-per-dt-label s/lang)"))
+                      (div
+                        :col [:xs 2]
+                        (p :toggle no-edit? :class "form-control-static" (text "~{avg-profit-per-dt}"))
+                        (div
+                          :class "input-group"
+                          (input
+                            :id avg-profit-per-dt-id
+                            :toggle edit?
+                            :class "form-control"
+                            :type "number"
+                            :step 1
+                            :min 0
+                            :max 10000
+                            :placeholder (cell= (vocab :avg-profit-per-dt-placeholder s/lang))
+                            :value avg-profit-per-dt
+                            :on-change #(s/update-db-entity @ci-db-id
+                                                            :crop.instance/avg-expected-profit-per-dt (js/parseFloat (val-id avg-profit-per-dt-id))
+                                                            :value-type :double))
+                          (span :class "input-group-addon" "€/dt")))))
 
                   (div
                     :toggle visible?
@@ -940,5 +1122,29 @@
               (div
                 :col [:xs 7]
                 (p :class "form-control-static" (strong (text "~(when rec-text (rec-text s/lang))"))))))
+
+       (cell-let [{:keys [sum-irrigation-water sum-irrigation-costs sum-profit sum-revenues]} economic-values]
+                 (bs/form-group
+                   (bs/control-label :col [:sm label-cols] (text "~(vocab :economic-values-label s/lang)"))
+
+                   (div
+                     :col [:xs 2]
+                     (p :class "form-control-static" (strong (text "~(vocab :sum-irrigation-water-label s/lang): ~(util/round sum-irrigation-water :digits 0) mm"))))
+                   (div
+                     :col [:xs 2]
+                     (p :class "form-control-static" (strong (text "~(vocab :irrigation-costs-label s/lang): ~(util/round sum-irrigation-costs :digits 0) €"))))
+                   (div
+                     :col [:xs 2]
+                     (p :class "form-control-static" (strong (text "~(vocab :revenues-label s/lang): ~(util/round sum-revenues :digits 0) €"))))
+                   (div
+                     :col [:xs 2]
+                     (p
+                       :class "form-control-static"
+                       (strong (text "~(vocab :profit-label s/lang): "))
+                       (strong
+                         :css (cell= {:color (if (neg? sum-profit)
+                                               "red"
+                                               "black")})
+                         (text "~(util/round sum-profit :digits 0) €"))))))
 
        ) (dissoc attrs :fields :opts) kids)))

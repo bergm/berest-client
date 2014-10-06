@@ -43,6 +43,11 @@
            :notes-placeholder {:lang/de "Hier können Notizen zum Betrieb gemacht werden ..."
                                :lang/en "Here you can keep notes regarding the farm ..."}
 
+           :irr-costs-label {:lang/de "Mittl. Beregnungskosten"
+                             :lang/en "Avg irrigation costs"}
+           :irr-costs-placeholder {:lang/de "Mittl. Beregnungskosten"
+                                   :lang/en "Avg irrigation costs"}
+
            :show-data {:lang/de "Daten anzeigen"
                        :lang/en "Show data"}
 
@@ -84,6 +89,7 @@
             com-connections
             contacts
             notes notes!
+            avg-irrigation-costs avg-irrigation-costs!
             irrigation-technologies
             plots
             authorative-weather-station authorative-weather-station!
@@ -94,14 +100,15 @@
    kids]
   (let [edit? (cell (if (cell? edit?) @edit? edit?))
         no-edit? (cell= (not edit?))
-        [farm-form-name name-id notes-id
+        address-count (cell= (count addresses))
+        [farm-form-name name-id notes-id irr-costs-id
          authorative-ws-id ws-id weather-data-id] (repeatedly gensym)]
     ((div
        (bs/form
          :opts [:horizontal]
          :name farm-form-name
 
-         (button
+         #_(button
            :style "float:right"
            :class "btn btn-info"
            :click #(swap! edit? not)
@@ -122,63 +129,96 @@
                :value name
                :on-change #(name! (val-id name-id)))))
 
-         (fieldset
-           (legend (text "~(vocab :address-fieldset-label s/lang)"))
+         (let [visible? (cell false)]
+              (fieldset
+                (uic/hover-activate-wrapper
+                  :action! #(swap! visible? not)
+                  (legend (text "~(vocab :address-fieldset-label s/lang) ~(when-not visible? \" ...\")")))
 
+                (div
+                  :toggle (cell= (and visible? edit?))
+                  :col [:xs 1]
+                  :class "col-xs-offset-11"
+
+                  (button
+                    ;:style "float:right"
+                    :class "btn btn-warning"
+                    :click #(s/create-new-farm-address @id)
+                    (text "~(vocab :new-address-button-label s/lang)")))
+
+                (div
+                  :toggle visible?
+                  :class "row"
+                  (div
+                    :col [:xs 12]
+                    (hr)))
+
+                (div
+                  :toggle visible?
+                  :class "row"
+
+                  (loop-tpl
+                    :bindings [{db-id :db/id
+                                description :address/description
+                                street :address/street
+                                postal-code :address/postal-code
+                                city :address/city
+                                city-part :address/city-part
+                                municipality :address/municipality
+                                municipality-short :address/municipality-short
+                                state :address/state
+                                state-short :state-short
+                                country :address/country
+                                country-short :address/country-short
+                                :as address} addresses]
+                    ;:bind-ids [farm-id]
+                    (div
+                      :col [:xs 12]
+
+                      (button
+                        :toggle edit?
+                        :style "float:right"
+                        :class "btn btn-danger"
+                        :click #(s/delete-db-entity @db-id)
+                        (text "~(vocab :delete-address-button-label s/lang)"))
+
+                      (addr/address
+                        :fields {:description description :description! #(s/update-db-entity @db-id :address/description %)
+                                 :street street :street! #(s/update-db-entity @db-id :address/street %)
+                                 :postal-code postal-code :postal-code! #(s/update-db-entity @db-id :address/postal-code %)
+                                 :city city :city! #(s/update-db-entity @db-id :address/city %)
+                                 :city-part city-part :city-part! #(s/update-db-entity @db-id :address/city-part %)
+                                 :municipality municipality :municipality! #(s/update-db-entity @db-id :address/municipality %)
+                                 :municipality-short municipality-short :municipality-short! #(s/update-db-entity @db-id :address/municipality-short %)
+                                 :state state :state! #(s/update-db-entity @db-id :address/state %)
+                                 :state-short state-short :state-short! #(s/update-db-entity @db-id :address/state-short %)
+                                 :country country :country! #(s/update-db-entity @db-id :address/country %)
+                                 :country-short country-short :country-short! #(s/update-db-entity @db-id :address/country-short %)}
+                        :opts {:edit? edit?
+                               :label-cols (+ label-cols 2)
+                               :value-cols value-cols})
+
+                      (hr))))))
+
+         (bs/form-group
+           (bs/control-label :col [:sm label-cols] :for name-id (text "~(vocab :irr-costs-label s/lang)"))
            (div
-             :toggle edit?
-
-             (button
-               ;:style "float:right"
-               :class "btn btn-warning"
-               :click #(s/create-new-farm-address @id)
-               (text "~(vocab :new-address-button-label s/lang)"))
-
-             (hr))
-
-           (div
-             (loop-tpl
-               :bindings [{db-id :db/id
-                           street :address/street
-                           postal-code :address/postal-code
-                           city :address/city
-                           city-part :address/city-part
-                           municipality :address/municipality
-                           municipality-short :address/municipality-short
-                           state :address/state
-                           state-short :state-short
-                           country :address/country
-                           country-short :address/country-short
-                           :as address} addresses]
-               ;:bind-ids [farm-id]
-               (div
-
-                 (button
-                   :toggle edit?
-                   :style "float:right"
-                   :class "btn btn-danger"
-                   :click #(s/delete-db-entity @db-id)
-                   (text "~(vocab :delete-address-button-label s/lang)"))
-
-                 (addr/address
-                   :fields {:street street :street! #(s/update-db-entity @db-id :address/street %)
-                            :postal-code postal-code :postal-code! #(s/update-db-entity @db-id :address/postal-code %)
-                            :city city :city! #(s/update-db-entity @db-id :address/city %)
-                            :city-part city-part :city-part! #(s/update-db-entity @db-id :address/city-part %)
-                            :municipality municipality :municipality! #(s/update-db-entity @db-id :address/municipality %)
-                            :municipality-short municipality-short :municipality-short! #(s/update-db-entity @db-id :address/municipality-short %)
-                            :state state :state! #(s/update-db-entity @db-id :address/state %)
-                            :state-short state-short :state-short! #(s/update-db-entity @db-id :address/state-short %)
-                            :country country :country! #(s/update-db-entity @db-id :address/country %)
-                            :country-short country-short :country-short! #(s/update-db-entity @db-id :address/country-short %)}
-                   :opts {:edit? edit?
-                          :label-cols (+ label-cols 2)
-                          :value-cols value-cols})
-
-                 (hr)
-
-                 ))
-             ))
+             :col [:xs 2]
+             (p :toggle no-edit? :class "form-control-static" (text "~{avg-irrigation-costs}"))
+             (div
+               :class "input-group"
+               (input
+                 :id irr-costs-id
+                 :toggle edit?
+                 :class "form-control"
+                 :type "number"
+                 :step 1
+                 :min 0
+                 :max 100
+                 :placeholder (cell= (vocab :irr-costs-placeholder s/lang))
+                 :value avg-irrigation-costs
+                 :on-change #(avg-irrigation-costs! (js/parseFloat (val-id irr-costs-id))))
+               (span :class "input-group-addon" "€/mm"))))
 
          (bs/form-group
            (bs/control-label :col [:sm label-cols] :for notes-id (text "~(vocab :notes-label s/lang)"))
