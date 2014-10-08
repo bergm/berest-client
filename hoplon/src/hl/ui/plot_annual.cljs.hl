@@ -26,13 +26,33 @@
                                                                       :lang/en "day"}
 
            :initial-soil-moistures-label {:lang/de "Bodenfeuchten"
-                                 :lang/en "Soil moistures"}
+                                          :lang/en "Soil moistures"}
 
            :soil-moisture-data-fieldset-label {:lang/de "Bodenfeuchtedaten"
                                                :lang/en "Soil moisture data"}
 
            :initial-sm-unit-label {:lang/de "Bodenfeuchte Einheit"
                                        :lang/en "Soil moisture unit"}
+
+           :abs-day-of-measurement-label {:lang/de "Tag der Bodenfeuchtemessung"
+                                          :lang/en "Day of soil moisture measurement"}
+           :abs-day-of-measurement-placeholder {:lang/de "Tag"
+                                                :lang/en "day"}
+
+           :sm-values-label {:lang/de "Bodenfeuchten"
+                             :lang/en "Soil moistures"}
+
+           :sm-unit-label {:lang/de "Bodenfeuchte Einheit"
+                           :lang/en "Soil moisture unit"}
+
+           :new-soil-moisture-button-label {:lang/de "Neue Bodenfeuchte"
+                                                 :lang/en "New soil moisture"}
+
+           :additional-soil-moistures-fieldset-label {:lang/de "Zusätzliche Bodenfeuchtemessungen"
+                                                      :lang/en "Additional soil moisture measurement"}
+
+           :delete-sm-button-label {:lang/de "Bf. löschen"
+                                    :lang/en "Delete sm."}
 
            :pFK {:lang/de "% FK"
                  :lang/en "% FC"}
@@ -64,8 +84,8 @@
            :donations-fieldset-label {:lang/de "Bewässerungsdaten"
                                       :lang/en "Irrigation data"}
 
-           :weather-data-fieldset-label {:lang/de "Wetterdaten"
-                                      :lang/en "Weather data"}
+           :weather-data-fieldset-label {:lang/de "Wetterdaten (Schlag-Ebene)"
+                                      :lang/en "Weather data (Plot level)"}
 
            :weather-data-label {:lang/de "Datensätze"
                                 :lang/en "Datasets"}
@@ -78,7 +98,7 @@
                            :lang/en "Name"}
            :ci-name-placeholder {:lang/de "Name der Fruchtart"
                                  :lang/en "Name of crop"}
-           :delete-ci-button-label {:lang/de "F. Löschen"
+           :delete-ci-button-label {:lang/de "F. löschen"
                                     :lang/en "Delete c."}
 
            :dc-assertions-label {:lang/de "DC Stadien melden"
@@ -224,6 +244,8 @@
             initial-sm-unit
             initial-sm-unit!
 
+            additional-soil-moistures
+
             technology
 
             crop-instances
@@ -274,6 +296,8 @@
                                          conj)
                                        :crop-instances)
                                 crop-instances))
+
+        ;_ (cell= (println "additional-soil-moistures: " (pr-str additional-soil-moistures)))
 
         [plot-annual-form-name
          year-id
@@ -677,13 +701,156 @@
                                     :value sm :value! #(s/update-db-entity @db-id :soil/soil-moisture % :value-type :double)}))
                        (uie/create-soil-data-inputs
                          :fields {:row-action! #(when (and @depth* @sm*)
-                                                      (s/create-new-soil-data-layer :db/id @db-id @depth* :sm @sm*)
+                                                      (s/create-new-soil-data-layer :db/id @db-id @depth* :ism @sm*)
                                                       (reset! depth* nil)
                                                       (reset! sm* nil))
                                   :unit unit*
                                   :depth depth* :depth! #(reset! depth* %)
-                                  :value sm* :value! #(reset! sm* %)})
-                       )))))
+                                  :value sm* :value! #(reset! sm* %)}))))
+
+              (div
+                :toggle visible?
+                :class "row"
+                (div
+                  :col [:xs 11]
+                  :class "col-xs-offset-1"
+                  (hr)))
+
+              (let [visible*? (cell false)]
+                (fieldset
+                  :toggle visible?
+                  :col [:xs 11]
+                  :class "col-xs-offset-1"
+                  (uic/hover-activate-wrapper
+                    :action! #(swap! visible*? not)
+                    (legend (text "~(vocab :additional-soil-moistures-fieldset-label s/lang) ~(when-not visible*? \" ...\")")))
+
+                  (div
+                    :toggle visible*?
+                    :class "row"
+
+                    (div :col [:xs 1])
+
+                    (div
+                      ;:col [:xs 1]
+                      :style "float:right"
+                      ;:class "col-xs-offset-11"
+                      (button
+                        :class "btn btn-warning"
+                        :click #(s/create-new-soil-moisture @db-id)
+                        (text "~(vocab :new-soil-moisture-button-label s/lang)"))))
+
+                  (div
+                    :toggle visible*?
+                    :class "row"
+                    (div
+                      :col [:xs 11]
+                      :class "col-xs-offset-1"
+                      (hr)))
+
+                  (loop-tpl
+                    :bindings [{sm-db-id :db/id
+                                abs-day-of-measurement :plot.annual.soil-moisture/abs-day-of-measurement
+                                sm-values :plot.annual.soil-moisture/values
+                                sm-unit :plot.annual.soil-moisture/unit}
+                               (cell= (sort-by :plot.annual.soil-moisture/abs-day-of-measurement additional-soil-moistures))]
+                    :bind-ids [abs-day-of-measurement-id sm-unit-id sm-values-id]
+                    (div
+                      :class "row"
+
+                      (div
+                        :toggle visible*?
+                        :col [:xs 12]
+
+                        (bs/form-group
+                          :toggle visible*?
+                          (bs/control-label :col [:sm label-cols] :for abs-day-of-measurement-id
+                                            (text "~(vocab :abs-day-of-measurement-label s/lang)"))
+                          (div
+                            :col [:xs value-cols]
+                            (p :toggle no-edit? :class "form-control-static" (text "~{abs-day-of-measurement}"))
+                            (input
+                              :id abs-day-of-measurement-id
+                              :toggle edit?
+                              :class "form-control"
+                              :type "date"
+                              :placeholder (cell= (vocab :abs-day-of-initial-soil-moisture-measurement-id-placeholder s/lang))
+                              :value (cell= (->> (util/doy->cljs-time-date (or abs-day-of-measurement 1) year)
+                                                 (cstf/unparse (cstf/formatters :date),,,)))
+                              :on-change #(s/update-db-entity @sm-db-id :plot.annual.soil-moisture/abs-day-of-measurement
+                                                              (util/cljs-time-date->doy (cstf/parse (cstf/formatters :date)
+                                                                                                    (val-id abs-day-of-measurement-id)))
+                                                              :value-type :int)))
+
+                          (div
+                            :col [:xs 1]
+                            :class (str "col-xs-offset-" (- 12 2 label-cols value-cols))
+                            (div
+                              :style "float:right"
+                              ;:col [:xs 1]
+                              ;:class (str "col-xs-offset-" (- 12 1 label-cols value-cols))
+                              (uic/safe-delete-button
+                                :action! #(s/delete-db-entity @sm-db-id)
+                                :value (cell= (vocab :delete-sm-button-label s/lang))))))
+
+                        (bs/form-group
+                          :toggle visible*?
+                          (bs/control-label :col [:sm label-cols] :for initial-sm-unit-id
+                                            (text "~(vocab :sm-unit-label s/lang)"))
+                          (div
+                            :col [:xs 2]
+                            (select
+                              :disabled "disabled"
+                              :id sm-unit-id
+                              :class "form-control"
+                              :on-change #(s/update-db-entity @sm-db-id :plot.annual.soil-moisture/unit (keyword (val-id sm-unit-id)))
+                              (option :value "soil-moisture.unit/pFK"
+                                      :selected (cell= (= sm-unit :soil-moisture.unit/pFK))
+                                      (text "~(vocab :pFK s/lang)"))
+                              (option :value "soil-moisture.unit/pNFK"
+                                      :selected (cell= (= sm-unit :soil-moisture.unit/pNFK))
+                                      (text "~(vocab :pNFK s/lang)"))
+                              (option :value "soil-moisture.unit/volP"
+                                      :selected (cell= (= sm-unit :soil-moisture.unit/volP))
+                                      (text "~(vocab :volP s/lang)"))
+                              (option :value "soil-moisture.unit/mm"
+                                      :selected (cell= (= sm-unit :soil-moisture.unit/mm))
+                                      (text "~(vocab :mm s/lang)")))))
+
+                        (bs/form-group
+                          :toggle visible*?
+                          (bs/control-label :col [:sm label-cols] :for sm-values-id
+                                            (text "~(vocab :sm-values-label s/lang)"))
+                          (let [depth* (cell nil)
+                                sm* (cell nil)
+                                unit* (cell= (vocab (keyword ((fnil clojure.core/name "") sm-unit)) s/lang))
+                                _ (cell= (println "sm-values: " (pr-str sm-values)))]
+                            (div
+                              :col [:xs (min (+ value-cols 2) (- 12 label-cols))]
+
+                              (loop-tpl
+                                :bindings [[row-no {db-id :db/id
+                                                    sm :soil/soil-moisture
+                                                    depth :soil/upper-boundary-depth}]
+                                           (cell= (util/indexed (sort-by :soil/upper-boundary-depth sm-values)))]
+                                (uie/create-soil-data-inputs
+                                  :fields {:row-no row-no
+                                           :row-action! #(s/delete-db-entity @db-id)
+                                           :unit unit*
+                                           :depth depth :depth! #(s/update-db-entity @db-id :soil/upper-boundary-depth %)
+                                           :value sm :value! #(s/update-db-entity @db-id :soil/soil-moisture % :value-type :double)}))
+                              (uie/create-soil-data-inputs
+                                :fields {:row-action! #(when (and @depth* @sm*)
+                                                        (s/create-new-soil-data-layer :db/id @sm-db-id @depth* :sm @sm*)
+                                                        (reset! depth* nil)
+                                                        (reset! sm* nil))
+                                         :unit unit*
+                                         :depth depth* :depth! #(reset! depth* %)
+                                         :value sm* :value! #(reset! sm* %)})))))
+
+                      )
+
+                    )))))
 
        (let [visible? (cell false)]
             (fieldset

@@ -248,7 +248,7 @@
          :opts [:horizontal]
          :name technology-form-name
 
-         (button
+         #_(button
            :style "float:right"
            :class "btn btn-info"
            :click #(swap! edit? not)

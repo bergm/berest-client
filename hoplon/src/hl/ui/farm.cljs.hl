@@ -26,8 +26,8 @@
            :weather-stations-fieldset-label {:lang/de "Wetterstationen"
                                              :lang/en "Weather stations"}
 
-           :weather-data-fieldset-label {:lang/de "Wetterdaten"
-                                         :lang/en "Weather data"}
+           :weather-data-fieldset-label {:lang/de "Wetterdaten (Farm-Ebene)"
+                                         :lang/en "Weather data (Farm level)"}
 
            :authorative-weather-station-label {:lang/de "Haupt-Wetterstation"
                                          :lang/en "Main weather station"}

@@ -84,8 +84,8 @@
                 :lang/en "mm"}
 
 
-           :weather-data-fieldset-label {:lang/de "Wetterdaten"
-                                         :lang/en "Weather data"}
+           :weather-data-fieldset-label {:lang/de "Wetterdaten (Schlag-Ebene)"
+                                         :lang/en "Weather data (Plot level)"}
 
            :weather-station-label {:lang/de "lokale Wetterstation"
                                    :lang/en "Local weather station"}
@@ -511,63 +511,6 @@
                  :on-change #(groundwaterlevel! (js/parseFloat (val-id groundwaterlevel-id))))
                (span :class "input-group-addon" "cm"))))
 
-         #_(fieldset
-           (legend (text "~(vocab :address-fieldset-label s/lang)"))
-
-           (div
-             :toggle edit?
-
-             (button
-               ;:style "float:right"
-               :class "btn btn-warning"
-               :click #(s/create-new-farm-address @id)
-               (text "~(vocab :new-address-button-label s/lang)"))
-
-             (hr))
-
-           (div
-             (loop-tpl
-               :bindings [{db-id :db/id
-                           street :address/street
-                           postal-code :address/postal-code
-                           city :address/city
-                           city-part :address/city-part
-                           municipality :address/municipality
-                           municipality-short :address/municipality-short
-                           state :address/state
-                           state-short :state-short
-                           country :address/country
-                           country-short :address/country-short
-                           :as address} addresses]
-               ;:bind-ids [farm-id]
-               (div
-
-                 (button
-                   :toggle edit?
-                   :style "float:right"
-                   :class "btn btn-danger"
-                   :click #(s/delete-db-entity @db-id)
-                   (text "~(vocab :delete-address-button-label s/lang)"))
-
-                 (addr/address
-                   :fields {:street street :street! #(s/update-db-entity @db-id :address/street %)
-                            :postal-code postal-code :postal-code! #(s/update-db-entity @db-id :address/postal-code %)
-                            :city city :city! #(s/update-db-entity @db-id :address/city %)
-                            :city-part city-part :city-part! #(s/update-db-entity @db-id :address/city-part %)
-                            :municipality municipality :municipality! #(s/update-db-entity @db-id :address/municipality %)
-                            :municipality-short municipality-short :municipality-short! #(s/update-db-entity @db-id :address/municipality-short %)
-                            :state state :state! #(s/update-db-entity @db-id :address/state %)
-                            :state-short state-short :state-short! #(s/update-db-entity @db-id :address/state-short %)
-                            :country country :country! #(s/update-db-entity @db-id :address/country %)
-                            :country-short country-short :country-short! #(s/update-db-entity @db-id :address/country-short %)}
-                   :opts {:edit? edit?
-                          :label-cols (+ label-cols 2)
-                          :value-cols value-cols})
-
-                 (hr)
-
-                 ))
-             ))
 
          (bs/form-group
            (bs/control-label :col [:sm label-cols] :for notes-id (text "~(vocab :notes-label s/lang)"))
@@ -610,5 +553,35 @@
                    (option :value ws-db-id
                            :selected (cell= (= ws-id (:weather-station/id weather-station)))
                            (text "~(or ws-name ws-id)")))))))
+
+
+         #_(let [visible? (cell false)]
+              (fieldset
+                (uic/hover-activate-wrapper
+                  :action! #(swap! visible? not)
+                  (legend
+                    (text "~(vocab :more-stuff-fieldset-label s/lang) ~(when-not visible? \" ...\")")))
+
+                (bs/form-group
+                  (bs/control-label :col [:sm label-cols] :for az-glz-id (text "~(vocab :az-glz-label s/lang)"))
+                  (div
+                    :col [:xs value-cols]
+                    (p :toggle no-edit? :class "form-control-static" (text "~{az-glz}"))
+                    (input
+                      :id az-glz-id
+                      :toggle edit?
+                      :class "form-control"
+                      :type "number"
+                      :step 1
+                      :min 0
+                      :max 100
+                      :placeholder (cell= (vocab :az-glz-placeholder s/lang))
+                      :value az-glz
+                      :on-change #(az-glz! (js/parseInt (val-id az-glz-id))))))
+
+
+
+
+                ))
 
          )) (dissoc attrs :fields :opts) kids)))

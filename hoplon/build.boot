@@ -25,7 +25,7 @@
 
                  #_[org.clojure/core.match "0.2.1"]
 
-                 #_[com.datomic/datomic-pro "0.9.4766"]
+                 #_[com.datomic/datomic-pro "0.9.4899"]
 
                  #_[buddy "0.1.0-beta4"]
                  #_[crypto-password "0.1.1"]

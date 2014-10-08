@@ -481,8 +481,8 @@
 
                                          :notes notes :notes! #(s/update-db-entity @plot-db-id :plot/notes %)
 
-                                         :az-glz az-glz :az-glz! #(s/update-db-entity @plot-db-id :plot/az-glz %)
-                                         :nft nft :nft! #(s/update-db-entity @plot-db-id :plot/nft %)
+                                         :az-glz az-glz :az-glz! #(s/update-db-entity @plot-db-id :plot/az-glz % :value-type :int)
+                                         :nft nft :nft! #(s/update-db-entity @plot-db-id :plot/nft % :value-type :int)
                                          :bse bse :bse! #(s/update-db-entity @plot-db-id :plot/bse %)
                                          :sse sse :sse! #(s/update-db-entity @plot-db-id :plot/sse %)
                                          :bwb bwb :bwb! #(s/update-db-entity @plot-db-id :plot/bwb %)
@@ -573,6 +573,7 @@
                                         abs-day-of-initial-soil-moisture-measurement :plot.annual/abs-day-of-initial-soil-moisture-measurement
                                         initial-soil-moistures :plot.annual/initial-soil-moistures
                                         initial-sm-unit :plot.annual/initial-sm-unit
+                                        soil-moistures :plot.annual/soil-moistures
                                         technology :plot.annual/technology
                                         crop-instances :plot.annual/crop-instances
                                         donations :plot.annual/donations} selected-annual]
@@ -587,12 +588,15 @@
                                                  :year year :year! #(s/update-db-entity @ann-db-id :plot.annual/year %)
 
                                                  :abs-day-of-initial-soil-moisture-measurement abs-day-of-initial-soil-moisture-measurement
-                                                 :abs-day-of-initial-soil-moisture-measurement! #(s/update-db-entity @ann-db-id :plot.annual/abs-day-of-initial-soil-moisture-measurement %)
+                                                 :abs-day-of-initial-soil-moisture-measurement! #(s/update-db-entity @ann-db-id :plot.annual/abs-day-of-initial-soil-moisture-measurement %
+                                                                                                                     :value-type :int)
 
                                                  :initial-soil-moistures initial-soil-moistures
 
                                                  :initial-sm-unit initial-sm-unit
                                                  :initial-sm-unit! #(s/update-db-entity @ann-db-id :plot.annual/initial-sm-unit %)
+
+                                                 :additional-soil-moistures soil-moistures
 
                                                  :technology technology
 
