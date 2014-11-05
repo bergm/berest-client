@@ -51,8 +51,8 @@
 
            :query-label {:lang/de "Suche"
                          :lang/en "Search"}
-           :query-placeholder {:lang/de "Achtung LEERE SUCHE!! Alle Betriebe anzeigen kann lange dauern!!!"
-                                :lang/en "Attention EMPTY SEARCH!! Showing all farms might take long!!!"}
+           :query-placeholder {:lang/de "LEERE SUCHE!!"
+                                :lang/en "EMPTY SEARCH!!"}
 
            :farm-data-label {:lang/de "Betriebsdaten:"
                              :lang/en "Farm data:"}
@@ -152,24 +152,22 @@
 
          [new-farm-id new-plot-id query-id] (repeatedly gensym)
 
-         selected-farm (cell nil)
-         _ (cell= (when-let [fid (:farm-id s/route-params)]
-                            (when-let [fs (:farms s/state)]
-                                      (when-let [f (fs (UUID. fid))]
-                                                (reset! ~(cell selected-farm) f)))))
-         ;_ (cell= (println "selected-farm: " (pr-str selected-farm)))
+        farms-count (cell= (count (:farms s/state)))
+        many-farms? (cell= (> farms-count 1))
 
-         selected-plot (cell nil)
-         _ (cell= (when-let [pid (:plot-id s/route-params)]
-                            (when-let [ps (:plots selected-farm)]
-                                      (when-let [p (ps (UUID. pid))]
-                                                (reset! ~(cell selected-plot) p)))))
-         ;_ (cell= (println "selected-plot: " (pr-str selected-plot)))
+        selected-farm (cell= (if (= farms-count 1)
+                               (second (first (:farms s/state)))
+                               (when-let [fid (:farm-id s/route-params)]
+                                 (when-let [fs (:farms s/state)]
+                                   (fs (UUID. fid))))))
 
-         farms-count (cell= (count (:farms s/state)))
-         many-farms? (cell= (> farms-count 1))
-         _ (cell= (when (= farms-count 1) (reset! selected-farm (second (first (:farms s/state))))))
-         ]
+        plots-count (cell= (count (:plots selected-farm)))
+
+        selected-plot (cell= (if (= plots-count 1)
+                               (second (first (:plots selected-farm)))
+                               (when-let [pid (:plot-id s/route-params)]
+                                 (when-let [ps (:plots selected-farm)]
+                                   (ps (UUID. pid))))))]
 
     (div
       :id "farms-pane"
@@ -238,10 +236,8 @@
                                       :success selected?})
                        :mouseenter #(reset! hover? true)
                        :mouseleave #(reset! hover? false)
-                       :click #(dosync
-                                (s/set-route-params :farm-id @id)
-                                (reset! selected-farm @farm)
-                                (reset! selected-plot nil))
+                       :click #(s/set-route-params :farm-id @id
+                                #_(some-> "plot-section-table" by-id .scrollIntoView))
 
                        (td (text "~(or name id)"))
                        (td (span :class "glyphicon glyphicon-ok"))))))))
@@ -276,9 +272,7 @@
                   farm-weather-data :farm/weather-data
                   :as farm} selected-farm]
                 (let [farm-details-visible? (cell false)
-                      plots-count (cell= (count (:plots selected-farm)))
-                      many-plots? (cell= (> plots-count 1))
-                      _ (cell= (when (= plots-count 1) (reset! ~(cell selected-plot) (second (first (:plots selected-farm))))))]
+                      many-plots? (cell= (> plots-count 1))]
                      [(div
                         :class "row"
                         :toggle (cell= (not (nil? selected-farm)))
@@ -297,7 +291,7 @@
                           (uic/safe-delete-button
                             :action! #(do (println "delete farm id: " @farm-id " name: " @farm-name)
                                           (s/delete-db-entity @farm-db-id))
-                            :value (cell= (vocab :delete-farm-button s/lang s/lang)))))
+                            :value (cell= (vocab :delete-farm-button s/lang)))))
 
                       (farm/farm
                         :toggle (cell= (and selected-farm farm-details-visible?))
@@ -336,6 +330,7 @@
                           :col [:xs 11]
 
                           (table
+                            :id "plot-section-table"
                             :class "table"
                             :toggle many-plots?
 
@@ -358,9 +353,8 @@
                                                       :success selected?})
                                        :mouseenter #(reset! hover? true)
                                        :mouseleave #(reset! hover? false)
-                                       :click #(do
-                                                (s/set-route-params :plot-id @plot-id)
-                                                (reset! selected-plot @plot))
+                                       :click #((s/set-route-params :plot-id @plot-id)
+                                                #_(.scrollIntoView (by-id "recommendation-section")))
 
                                        (td (text "~(or plot-name plot-id)"))
                                        (td (text "~(or plot-number \"\")"))
@@ -516,10 +510,7 @@
 
                                     current-year (.getFullYear (js/Date.))
 
-                                    selected-annual-year* (cell nil)
-                                    _ (cell= (when-let [year (:year s/route-params)]
-                                                       (reset! ~(cell selected-annual-year*) (js/parseInt year))))
-                                    selected-annual-year (cell= (or selected-annual-year*
+                                    selected-annual-year (cell= (or (some-> (:year s/route-params) js/parseInt)
                                                                     ((into #{} annual-years) current-year)
                                                                     (last annual-years)))
                                     ;_ (cell= (println "selected-annual-year: " selected-annual-year))
@@ -548,9 +539,7 @@
                                         (select
                                           :id annual-years-id
                                           :class "form-control"
-                                          :on-change #(let [year (js/parseInt (val-id annual-years-id))]
-                                                       (s/set-route-params :year year)
-                                                       (reset! selected-annual-year* year))
+                                          :on-change #(s/set-route-params :year (js/parseInt (val-id annual-years-id)))
                                           (loop-tpl
                                             :bindings [year annual-years]
                                             (option :value year

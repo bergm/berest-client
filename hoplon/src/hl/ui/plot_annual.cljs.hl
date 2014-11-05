@@ -1227,6 +1227,7 @@
                 :id plot-id)))
 
        (fieldset
+         :id "recommendation-section"
          (legend (text "~(vocab :calculate-fieldset-label s/lang)"))
 
          (bs/form-group
