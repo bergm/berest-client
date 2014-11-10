@@ -139,6 +139,7 @@
 (def remove-user-weather-stations (mkremote 'de.zalf.berest.web.castra.api/remove-user-weather-stations state error loading))
 
 (def create-new-farm-address (mkremote 'de.zalf.berest.web.castra.api/create-new-farm-address state error loading))
+(def create-new-farm-contact (mkremote 'de.zalf.berest.web.castra.api/create-new-farm-contact state error loading))
 
 (def create-new-soil-data-layer (mkremote 'de.zalf.berest.web.castra.api/create-new-soil-data-layer state error loading))
 (def set-substrate-group-fcs-and-pwps (mkremote 'de.zalf.berest.web.castra.api/set-substrate-group-fcs-and-pwps state error loading))

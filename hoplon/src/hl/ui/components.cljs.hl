@@ -194,7 +194,7 @@
                   :type "checkbox"
                   :value checked?
                   :change #(reset! checked? (val-id checked-id) #_(-> % .-target .-checked))))))
-       (dissoc attrs :action! value) kids))
+       (dissoc attrs :action! :value) kids))
 
 (defelem hover-activate-wrapper
          [{:keys [action!]

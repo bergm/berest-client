@@ -1,0 +1,158 @@
+(ns ui.contacts
+  #_(:refer-hoplon :exclude [address])
+  (:require [de.zalf.berest.client.hoplon.util :as util]
+            [de.zalf.berest.client.hoplon.state :as s]
+            [ui.elements :as uie]
+            [bootstrap-util :as bs]))
+
+(defn vocab
+      "translatable vocabulary for this page"
+      [element lang]
+      (get-in {:title-label {:lang/de "Titel"
+                                   :lang/en "Title"}
+               :title-placeholder {:lang/de "Prof. Dr. med. ..."
+                                         :lang/en "Optional title of person"}
+
+               :first-name-label {:lang/de "Vorname"
+                              :lang/en "First name"}
+               :first-name-placeholder {:lang/de "Vorname"
+                                    :lang/en "First name"}
+
+               :last-name-label {:lang/de "Nachname"
+                                   :lang/en "Last name"}
+               :last-name-placeholder {:lang/de "Nachname"
+                                         :lang/en "Last name"}
+
+               :roles-label {:lang/de "Position(en)"
+                            :lang/en "Position(s)"}
+               :roles-placeholder {:lang/de "Position"
+                                  :lang/en "Position"}
+
+               :is-main-contact?-label {:lang/de "Haupt-Kontakt?"
+                                    :lang/en "Main contact?"}
+
+               :notes-label {:lang/de "Notizen"
+                             :lang/en "Notes"}
+               :notes-placeholder {:lang/de "Hier können Notizen zum Kontakt gemacht werden ..."
+                                   :lang/en "Here you can keep notes regarding the contact ..."}
+
+               :show-data {:lang/de "Daten anzeigen"
+                           :lang/en "Show data"}
+               :edit {:lang/de "Ändern"
+                      :lang/en "Edit"}
+               :save-edit {:lang/de "Änderungen speichern"
+                           :lang/en "Save changes"}
+
+               }
+              [element (or lang :lang/de)] "UNKNOWN element"))
+
+
+(defelem
+  contact
+  [{{:keys [title title!
+            first-name first-name!
+            last-name last-name!
+            roles roles!
+            com-connections
+            is-main-contact? is-main-contact?!
+            notes notes!]} :fields
+    {:keys [edit? label-cols value-cols]} :opts
+    :as attrs}
+   kids]
+  (let [no-edit? (cell= (not edit?))
+        [contacts-form-name
+         title-id
+         first-name-id last-name-id roles-id com-connections-id
+         is-main-contact?-id
+         notes-id] (repeatedly gensym)
+        ]
+       ((bs/form
+          :opts [:horizontal]
+          :name contacts-form-name
+
+          (bs/form-group
+            (bs/control-label :col [:sm label-cols] :for title-id (text "~(vocab :title-label s/lang)"))
+            (div
+              :col [:xs value-cols]
+              (p :toggle no-edit? :class "form-control-static" (text "~{title}"))
+              (input
+                :id title-id
+                :toggle edit?
+                :class "form-control"
+                :type "text"
+                :placeholder (cell= (vocab :title-placeholder s/lang))
+                :value title
+                :on-change #(title! (val-id title-id)))))
+
+          (bs/form-group
+            (bs/control-label :col [:sm label-cols] :for first-name-id (text "~(vocab :first-name-label s/lang)"))
+            (div
+              :col [:xs value-cols]
+              (p :toggle no-edit? :class "form-control-static" (text "~{first-name}"))
+              (input
+                :id first-name-id
+                :toggle edit?
+                :class "form-control"
+                :type "text"
+                :placeholder (cell= (vocab :first-name-placeholder s/lang))
+                :value first-name
+                :on-change #(first-name! (val-id first-name-id)))))
+
+          (bs/form-group
+            (bs/control-label :col [:sm label-cols] :for last-name-id (text "~(vocab :last-name-label s/lang)"))
+            (div
+              :col [:xs value-cols]
+              (p :toggle no-edit? :class "form-control-static" (text "~{last-name}"))
+              (input
+                :id last-name-id
+                :toggle edit?
+                :class "form-control"
+                :type "text"
+                :placeholder (cell= (vocab :last-name-placeholder s/lang))
+                :value last-name
+                :on-change #(last-name! (val-id last-name-id)))))
+
+          (bs/form-group
+            (bs/control-label :col [:sm label-cols] :for roles-id (text "~(vocab :roles-label s/lang)"))
+            (div
+              :col [:xs value-cols]
+              (p :toggle no-edit? :class "form-control-static" (text "~{roles}"))
+              (input
+                :id roles-id
+                :toggle edit?
+                :class "form-control"
+                :type "text"
+                :placeholder (cell= (vocab :roles-placeholder s/lang))
+                :value roles
+                :on-change #(roles! (val-id roles-id)))))
+
+
+          (bs/form-group
+            (bs/control-label :col [:sm label-cols] :for notes-id (text "~(vocab :notes-label s/lang)"))
+            (div
+              :col [:xs 7]
+              (p :toggle no-edit? :class "form-control-static" (text "~{notes}"))
+              (textarea
+                :id notes-id
+                :toggle edit?
+                :class "form-control"
+                :rows 5
+                :placeholder (cell= (vocab :notes-placeholder s/lang))
+                :value notes
+                :on-change #(notes! (val-id notes-id)))))
+
+          (bs/form-group
+            (bs/control-label :col [:sm label-cols] :for is-main-contact?-id (text "~(vocab :is-main-contact?-label s/lang)"))
+            (div
+              :col [:xs value-cols]
+              (p :toggle no-edit? :class "form-control-static" (text "~{is-main-contact?}"))
+              (input
+                :id roles-id
+                :toggle edit?
+                :class "form-control"
+                :type "text"
+                :placeholder (cell= (vocab :is-main-contact?-placeholder s/lang))
+                :value is-main-contact?
+                :on-change #(is-main-contact?! (val-id is-main-contact?-id)))))
+
+          ) (dissoc attrs :fields :opts) kids)))

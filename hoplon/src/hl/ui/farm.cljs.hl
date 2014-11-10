@@ -4,6 +4,7 @@
             [ui.elements :as uie]
             [ui.components :as uic]
             [ui.addresses :as addr]
+            [ui.contacts :as contacts]
             [bootstrap-util :as bs]))
 
 (defn vocab
@@ -18,10 +19,16 @@
                                     :lang/en "Address data"}
            :new-address-button-label {:lang/de "Neue Adresse ..."
                                       :lang/en "New address ..."}
-           :save-new-address-button-label {:lang/de "Neue Adresse speichern!"
-                                           :lang/en "Save new address!"}
-           :delete-address-button-label {:lang/de "Adresse löschen!"
+           :delete-address-button-label {:lang/de "A. löschen!"
                                          :lang/en "Delete address!"}
+
+           :contacts-fieldset-label {:lang/de "Kontaktdaten"
+                                    :lang/en "Contact data"}
+           :new-contact-button-label {:lang/de "Neuer Kontakt ..."
+                                      :lang/en "New contact ..."}
+           :delete-contact-button-label {:lang/de "K. löschen!"
+                                         :lang/en "Delete contact!"}
+
 
            :weather-stations-fieldset-label {:lang/de "Wetterstationen"
                                              :lang/en "Weather stations"}
@@ -153,34 +160,27 @@
                     :col [:xs 12]
                     (hr)))
 
-                (div
-                  :toggle visible?
-                  :class "row"
+                (loop-tpl
+                  :bindings [{db-id :db/id
+                              description :address/description
+                              street :address/street
+                              postal-code :address/postal-code
+                              city :address/city
+                              city-part :address/city-part
+                              municipality :address/municipality
+                              municipality-short :address/municipality-short
+                              state :address/state
+                              state-short :state-short
+                              country :address/country
+                              country-short :address/country-short
+                              :as address} addresses]
+                  ;:bind-ids [farm-id]
+                  (div
+                    :toggle visible?
+                    :class "row"
 
-                  (loop-tpl
-                    :bindings [{db-id :db/id
-                                description :address/description
-                                street :address/street
-                                postal-code :address/postal-code
-                                city :address/city
-                                city-part :address/city-part
-                                municipality :address/municipality
-                                municipality-short :address/municipality-short
-                                state :address/state
-                                state-short :state-short
-                                country :address/country
-                                country-short :address/country-short
-                                :as address} addresses]
-                    ;:bind-ids [farm-id]
                     (div
-                      :col [:xs 12]
-
-                      (button
-                        :toggle edit?
-                        :style "float:right"
-                        :class "btn btn-danger"
-                        :click #(s/delete-db-entity @db-id)
-                        (text "~(vocab :delete-address-button-label s/lang)"))
+                      :col [:xs 11]
 
                       (addr/address
                         :fields {:description description :description! #(s/update-db-entity @db-id :address/description %)
@@ -198,7 +198,79 @@
                                :label-cols (+ label-cols 2)
                                :value-cols value-cols})
 
-                      (hr))))))
+                      (hr))
+
+                    (div
+                      :col [:xs 1]
+
+                      (uic/safe-delete-button
+                        :toggle edit?
+                        :action! #(s/delete-db-entity @db-id)
+                        :value (cell= (vocab :delete-address-button-label s/lang))))))))
+
+         (let [visible? (cell false)]
+           (fieldset
+             (uic/hover-activate-wrapper
+               :action! #(swap! visible? not)
+               (legend (text "~(vocab :contacts-fieldset-label s/lang) ~(when-not visible? \" ...\")")))
+
+             (div
+               :toggle (cell= (and visible? edit?))
+               :col [:xs 1]
+               :class "col-xs-offset-11"
+
+               (button
+                 ;:style "float:right"
+                 :class "btn btn-warning"
+                 :click #(s/create-new-farm-contact @id)
+                 (text "~(vocab :new-contact-button-label s/lang)")))
+
+             (div
+               :toggle visible?
+               :class "row"
+               (div
+                 :col [:xs 12]
+                 (hr)))
+
+             (loop-tpl
+               :bindings [{db-id :db/id
+                           title :person/title
+                           first-name :person/first-name
+                           last-name :person/last-name
+                           roles :person/roles
+                           com-connections :person/com-connections
+                           is-main-contact? :person/is-main-contact
+                           notes :person/notes
+                           :as contact} contacts]
+               ;:bind-ids [farm-id]
+               (div
+                 :toggle visible?
+                 :class "row"
+
+                 (div
+                   :col [:xs 11]
+
+                   (contacts/contact
+                     :fields {:title title :title! #(s/update-db-entity @db-id :person/title %)
+                              :first-name first-name :first-name! #(s/update-db-entity @db-id :person/first-name %)
+                              :last-name last-name :last-name! #(s/update-db-entity @db-id :person/last-name %)
+                              :roles roles :roles! #(s/update-db-entity @db-id :person/roles %)
+                              :com-connections com-connections ;:com-connections! #(s/update-db-entity @db-id :person/com-connections %)
+                              :is-main-contact? is-main-contact? :is-main-contact?! #(s/update-db-entity @db-id :person/is-main-contact %)
+                              :notes notes :notes! #(s/update-db-entity @db-id :person/notes %)}
+                     :opts {:edit? edit?
+                            :label-cols (+ label-cols 2)
+                            :value-cols value-cols})
+
+                   (hr))
+
+                 (div
+                   :col [:xs 1]
+
+                   (uic/safe-delete-button
+                     :toggle edit?
+                     :action! #(s/delete-db-entity @db-id)
+                     :value (cell= (vocab :delete-contact-button-label s/lang))))))))
 
          (bs/form-group
            (bs/control-label :col [:sm label-cols] :for name-id (text "~(vocab :irr-costs-label s/lang)"))
