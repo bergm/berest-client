@@ -16,7 +16,7 @@
  :dependencies '[#_[tailrecursion/boot.task   "2.2.3"]
                  [tailrecursion/boot.task   "2.2.4"]
                  #_[tailrecursion/hoplon      "5.10.14"]
-                 [tailrecursion/hoplon      "5.10.23"]
+                 [tailrecursion/hoplon      "5.10.24"]
                  [tailrecursion/boot.notify "2.0.2"]
                  [tailrecursion/boot.ring   "0.2.1"]
                  #_[org.clojure/clojurescript "0.0-2202"]

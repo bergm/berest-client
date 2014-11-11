@@ -170,7 +170,7 @@
 
 
 (defelem safe-delete-button
-      [{:keys [action! value]
+      [{:keys [action! value small-button?]
         :as attrs} kids]
       ((let [checked? (cell false)
              checked-id (gensym)]
@@ -182,6 +182,7 @@
                                :btn true
                                :btn-danger true
                                :btn-block true
+                               :btn-sm (if small-button? small-button? false)
                                :disabled (not checked?)})
                 :click #(do
                          (reset! checked? false)
@@ -193,8 +194,8 @@
                 (input
                   :type "checkbox"
                   :value checked?
-                  :change #(reset! checked? (val-id checked-id) #_(-> % .-target .-checked))))))
-       (dissoc attrs :action! :value) kids))
+                  :change #(reset! checked? #_(val-id checked-id) (-> % .-target .-checked))))))
+       (dissoc attrs :action! :value :small-button?) kids))
 
 (defelem hover-activate-wrapper
          [{:keys [action!]
@@ -204,5 +205,29 @@
                  :mouseenter #(reset! hover? true)
                  :mouseleave #(reset! hover? false)
                  :class (cell= {:bg-warning hover?})
-                 :click #(action!)) (dissoc attrs action!))))
+                 :click #(action!)) (dissoc attrs :action!))))
 
+(defelem hover-toggle-panel
+         [{:keys [action! toggle-cell]
+           :as attrs} [header & body]]
+         (let [hover? (cell false)
+               body-visible? (if toggle-cell toggle-cell (cell false))]
+           ((div
+             :class (cell= {:panel true
+                            :panel-default (and (not hover?) (not body-visible?))
+                            :panel-warning (and hover? (not body-visible?))
+                            :panel-success body-visible?})
+             (div
+               :class "panel-heading"
+               :mouseenter #(reset! hover? true)
+               :mouseleave #(reset! hover? false)
+               :click #(do
+                        (swap! body-visible? not)
+                        (when action!
+                          (action!)))
+               (header))
+
+             (div
+               :class "panel-body"
+               body))
+            (dissoc attrs :action! :toggle-cell))))

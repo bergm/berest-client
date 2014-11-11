@@ -588,9 +588,10 @@
 
        (bs/form-group
          (div
-           :col [:xs 1]
-           :class "col-xs-offset-11"
+           :col [:xs 2]
+           :class "col-xs-offset-10"
            (uic/safe-delete-button
+             :small-button? true
              :action! #(do (println "delete annual plot id: " @db-id " year: " @year)
                            (s/delete-db-entity @db-id))
              :value (cell= (str year " " (vocab :delete-plot-annual-button-label s/lang))))))

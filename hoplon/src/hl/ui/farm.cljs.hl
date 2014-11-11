@@ -110,271 +110,256 @@
         address-count (cell= (count addresses))
         [farm-form-name name-id notes-id irr-costs-id
          authorative-ws-id ws-id weather-data-id] (repeatedly gensym)]
-    ((div
-       (bs/form
-         :opts [:horizontal]
-         :name farm-form-name
+    ((bs/form
+       :opts [:horizontal]
+       :name farm-form-name
 
-         #_(button
-           :style "float:right"
-           :class "btn btn-info"
-           :click #(swap! edit? not)
-           (text "~(vocab :edit-farm-button-label s/lang)"))
+       (bs/form-group
+         (bs/control-label :col [:sm label-cols] :for name-id (text "~(vocab :name-label s/lang)"))
+         (div
+           :col [:xs value-cols]
+           (p :toggle no-edit? :class "form-control-static" (text "~{name}"))
+           (input
+             :id name-id
+             :toggle edit?
+             :class "form-control"
+             :type "text"
+             :placeholder (cell= (vocab :name-placeholder s/lang))
+             :value name
+             :on-change #(name! (val-id name-id)))))
 
+       (let [visible? (cell false)]
+         (fieldset
+           (uic/hover-activate-wrapper
+             :action! #(swap! visible? not)
+             (legend
+               (text "~(vocab :address-fieldset-label s/lang) ~(when-not visible? \" ...\")")
+               (button
+                 :toggle visible?
+                 :style "float:right"
+                 :class "btn btn-warning btn-sm"
+                 :click #(s/create-new-farm-address @id)
+                 (text "~(vocab :new-address-button-label s/lang)"))))
 
-         (bs/form-group
-           (bs/control-label :col [:sm label-cols] :for name-id (text "~(vocab :name-label s/lang)"))
            (div
-             :col [:xs value-cols]
-             (p :toggle no-edit? :class "form-control-static" (text "~{name}"))
+             :toggle visible?
+             :class "row"
+             (div
+               :col [:xs 12]
+               (hr)))
+
+           (loop-tpl
+             :bindings [{db-id :db/id
+                         description :address/description
+                         street :address/street
+                         postal-code :address/postal-code
+                         city :address/city
+                         city-part :address/city-part
+                         municipality :address/municipality
+                         municipality-short :address/municipality-short
+                         state :address/state
+                         state-short :state-short
+                         country :address/country
+                         country-short :address/country-short
+                         :as address} addresses]
+             (div
+               :class "row"
+
+               (div
+                 :toggle visible?
+                 :col [:xs 11]
+
+                 (addr/address
+                   :fields {:description description :description! #(s/update-db-entity @db-id :address/description %)
+                            :street street :street! #(s/update-db-entity @db-id :address/street %)
+                            :postal-code postal-code :postal-code! #(s/update-db-entity @db-id :address/postal-code %)
+                            :city city :city! #(s/update-db-entity @db-id :address/city %)
+                            :city-part city-part :city-part! #(s/update-db-entity @db-id :address/city-part %)
+                            :municipality municipality :municipality! #(s/update-db-entity @db-id :address/municipality %)
+                            :municipality-short municipality-short :municipality-short! #(s/update-db-entity @db-id :address/municipality-short %)
+                            :state state :state! #(s/update-db-entity @db-id :address/state %)
+                            :state-short state-short :state-short! #(s/update-db-entity @db-id :address/state-short %)
+                            :country country :country! #(s/update-db-entity @db-id :address/country %)
+                            :country-short country-short :country-short! #(s/update-db-entity @db-id :address/country-short %)}
+                   :opts {:edit? edit?
+                          :label-cols (+ label-cols 2)
+                          :value-cols value-cols})
+
+                 (hr))
+
+               (div
+                 :toggle visible?
+                 :col [:xs 1]
+
+                 (uic/safe-delete-button
+                   :toggle edit?
+                   :action! #(s/delete-db-entity @db-id)
+                   :value (cell= (vocab :delete-address-button-label s/lang))))))))
+
+       (let [visible? (cell false)]
+         (fieldset
+           (uic/hover-activate-wrapper
+             :action! #(swap! visible? not)
+             (legend
+               (text "~(vocab :contacts-fieldset-label s/lang) ~(when-not visible? \" ...\")")
+               (button
+                 :toggle visible?
+                 :style "float:right"
+                 :class "btn btn-warning btn-sm"
+                 :click #(s/create-new-farm-contact @id)
+                 (text "~(vocab :new-contact-button-label s/lang)"))))
+
+           (div
+             :toggle visible?
+             :class "row"
+             (div
+               :col [:xs 12]
+               (hr)))
+
+           (loop-tpl
+             :bindings [{db-id :db/id
+                         title :person/title
+                         first-name :person/first-name
+                         last-name :person/last-name
+                         roles :person/roles
+                         com-connections :person/com-connections
+                         is-main-contact? :person/is-main-contact
+                         notes :person/notes
+                         :as contact} contacts]
+             ;:bind-ids [farm-id]
+             (div
+               :class "row"
+
+               (div
+                 :toggle visible?
+                 :col [:xs 11]
+
+                 (contacts/contact
+                   :fields {:title title :title! #(s/update-db-entity @db-id :person/title %)
+                            :first-name first-name :first-name! #(s/update-db-entity @db-id :person/first-name %)
+                            :last-name last-name :last-name! #(s/update-db-entity @db-id :person/last-name %)
+                            :roles roles :roles! #(s/update-db-entity @db-id :person/roles %)
+                            :com-connections com-connections ;:com-connections! #(s/update-db-entity @db-id :person/com-connections %)
+                            :is-main-contact? is-main-contact? :is-main-contact?! #(s/update-db-entity @db-id :person/is-main-contact %)
+                            :notes notes :notes! #(s/update-db-entity @db-id :person/notes %)}
+                   :opts {:edit? edit?
+                          :label-cols (+ label-cols 2)
+                          :value-cols value-cols})
+
+                 (hr))
+
+               (div
+                 :toggle visible?
+                 :col [:xs 1]
+
+                 (uic/safe-delete-button
+                   :toggle edit?
+                   :action! #(s/delete-db-entity @db-id)
+                   :value (cell= (vocab :delete-contact-button-label s/lang))))))))
+
+       (bs/form-group
+         (bs/control-label :col [:sm label-cols] :for name-id (text "~(vocab :irr-costs-label s/lang)"))
+         (div
+           :col [:xs 2]
+           (p :toggle no-edit? :class "form-control-static" (text "~{avg-irrigation-costs}"))
+           (div
+             :class "input-group"
              (input
-               :id name-id
+               :id irr-costs-id
                :toggle edit?
                :class "form-control"
-               :type "text"
-               :placeholder (cell= (vocab :name-placeholder s/lang))
-               :value name
-               :on-change #(name! (val-id name-id)))))
+               :type "number"
+               :step 1
+               :min 0
+               :max 100
+               :placeholder (cell= (vocab :irr-costs-placeholder s/lang))
+               :value avg-irrigation-costs
+               :on-change #(avg-irrigation-costs! (js/parseFloat (val-id irr-costs-id))))
+             (span :class "input-group-addon" "€/mm"))))
 
-         (let [visible? (cell false)]
-              (fieldset
-                (uic/hover-activate-wrapper
-                  :action! #(swap! visible? not)
-                  (legend (text "~(vocab :address-fieldset-label s/lang) ~(when-not visible? \" ...\")")))
+       (bs/form-group
+         (bs/control-label :col [:sm label-cols] :for notes-id (text "~(vocab :notes-label s/lang)"))
+         (div
+           :col [:xs 7]
+           (p :toggle no-edit? :class "form-control-static" (text "~{notes}"))
+           (textarea
+             :id notes-id
+             :toggle edit?
+             :class "form-control"
+             :rows 5
+             :placeholder (cell= (vocab :notes-placeholder s/lang))
+             :value notes
+             :on-change #(notes! (val-id notes-id)))))
 
-                (div
-                  :toggle (cell= (and visible? edit?))
-                  :col [:xs 1]
-                  :class "col-xs-offset-11"
+       (fieldset
+         (legend (text "~(vocab :weather-stations-fieldset-label s/lang)"))
 
-                  (button
-                    ;:style "float:right"
-                    :class "btn btn-warning"
-                    :click #(s/create-new-farm-address @id)
-                    (text "~(vocab :new-address-button-label s/lang)")))
+         (bs/form-group
+           :class (cell= {:has-error (nil? authorative-weather-station)})
 
-                (div
-                  :toggle visible?
-                  :class "row"
-                  (div
-                    :col [:xs 12]
-                    (hr)))
+           (bs/control-label :col [:sm label-cols] :for authorative-ws-id
+                             (text "~(vocab :authorative-weather-station-label s/lang)"))
+           (div
+             :col [:xs value-cols]
+             (p :toggle no-edit? :class "form-control-static"
+                (text "~(or (:weather-station/name authorative-weather-station)
+                  (:weather-station/id authorative-weather-station))"))
+             (select
+               :toggle edit?
+               :id authorative-ws-id
+               :class "form-control"
+               :on-change #(authorative-weather-station! (js/parseInt (val-id authorative-ws-id)))
+               (option :value "" "")
+               (loop-tpl
+                 :bindings [{ws-db-id :db/id
+                             ws-id :weather-station/id
+                             ws-name :weather-station/name}
+                            (cell= (sort-by #(if-let [name (:weather-station/name %)]
+                                              name
+                                              (:weather-station/id %)) s/user-weather-stations))]
+                 (option :value ws-db-id
+                         :selected (cell= (= ws-id (:weather-station/id authorative-weather-station)))
+                         (text "~(or ws-name ws-id)"))))))
 
-                (loop-tpl
-                  :bindings [{db-id :db/id
-                              description :address/description
-                              street :address/street
-                              postal-code :address/postal-code
-                              city :address/city
-                              city-part :address/city-part
-                              municipality :address/municipality
-                              municipality-short :address/municipality-short
-                              state :address/state
-                              state-short :state-short
-                              country :address/country
-                              country-short :address/country-short
-                              :as address} addresses]
-                  ;:bind-ids [farm-id]
-                  (div
-                    :toggle visible?
-                    :class "row"
+         (bs/form-group
+           ;:class (cell= {:has-error (nil? weather-station)})
 
-                    (div
-                      :col [:xs 11]
-
-                      (addr/address
-                        :fields {:description description :description! #(s/update-db-entity @db-id :address/description %)
-                                 :street street :street! #(s/update-db-entity @db-id :address/street %)
-                                 :postal-code postal-code :postal-code! #(s/update-db-entity @db-id :address/postal-code %)
-                                 :city city :city! #(s/update-db-entity @db-id :address/city %)
-                                 :city-part city-part :city-part! #(s/update-db-entity @db-id :address/city-part %)
-                                 :municipality municipality :municipality! #(s/update-db-entity @db-id :address/municipality %)
-                                 :municipality-short municipality-short :municipality-short! #(s/update-db-entity @db-id :address/municipality-short %)
-                                 :state state :state! #(s/update-db-entity @db-id :address/state %)
-                                 :state-short state-short :state-short! #(s/update-db-entity @db-id :address/state-short %)
-                                 :country country :country! #(s/update-db-entity @db-id :address/country %)
-                                 :country-short country-short :country-short! #(s/update-db-entity @db-id :address/country-short %)}
-                        :opts {:edit? edit?
-                               :label-cols (+ label-cols 2)
-                               :value-cols value-cols})
-
-                      (hr))
-
-                    (div
-                      :col [:xs 1]
-
-                      (uic/safe-delete-button
-                        :toggle edit?
-                        :action! #(s/delete-db-entity @db-id)
-                        :value (cell= (vocab :delete-address-button-label s/lang))))))))
+           (bs/control-label :col [:sm label-cols] :for ws-id
+                             (text "~(vocab :weather-station-label s/lang)"))
+           (div
+             :col [:xs value-cols]
+             (p :toggle no-edit? :class "form-control-static"
+                (text "~(or (:weather-station/name weather-station)
+                  (:weather-station/id weather-station))"))
+             (select
+               :toggle edit?
+               :id ws-id
+               :class "form-control"
+               :on-change #(weather-station! (js/parseInt (val-id ws-id)))
+               (option :value "" "")
+               (loop-tpl
+                 :bindings [{ws-db-id :db/id
+                             ws-id :weather-station/id
+                             ws-name :weather-station/name}
+                            (cell= (sort-by #(if-let [name (:weather-station/name %)]
+                                              name
+                                              (:weather-station/id %)) s/user-weather-stations))]
+                 (option :value ws-db-id
+                         :selected (cell= (= ws-id (:weather-station/id weather-station)))
+                         (text "~(or ws-name ws-id)"))))))
 
          (let [visible? (cell false)]
            (fieldset
              (uic/hover-activate-wrapper
                :action! #(swap! visible? not)
-               (legend (text "~(vocab :contacts-fieldset-label s/lang) ~(when-not visible? \" ...\")")))
+               (legend
+                 (text "~(vocab :weather-data-fieldset-label s/lang) ~(when-not visible? \" ...\")")))
 
-             (div
-               :toggle (cell= (and visible? edit?))
-               :col [:xs 1]
-               :class "col-xs-offset-11"
+             (uie/weather-data-form-group
+               :visible? visible?
+               :weather-data weather-data
+               :id-attr :farm/id
+               :id id)))
 
-               (button
-                 ;:style "float:right"
-                 :class "btn btn-warning"
-                 :click #(s/create-new-farm-contact @id)
-                 (text "~(vocab :new-contact-button-label s/lang)")))
-
-             (div
-               :toggle visible?
-               :class "row"
-               (div
-                 :col [:xs 12]
-                 (hr)))
-
-             (loop-tpl
-               :bindings [{db-id :db/id
-                           title :person/title
-                           first-name :person/first-name
-                           last-name :person/last-name
-                           roles :person/roles
-                           com-connections :person/com-connections
-                           is-main-contact? :person/is-main-contact
-                           notes :person/notes
-                           :as contact} contacts]
-               ;:bind-ids [farm-id]
-               (div
-                 :toggle visible?
-                 :class "row"
-
-                 (div
-                   :col [:xs 11]
-
-                   (contacts/contact
-                     :fields {:title title :title! #(s/update-db-entity @db-id :person/title %)
-                              :first-name first-name :first-name! #(s/update-db-entity @db-id :person/first-name %)
-                              :last-name last-name :last-name! #(s/update-db-entity @db-id :person/last-name %)
-                              :roles roles :roles! #(s/update-db-entity @db-id :person/roles %)
-                              :com-connections com-connections ;:com-connections! #(s/update-db-entity @db-id :person/com-connections %)
-                              :is-main-contact? is-main-contact? :is-main-contact?! #(s/update-db-entity @db-id :person/is-main-contact %)
-                              :notes notes :notes! #(s/update-db-entity @db-id :person/notes %)}
-                     :opts {:edit? edit?
-                            :label-cols (+ label-cols 2)
-                            :value-cols value-cols})
-
-                   (hr))
-
-                 (div
-                   :col [:xs 1]
-
-                   (uic/safe-delete-button
-                     :toggle edit?
-                     :action! #(s/delete-db-entity @db-id)
-                     :value (cell= (vocab :delete-contact-button-label s/lang))))))))
-
-         (bs/form-group
-           (bs/control-label :col [:sm label-cols] :for name-id (text "~(vocab :irr-costs-label s/lang)"))
-           (div
-             :col [:xs 2]
-             (p :toggle no-edit? :class "form-control-static" (text "~{avg-irrigation-costs}"))
-             (div
-               :class "input-group"
-               (input
-                 :id irr-costs-id
-                 :toggle edit?
-                 :class "form-control"
-                 :type "number"
-                 :step 1
-                 :min 0
-                 :max 100
-                 :placeholder (cell= (vocab :irr-costs-placeholder s/lang))
-                 :value avg-irrigation-costs
-                 :on-change #(avg-irrigation-costs! (js/parseFloat (val-id irr-costs-id))))
-               (span :class "input-group-addon" "€/mm"))))
-
-         (bs/form-group
-           (bs/control-label :col [:sm label-cols] :for notes-id (text "~(vocab :notes-label s/lang)"))
-           (div
-             :col [:xs 7]
-             (p :toggle no-edit? :class "form-control-static" (text "~{notes}"))
-             (textarea
-               :id notes-id
-               :toggle edit?
-               :class "form-control"
-               :rows 5
-               :placeholder (cell= (vocab :notes-placeholder s/lang))
-               :value notes
-               :on-change #(notes! (val-id notes-id)))))
-
-         (fieldset
-           (legend (text "~(vocab :weather-stations-fieldset-label s/lang)"))
-
-           (bs/form-group
-             :class (cell= {:has-error (nil? authorative-weather-station)})
-
-             (bs/control-label :col [:sm label-cols] :for authorative-ws-id
-                               (text "~(vocab :authorative-weather-station-label s/lang)"))
-             (div
-               :col [:xs value-cols]
-               (p :toggle no-edit? :class "form-control-static"
-                  (text "~(or (:weather-station/name authorative-weather-station)
-                  (:weather-station/id authorative-weather-station))"))
-               (select
-                 :toggle edit?
-                 :id authorative-ws-id
-                 :class "form-control"
-                 :on-change #(authorative-weather-station! (js/parseInt (val-id authorative-ws-id)))
-                 (option :value "" "")
-                 (loop-tpl
-                   :bindings [{ws-db-id :db/id
-                               ws-id :weather-station/id
-                               ws-name :weather-station/name}
-                              (cell= (sort-by #(if-let [name (:weather-station/name %)]
-                                                name
-                                                (:weather-station/id %)) s/user-weather-stations))]
-                   (option :value ws-db-id
-                           :selected (cell= (= ws-id (:weather-station/id authorative-weather-station)))
-                           (text "~(or ws-name ws-id)"))))))
-
-           (bs/form-group
-             ;:class (cell= {:has-error (nil? weather-station)})
-
-             (bs/control-label :col [:sm label-cols] :for ws-id
-                               (text "~(vocab :weather-station-label s/lang)"))
-             (div
-               :col [:xs value-cols]
-               (p :toggle no-edit? :class "form-control-static"
-                  (text "~(or (:weather-station/name weather-station)
-                  (:weather-station/id weather-station))"))
-               (select
-                 :toggle edit?
-                 :id ws-id
-                 :class "form-control"
-                 :on-change #(weather-station! (js/parseInt (val-id ws-id)))
-                 (option :value "" "")
-                 (loop-tpl
-                   :bindings [{ws-db-id :db/id
-                               ws-id :weather-station/id
-                               ws-name :weather-station/name}
-                              (cell= (sort-by #(if-let [name (:weather-station/name %)]
-                                                name
-                                                (:weather-station/id %)) s/user-weather-stations))]
-                   (option :value ws-db-id
-                           :selected (cell= (= ws-id (:weather-station/id weather-station)))
-                           (text "~(or ws-name ws-id)"))))))
-
-           (let [visible? (cell false)]
-                (fieldset
-                  (uic/hover-activate-wrapper
-                    :action! #(swap! visible? not)
-                    (legend
-                      (text "~(vocab :weather-data-fieldset-label s/lang) ~(when-not visible? \" ...\")")))
-
-                  (uie/weather-data-form-group
-                    :visible? visible?
-                    :weather-data weather-data
-                    :id-attr :farm/id
-                    :id id)))
-
-           )))
+         ))
      (dissoc attrs :fields :opts) kids)))
