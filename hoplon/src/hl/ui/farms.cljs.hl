@@ -21,17 +21,26 @@
            :th-farm-name {:lang/de "Betriebsname"
                           :lang/en "Farm name"}
 
+           :th-farm-jump {:lang/de ""
+                          :lang/en ""}
+
            :th-farm-state {:lang/de "Zustand"
                            :lang/en "State"}
 
            :th-plot-name {:lang/de "Schlagsname"
                           :lang/en "Plot name"}
 
+           :th-plot-jump {:lang/de ""
+                          :lang/en ""}
+
            :th-plot-number {:lang/de "Schlagnummer"
                             :lang/en "Plot number"}
 
-           :th-plot-state {:lang/de "Zustand"
-                           :lang/en "State"}
+           :th-plot-days-since-update {:lang/de "Tage seit Aktualisierung"
+                                       :lang/en "Days since last update"}
+
+           :th-plot-recommendation {:lang/de "Empfehlung"
+                                    :lang/en "Recommendation"}
 
            :new-farm-button {:lang/de "Neuer Betrieb"
                              :lang/en "New farm"}
@@ -150,23 +159,23 @@
 
          new-farm-no (cell 0)
 
-         [new-farm-id new-plot-id query-id] (repeatedly gensym)
+        [query-id] (repeatedly gensym)
 
         farms-count (cell= (count (:farms s/state)))
+        _ (cell= (when (= farms-count 1)
+                   (s/set-route-params :farm-id (:farm/id (second (first (:farms s/state)))))))
 
-        selected-farm (cell= (if (= farms-count 1)
-                               (second (first (:farms s/state)))
-                               (when-let [fid (:farm-id s/route-params)]
-                                 (when-let [fs (:farms s/state)]
-                                   (fs (UUID. fid))))))
+        selected-farm (cell= (when-let [fid (:farm-id s/route-params)]
+                               (when-let [fs (:farms s/state)]
+                                 (fs (UUID. fid)))))
 
         plots-count (cell= (count (:plots selected-farm)))
+        _ (cell= (when (= plots-count 1)
+                   (s/set-route-params :plot-id (:plot/id (second (first (:plots selected-farm)))))))
 
-        selected-plot (cell= (if (= plots-count 1)
-                               (second (first (:plots selected-farm)))
-                               (when-let [pid (:plot-id s/route-params)]
-                                 (when-let [ps (:plots selected-farm)]
-                                   (ps (UUID. pid))))))]
+        selected-plot (cell= (when-let [pid (:plot-id s/route-params)]
+                               (when-let [ps (:plots selected-farm)]
+                                 (ps (UUID. pid)))))]
 
     (div
       :id "farms-pane"
@@ -183,8 +192,8 @@
               (button
                 :type "button"
                 :class "btn btn-link"
-                :on-click #(reset! filter-criterium {:attr :farm/name
-                                                     :value (char c)})
+                :click #(reset! filter-criterium {:attr :farm/name
+                                                  :value (char c)})
                 (char c)))))
 
         (bs/form-group
@@ -211,7 +220,9 @@
 
             (thead
               (tr
-                (th :style "width:60%" (text "~(vocab :th-farm-name s/lang)"))
+                (th :style "width:5%" (text "~(vocab :th-farm-jump s/lang)"))
+                (th :style "width:55%" (text "~(vocab :th-farm-name s/lang)"))
+                #_(th :style "width:30%" (text "~(vocab :th-farm-name s/lang)"))
                 (th :style "width:30%" (text "~(vocab :th-farm-state s/lang)"))
                 (th
                   :style "width:10%; text-align:right"
@@ -234,19 +245,23 @@
                 (let [hover? (cell false)
                       selected? (cell= (= id (:farm/id selected-farm)))]
                      (tr
-                       #_:class #_(cell= {:warning (and hover? (not selected?))
-                                      :success selected?})
                        :mouseenter #(reset! hover? true)
                        :mouseleave #(reset! hover? false)
-                       #_:click #_#(s/set-route-params :farm-id @id
-                                #_(some-> "plot-section-table" by-id .scrollIntoView))
-
+                       (td
+                         :style "text-align: center; vertical-align: middle"
+                         :class (cell= {:warning (and hover? (not selected?))
+                                        :success selected?})
+                         :click #(do
+                                  (some-> "plot-section-table" by-id .scrollIntoView)
+                                  (s/set-route-params :farm-id @id))
+                         (span :class "glyphicon glyphicon-arrow-down"))
                        (td
                          :style "vertical-align: middle"
                          :class (cell= {:warning (and hover? (not selected?))
                                         :success selected?})
                          :click #(s/set-route-params :farm-id @id)
                          (text "~(or name id)"))
+
                        (td
                          :style "vertical-align: middle"
                          :class (cell= {:warning (and hover? (not selected?))
@@ -274,6 +289,7 @@
                   :as farm} selected-farm]
                 (let [farm-details-visible? (cell false)]
                      [(uic/hover-toggle-panel
+                        :toggle (cell= (not (nil? selected-farm)))
                         :toggle-cell farm-details-visible?
 
                         (h3
@@ -316,9 +332,11 @@
 
                             (thead
                               (tr
-                                (th :style "width: 60%" (text "~(vocab :th-plot-name s/lang)"))
+                                (th :style "width: 5%" (text "~(vocab :th-plot-jump s/lang)"))
+                                (th :style "width: 45%" (text "~(vocab :th-plot-name s/lang)"))
                                 (th :style "width: 10%" (text "~(vocab :th-plot-number s/lang)"))
-                                (th :style "width: 20%" (text "~(vocab :th-plot-state s/lang)"))
+                                (th :style "width: 10%" (text "~(vocab :th-plot-days-since-update s/lang)"))
+                                (th :style "width: 20%" (text "~(vocab :th-plot-recommendation s/lang)"))
                                 (th
                                   :style "width: 10%; text-align:right"
                                   (button
@@ -336,13 +354,16 @@
                                 (let [hover? (cell false)
                                       selected? (cell= (= plot-id (:plot/id selected-plot)))]
                                      (tr
-                                       #_:class #_(cell= {:warning (and hover? (not selected?))
-                                                      :success selected?})
                                        :mouseenter #(reset! hover? true)
                                        :mouseleave #(reset! hover? false)
-                                       #_:click #_#(s/set-route-params :plot-id @plot-id
-                                                                   #_(.scrollIntoView (by-id "recommendation-section")))
-
+                                       (td
+                                         :style "text-align:center;vertical-align: middle"
+                                         :class (cell= {:warning (and hover? (not selected?))
+                                                        :success selected?})
+                                         :click #(do
+                                                  (s/set-route-params :plot-id @plot-id)
+                                                  (some-> "recommendation-section" by-id .scrollIntoView))
+                                         (span :class "glyphicon glyphicon-arrow-down"))
                                        (td
                                          :style "vertical-align: middle"
                                          :class (cell= {:warning (and hover? (not selected?))
@@ -355,12 +376,19 @@
                                                         :success selected?})
                                          :click #(s/set-route-params :plot-id @plot-id)
                                          (text "~(or plot-number \"\")"))
+
                                        (td
                                          :style "vertical-align: middle"
                                          :class (cell= {:warning (and hover? (not selected?))
                                                         :success selected?})
                                          :click #(s/set-route-params :plot-id @plot-id)
-                                         (span :class "glyphicon glyphicon-ok"))
+                                         "10d" #_(text "~(or plot-number \"\")"))
+                                       (td
+                                         :style "vertical-align: middle"
+                                         :class (cell= {:warning (and hover? (not selected?))
+                                                        :success selected?})
+                                         :click #(s/set-route-params :plot-id @plot-id)
+                                         "in 4 Tg." #_(span :class "glyphicon glyphicon-ok"))
                                        (td
                                          :style "text-align: right"
                                          (uic/safe-delete-button
@@ -402,6 +430,7 @@
                               plot-details-visible? (cell false)]
 
                              [(uic/hover-toggle-panel
+                                :toggle (cell= (not (nil? selected-plot)))
                                 :toggle-cell plot-details-visible?
 
                                 (h3
@@ -467,83 +496,6 @@
                                          :label-cols 2
                                          :value-cols 3}))
 
-                              #_(div
-                                :class "row"
-                                :toggle (cell= (not (nil? selected-farm)))
-
-                                (div
-                                  :col [:xs 12]
-
-                                  (uic/hover-activate-wrapper
-                                    :action! #(swap! plot-details-visible? not)
-                                    (h4
-                                      (text "~(vocab :plot-data-label s/lang) ~(when plot-name plot-name) ~(when-not plot-details-visible? \" ...\")")))))
-
-                              #_(plot/plot
-                                :toggle (cell= (and selected-farm plot-details-visible?))
-                                :fields {:id plot-id
-                                         :name plot-name :name! #(s/update-db-entity @plot-db-id :plot/name %)
-                                         :number number :number! #(s/update-db-entity @plot-db-id :plot/number %)
-                                         :description description :description! #(s/update-db-entity @plot-db-id :plot/description %)
-
-                                         :short-description short-description
-                                         :short-description! #(s/update-db-entity @plot-db-id :plot/short-description %)
-
-                                         :crop-area crop-area :crop-area! #(s/update-db-entity @plot-db-id :plot/crop-area %)
-
-                                         :irrigation-area irrigation-area
-                                         :irrigation-area! #(s/update-db-entity @plot-db-id :plot/irrigation-area %)
-
-                                         :stt stt :stt! #(s/update-db-entity @plot-db-id :plot/stt [:soil.stt/key %])
-                                         :slope slope :slope! #(s/update-db-entity @plot-db-id :plot/slope [:slope/key %])
-
-                                         :field-capacities field-capacities
-                                         ;:field-capacities! #(s/update-db-entity @db-id :plot/field-capacities %)
-
-                                         :fc-pwp-unit fc-pwp-unit :fc-pwp-unit! #(s/update-db-entity @plot-db-id :plot/fc-pwp-unit %)
-
-                                         :permanent-wilting-points permanent-wilting-points
-                                         ;:permanent-wilting-points! #(s/update-db-entity @db-id :plot/permanent-wilting-points %)
-
-                                         :pwp-unit pwp-unit :pwp-unit! #(s/update-db-entity @plot-db-id :plot/pwp-unit %)
-
-                                         :ka5-soil-types ka5-soil-types
-                                         :ka5-soil-types! #(s/update-db-entity @plot-db-id :plot/ka5-soil-types %)
-
-                                         :groundwaterlevel groundwaterlevel
-                                         :groundwaterlevel! #(s/update-db-entity @plot-db-id :plot/groundwaterlevel %)
-
-                                         :annuals annuals
-
-                                         :weather-station weather-station
-                                         :weather-station! #(s/update-db-entity @plot-db-id :plot/weather-station %)
-
-                                         :weather-data plot-weather-data
-
-                                         :location-coords location-coords
-                                         :location-coords! #(s/update-db-entity @plot-db-id :plot/location-coords %)
-
-                                         :notes notes :notes! #(s/update-db-entity @plot-db-id :plot/notes %)
-
-                                         :az-glz az-glz :az-glz! #(s/update-db-entity @plot-db-id :plot/az-glz % :value-type :int)
-                                         :nft nft :nft! #(s/update-db-entity @plot-db-id :plot/nft % :value-type :int)
-                                         :bse bse :bse! #(s/update-db-entity @plot-db-id :plot/bse %)
-                                         :sse sse :sse! #(s/update-db-entity @plot-db-id :plot/sse %)
-                                         :bwb bwb :bwb! #(s/update-db-entity @plot-db-id :plot/bwb %)
-
-                                         ;:irrigation-well irrigation-well
-                                         ;irrigation-well! #(s/update-db-entity @db-id :plot/irrigation-well %)
-                                         }
-                                :opts {:edit? true
-                                       :label-cols 2
-                                       :value-cols 3})
-
-                              #_(div
-                                :class "row"
-                                :toggle (cell= (not (nil? selected-farm)))
-
-                                (div :col [:xs 12] (hr)))
-
                               (let [recalc-count (cell 0)
                                     _ (cell= (println "recalc-count: " recalc-count))
 
@@ -573,6 +525,7 @@
                                     ]
 
                                    [(uic/hover-toggle-panel
+                                      :toggle (cell= (not (nil? selected-plot)))
                                       :toggle-cell annual-plot-details-visible?*
 
                                       (h3

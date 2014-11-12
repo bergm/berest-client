@@ -32,10 +32,10 @@
 (defc edn-result nil)
 #_(cell= (println "edn-result: " edn-result))
 
-
 (s/login! "zalf" "fLAz")
 
-(cell= (when (and s/logged-in? (not s/static-state)) (s/load-static-state)))
+(cell= (when (and s/logged-in? (not s/static-state))
+         (s/load-static-state)))
 
 (cell= (print (:trace s/error)))
 

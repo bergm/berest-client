@@ -60,13 +60,38 @@
 (defc= route-params (into {} (for [[k v] (partition 2 (rest route+params))]
                                [(keyword k) v])))
 #_(cell= (println "route-params: " (pr-str route-params)))
+(defn clear-route+params
+  []
+  (reset! routeHash ""))
+
+(defn set-route+params
+  [& [route* & params]]
+  (->> (merge @route-params (into {} (for [[k v] (partition 2 params)] [k v])))
+       (map (fn [[k v]] (when v (str (name k) "=" v))) ,,,)
+       (remove nil? ,,,)
+       (str/join "&" ,,,)
+       (str (or route* @route) "?" ,,,)
+       (reset! routeHash ,,,)))
+
+(defn clear-route-params
+  []
+  #_(println "route: " (pr-str @route) " route-params: " (pr-str @route-params)
+           " map: " (pr-str (map (fn [[k _]] [k nil]) @route-params))
+           " flatten: " (pr-str (flatten (map (fn [[k _]] [k nil]) @route-params))))
+  (apply set-route+params @route (flatten (map (fn [[k _]] [k nil]) @route-params))))
+
 (defn set-route-params
   [& params]
-  (->> (merge @route-params (into {} (for [[k v] (partition 2 params)] [k v])))
+  (apply set-route+params nil params)
+  #_(->> (merge @route-params (into {} (for [[k v] (partition 2 params)] [k v])))
        (map (fn [[k v]] (str (name k) "=" v)) ,,,)
        (str/join "&" ,,,)
        (str @route "?" ,,,)
        (reset! routeHash ,,,)))
+
+(defn set-route
+  [route*]
+  (set-route+params route*))
 
 (defc error nil)
 (defc loading [])

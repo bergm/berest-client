@@ -14,8 +14,12 @@
                           :lang/en "Signed in as "}
            :username {:lang/de "Nutzername"
                       :lang/en "Username"}
+           :user-placeholder {:lang/de "Nutzername"
+                              :lang/en "Username"}
            :password {:lang/de "Passwort"
                       :lang/en "Password"}
+           :pwd-placeholder {:lang/de "Passwort"
+                             :lang/en "Password"}
            :nav-admin {:lang/de "Administration"
                       :lang/en "Administration"}
            :nav-news {:lang/de "Aktuell"
@@ -78,95 +82,194 @@
       (a
         :class "navbar-brand"
         :style "float: none"
-        :href "#"
+        :href "#/farms"
         (img
           :style "clear: both; width:90px"
           :src "irrigama-logo.png"
-          :alt "Irrigama-Logo") #_(text "~{page-name-label}")
-        (span :style "font-size:24px; font-weight:bold" "IRRIGAMA.WEB"))
-
-      )
+          :alt "Irrigama-Logo")
+        (img
+          :style "clear: both; width:150px"
+          :src "fbm-logo.png"
+          :alt "FBM-Logo")
+        (span
+          :toggle s/show-content?
+          :style "vertical-align: middle; font-size:24px; font-weight:bold" "IRRIGAMA.WEB")))
     (div
       :class "collapse navbar-collapse"
       (ul
+        :toggle s/logged-in?
         :class "nav navbar-nav"
-        (li
-          :toggle s/admin-logged-in?
-          :class (cell= {:active (= s/route "#/admin")})
-          (a :href "#/admin" (cell= (vocab :nav-admin s/lang))))
         (li :class (cell= {:active (= s/route "#/farms")}) (a :href "#/farms" (cell= (vocab :nav-farms s/lang))))
         (li :class (cell= {:active (= s/route "#/weather")}) (a :href "#/weather" (cell= (vocab :nav-weather s/lang))))
         (li :class (cell= {:active (= s/route "#/crops")}) (a :href "#/crops" (cell= (vocab :nav-crops s/lang))))
-        (li :class (cell= {:active (= s/route "#/settings")}) (a :href "#/settins" (cell= (vocab :nav-settings s/lang))))
-        (li :class (cell= {:active (= s/route "#/bersim")}) (a :href "#/bersim" (cell= (vocab :nav-bersim s/lang))))
-        #_(li (button :click #(s/get-state) "Reload user state"))
-        #_(li (a :href "/home" "Home"))
-        #_(li (a :href "" "other quick-link")))
+        (li :class (cell= {:active (= s/route "#/settings")}) (a :href "#/settings" (cell= (vocab :nav-settings s/lang))))
+        (li
+          :toggle s/admin-logged-in?
+          :class (cell= {:active (= s/route "#/admin")})
+          (a :href "#/admin" (cell= (vocab :nav-admin s/lang)))))
       (div
-        :do-toggle s/logged-in?
+        :toggle s/logged-in?
         :class "navbar-right"
         (p
           :class "navbar-text" (text "~(vocab :signed-in-as s/lang)")
           (strong (text "~(:user/full-name s/user) "))
           (button
-            ;:href "javascript:void(0)"
             :class "btn btn-default navbar-btn"
-            :on-click #(s/logout!)
+            :on-click #(do
+                        (s/logout!)
+                        (s/clear-route+params))
             "Logout"))))))
-
-(defn left-nav-bar
-  []
-  (div
-    :id "navigation"
-    :col [:sm 2]
-    (ul
-      :class "nav nav-pills nav-stacked"
-      (li :class (cell= {:active (= s/route "#/news")}) (a :href "#/news" (cell= (vocab :nav-news s/lang))))
-      (li :class (cell= {:active (= s/route "#/farms")}) (a :href "#/farms" (cell= (vocab :nav-farms s/lang))))
-      (li :class (cell= {:active (= s/route "#/weather")}) (a :href "#/weather" (cell= (vocab :nav-weather s/lang))))
-      (li :class (cell= {:active (= s/route "#/crops")}) (a :href "#/crops" (cell= (vocab :nav-crops s/lang))))
-      #_(li :class (cell= {:active (= s/route "#/soils")}) (a :href "#/soils" (cell= (vocab :nav-soils s/lang))))
-      #_(li :class (cell= {:active (= s/route "#/archive")}) (a :href "#/archive" (cell= (vocab :nav-archive s/lang))))
-      (li :class (cell= {:active (= s/route "#/settings")}) (a :href "#/settins" (cell= (vocab :nav-settings s/lang))))
-      (li :class (cell= {:active (= s/route "#/bersim")}) (a :href "#/bersim" (cell= (vocab :nav-bersim s/lang)))))))
-
 
 (defn login-pane
   []
-  (div
-    :id "login-pane"
-    :class "center"
-    :do-toggle s/show-login?
-    :style "width:70%"
-    (bs/form
-      :opts [:horizontal]
-      :id "login"
-      :on-submit #(s/login! (val-id "user") (val-id "pwd"))
-      (bs/form-group
-        (bs/control-label :col [:sm 2] :for "user" (text "~(vocab :username s/lang)"))
-        (div
-          :col [:xs 3]
-          (input
-            :id "user"
-            :class "form-control"
-            :type "text"
-            :autofocus "autofocus")))
+  (let [[user-id pwd-id] (repeatedly gensym)]
+    (div
+      (div
+        :id "login-pane"
+        :class "center"
+        :toggle s/show-login?
+        :style "width:80%;"; background-image: url('irrigama-web-small.jpg'); background-size: 100%; background-repeat: no-repeat"
+        #_(div :style "height: 400px")
+        (bs/form
+          :opts [:horizontal]
+          :id "login"
+          :submit #(do
+                    (s/login! (val-id user-id) (val-id pwd-id))
+                    (s/set-route "#/farms")
+                    (do! (by-id user-id) :value "")
+                    (do! (by-id pwd-id) :value ""))
+          (bs/form-group
+            #_(bs/control-label
+              :col [:xs 2]
+              :class "col-xs-offset-2"
+              :for user-id
+              (text "~(vocab :username s/lang)"))
 
-      (bs/form-group
-        (bs/control-label :col [:sm 2] :for "pwd" (text "~(vocab :password s/lang)"))
-        (div
-          :col [:xs 3]
-          (input
-            :id "pwd"
-            :class "form-control"
-            :type "password")))
+            (div
+              :col [:xs 3]
+              ;:class "col-xs-offset-4"
+              (input
+                :id user-id
+                :class "form-control"
+                :placeholder (cell= (vocab :user-placeholder s/lang))
+                :type "text"
+                :autofocus "autofocus"))
 
-      (bs/form-group
+            (div
+              :col [:xs 3]
+              :class "col-xs-offset-1"
+              (input
+                :id pwd-id
+                :class "form-control"
+                :placeholder (cell= (vocab :pwd-placeholder s/lang))
+                :type "password"))
+
+            (div
+              :col [:xs 4]
+              :class "col-xs-offset-1"
+              (button
+                :class "form-control btn btn-primary"
+                :type "submit" "Login"))
+
+            )
+
+          #_(bs/form-group
+            #_(bs/control-label
+              :col [:xs 2]
+              :class "col-xs-offset-2"
+              :for pwd-id
+              (text "~(vocab :password s/lang)"))
+
+            (div
+              :col [:xs 3]
+              :class "col-xs-offset-4"
+              (input
+                :id pwd-id
+                :class "form-control"
+                :placeholder (cell= (vocab :pwd-placeholder s/lang))
+                :type "password")))
+
+          #_(bs/form-group
+            (div
+              :col [:xs 3]
+              :class "col-xs-offset-4"
+              (button
+                :class "form-control btn btn-primary"
+                :type "submit" "Login"))))
+        #_(div :style "height: 300px")
+
         (div
-          :class "col-sm-offset-2 col-xs-3"
-          (button
-            :class "form-control btn btn-primary"
-            :type "submit" "Login"))))))
+          :class "row"
+
+          (img
+            :col [:xs 12]
+            :class "img-responsive"
+            :src "irrigama-web-small.jpg"))
+
+        )
+
+      #_(img
+        :class "img-responsive"
+        :src "irrigama-web-small.jpg")
+
+      )
+
+    #_(;img :style "z-index: 1; width: 100%" :src "irrigama-web.jpg"
+     (div
+           :id "login-pane"
+           :class "center"
+           :toggle s/show-login?
+           :style "width:80%; background-image: url('irrigama-web-small.jpg'); background-size: 100%; background-repeat: no-repeat"
+           (div :style "height: 400px")
+           (bs/form
+             :opts [:horizontal]
+             :id "login"
+             :submit #(do
+                       (s/login! (val-id user-id) (val-id pwd-id))
+                       (s/set-route "#/farms")
+                       (do! (by-id user-id) :value "")
+                       (do! (by-id pwd-id) :value ""))
+             (bs/form-group
+               #_(bs/control-label
+                 :col [:xs 2]
+                 :class "col-xs-offset-2"
+                 :for user-id
+                 (text "~(vocab :username s/lang)"))
+
+               (div
+                 :col [:xs 3]
+                 :class "col-xs-offset-4"
+                 (input
+                   :id user-id
+                   :class "form-control"
+                   :placeholder (cell= (vocab :user-placeholder s/lang))
+                   :type "text"
+                   :autofocus "autofocus")))
+
+             (bs/form-group
+               #_(bs/control-label
+                 :col [:xs 2]
+                 :class "col-xs-offset-2"
+                 :for pwd-id
+                 (text "~(vocab :password s/lang)"))
+
+               (div
+                 :col [:xs 3]
+                 :class "col-xs-offset-4"
+                 (input
+                   :id pwd-id
+                   :class "form-control"
+                   :placeholder (cell= (vocab :pwd-placeholder s/lang))
+                   :type "password")))
+
+             (bs/form-group
+               (div
+                 :col [:xs 3]
+                 :class "col-xs-offset-4"
+                 (button
+                   :class "form-control btn btn-primary"
+                   :type "submit" "Login"))))
+           (div :style "height: 300px")))))
 
 
 (defelem safe-delete-button
