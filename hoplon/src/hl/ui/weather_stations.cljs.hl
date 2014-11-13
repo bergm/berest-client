@@ -366,14 +366,6 @@
                      :toggle :toggle (cell= (not (nil? (seq selected-years-set*))))
                      :col [:xs 12])
 
-                   (div
-                     :class "row"
-                     :toggle (cell= (and selected-weather-station many-weather-stations? local?))
-
-                     (div
-                       :col [:xs 12]
-                       (hr)))
-
                    (let [visible? (cell false)]
                         (fieldset
                           :toggle (cell= (and selected-weather-station many-weather-stations? local?))

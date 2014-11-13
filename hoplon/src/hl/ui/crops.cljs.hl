@@ -1,11 +1,8 @@
 (ns ui.crops
-  #_(:require-macros [tailrecursion.javelin :refer :all]
-                   [tailrecursion.hoplon :refer :all])
-  (:require #_[tailrecursion.javelin :refer :all]
-            #_[tailrecursion.hoplon :refer :all]
-            [de.zalf.berest.client.hoplon.util :as util]
+  (:require [de.zalf.berest.client.hoplon.util :as util]
             [de.zalf.berest.client.hoplon.state :as s]
             [ui.elements :as uie]
+            [ui.components :as uic]
             [bootstrap-util :as bs]
             #_[cljs-time.coerce :as cstcoe]))
 
@@ -49,6 +46,27 @@
                           :lang/en "Weather data"}
            :chart-subheader {:lang/de "Quelle: DWD Station"
                              :lang/en "Source: DWD station"}
+
+           :crop-data-fieldset-label {:lang/de "Steuerkurven ändern"
+                                     :lang/en "Change crop curve data"}
+
+           :crop-dc-to-rel-dc-day-label {:lang/de "DC->rel. Tag"
+                                          :lang/en "DC->rel. day"}
+
+           :crop-dc-to-name-label {:lang/de "DC->Name"
+                                   :lang/en "DC->name"}
+
+           :crop-rel-dc-day-to-aet7pet-label {:lang/de "rel.Tag->AET/PET"
+                                              :lang/en "rel.day->AET/PET"}
+
+           :crop-rel-dc-day-to-cover-degree-label {:lang/de "rel.Tag->Bedeckungsgrad"
+                                              :lang/en "rel.day->cover degree"}
+
+           :crop-rel-dc-day-to-extraction-depth-label {:lang/de "rel.Tag->Entzugstiefe"
+                                                       :lang/en "rel.day->extraction depth"}
+
+           :crop-rel-dc-day-to-transpiration-factor-label {:lang/de "rel.Tag->Transpirationsfaktor"
+                                                           :lang/en "rel.day->transpiration factor"}
 
            :dc {:lang/de "BEREST DC Code"
                 :lang/en "BEREST DC code"}
@@ -291,182 +309,7 @@
 
                 ]
 
-               (div
-                 #_(button
-                   ;:toggle no-edit?
-                   :style "float:right"
-                   :class "btn btn-primary"
-                   :click #(swap! edit? not)
-                   (text "~(vocab :edit s/lang)"))
-                 #_(button
-                   :toggle edit?
-                   :style "float:right"
-                   :class "btn btn-danger"
-                   :click #()
-                   (text "~(vocab :save-edit s/lang)"))
-
-                 (bs/form-group
-                   (bs/control-label :col [:sm 2] :for name-id (text "~(vocab :name-label s/lang)"))
-                   (div
-                     :col [:xs 3]
-                     (p :toggle no-edit? :class "form-control-static" (text "~{name}"))
-                     (input
-                       :id name-id
-                       :toggle edit?
-                       :class "form-control"
-                       :type "text"
-                       :placeholder (cell= (vocab :name-placeholder s/lang))
-                       :value name
-                       :on-change #(swap! form-data assoc :name (val-id name-id)))))
-
-                 (bs/form-group
-                   (bs/control-label :col [:sm 2] :for symbol-id (text "~(vocab :symbol-label s/lang)"))
-                   (div
-                     :col [:xs 3]
-                     (p :toggle no-edit? :class "form-control-static" (text "~{symbol}"))
-                     (input
-                       :id symbol-id
-                       :toggle edit?
-                       :class "form-control"
-                       :type "text"
-                       :placeholder (cell= (vocab :symbol-placeholder s/lang))
-                       :value long
-                       :on-change #(swap! form-data assoc :symbol (val-id symbol-id)))))
-
-                 (div
-                   :id chart-id
-                   ;:style "width:100%"
-                   :col [:xs 12])))))
-
-      #_(bs/form
-        :opts [:horizontal]
-        :name "crops-form"
-
-        (loop-tpl
-          :bindings [{id :crop/id
-                      name :crop/name
-                      symbol :crop/symbol}
-                     (cell= (sort-by :crop/name filtered-crops))]
-          :bind-ids [name-id symbol-id chart-id]
-
-          (let [data-visible? (cell false)
-                edit? (cell false)
-                no-edit? (cell= (not edit?))
-
-                form-data {:name nil
-                           :symbol nil}
-
-                crop-data (cell nil)
-                _ (cell= (when crop-data (println "crop-data: " (pr-str crop-data))))
-
-                ;keep crop data in sync with currently activated elements as these
-                ;are backed by stem cell state
-                _ (cell= (when (and crop-data (not= id (:crop/id crop-data)))
-                           (reset! ~(cell data-visible?) false)
-                           (reset! ~(cell crop-data) nil)))
-
-                chart-config {:chart {:renderTo chart-id
-                                      :defaultSeriesType "line"
-                                      :zoomType "x"
-                                      #_:spacingTop #_50}
-                              :title {:text "" #_(vocab :chart-header @s/lang)
-                                      :x 0 #_-20}
-                              :xAxis {:title {:text "relative DC Tage"}
-                                      ;:type "datetime"
-                                      #_:labels #_{:format "{value: %d.%m.%Y}"
-                                             :rotation 45
-                                             :align "left"}}
-                              :yAxis [{:title {:text (str (vocab :dc @s/lang) " []")}}
-                                      {:title {:text (str (vocab :cover-degree @s/lang) " [%]")}}
-                                      {:title {:text (str (vocab :extraction-depth @s/lang) " [dm]")}}
-                                      {:title {:text (str (vocab :aet-pet @s/lang) " [°C]")}
-                                       :opposite true}
-                                      {:title {:text (str (vocab :transpiration-factor @s/lang) " []")}
-                                       :opposite true}]
-                              :tooltip {:shared true
-                                        :crosshairs true}
-                              :legend {:layout "horizontal" #_"vertical"
-                                       :align "center" #_"right"
-                                       :verticalAlign "top" #_"middle"
-                                       :borderWidth 0}
-                              :series [{:name (vocab :dc @s/lang)
-                                        :yAxis 0
-                                        ;:tooltip {:valueSuffix " "}
-                                        ;:color "#FF6600"
-                                        :data []}
-                                        {:name (vocab :cover-degree @s/lang)
-                                        :yAxis 1
-                                        :tooltip {:valueSuffix " %"}
-                                        ;:color "#FF0000"
-                                        :data []}
-                                       {:name (vocab :extraction-depth @s/lang)
-                                        :yAxis 2
-                                        :tooltip {:valueSuffix " dm"}
-                                        ;:color "blue"
-                                        :data []}
-                                       {:name (vocab :aet-pet @s/lang)
-                                        :yAxis 3
-                                        ;:tooltip {:valueSuffix " mm"}
-                                        ;:color "#FF6600"
-                                        :data []}
-                                       {:name (vocab :transpiration-factor @s/lang)
-                                        :yAxis 4
-                                        ;:tooltip {:valueSuffix " "}
-                                        ;:color "#FF6600"
-                                        :data []}]}
-                _ (with-timeout 0 (js/Highcharts.Chart. (clj->js chart-config)))
-
-                set-series-data (fn [series-index data]
-                                  (some-> chart-id
-                                          by-id
-                                          js/jQuery
-                                          .highcharts
-                                          .-series
-                                          (#(nth % series-index),,,)
-                                          (.setData (clj->js data))))
-
-                dc (cell= (->> (:crop/dc-to-rel-dc-days crop-data)
-                               (mapv (fn [[k v]] {:name (str "<b>" (get (:crop/dc-to-developmental-state-names crop-data) k) "</b>")
-                                                  :x v :y k})
-                                 ,,,)
-                               (sort-by :x ,,,)))
-                _ (cell= (set-series-data 0 dc))
-
-                cover-degrees (cell= (->> (:crop/rel-dc-day-to-cover-degrees crop-data)
-                                          (into [],,,)
-                                          (sort-by first,,,)))
-                _ (cell= (set-series-data 1 cover-degrees))
-
-                extraction-depths (cell= (->> (:crop/rel-dc-day-to-extraction-depths crop-data)
-                                              (into [],,,)
-                                              (sort-by first,,,)))
-                _ (cell= (set-series-data 2 extraction-depths))
-
-                aet-pet (cell= (->> (:crop/rel-dc-day-to-quotient-aet-pets crop-data)
-                                    (into [],,,)
-                                    (sort-by first,,,)))
-                _ (cell= (set-series-data 3 aet-pet))
-
-                transpiration-factors (cell= (->> (:crop/rel-dc-day-to-transpiration-factors crop-data)
-                                                  (into [],,,)
-                                                  (sort-by first,,,)))
-                _ (cell= (set-series-data 4 transpiration-factors))
-
-                ]
-
             (div
-              #_(button
-                ;:toggle no-edit?
-                :style "float:right"
-                :class "btn btn-primary"
-                :click #(swap! edit? not)
-                (text "~(vocab :edit s/lang)"))
-              #_(button
-                :toggle edit?
-                :style "float:right"
-                :class "btn btn-danger"
-                :click #()
-                (text "~(vocab :save-edit s/lang)"))
 
               (bs/form-group
                 (bs/control-label :col [:sm 2] :for name-id (text "~(vocab :name-label s/lang)"))
@@ -497,28 +340,176 @@
                     :on-change #(swap! form-data assoc :symbol (val-id symbol-id)))))
 
               (div
-                (span
-                  :class "glyphicon glyphicon-plus"
-                  :toggle (cell= (not data-visible?))
-                  :on-click #(do
-                              (s/load-crop-data crop-data @id)
-                              (reset! data-visible? true)))
-                (span
-                  :toggle data-visible?
-                  :class "glyphicon glyphicon-minus"
-                  :click #(reset! data-visible? false))
-                (span (text " ~(vocab :show-data s/lang)"))
+                :class "row"
 
                 (div
-                  :toggle data-visible?
+                  :id chart-id
+                  ;:style "width:100%"
+                  :col [:xs 12]))
 
-                  (div
-                    :id chart-id
-                    :style "width:100%"
-                    :col [:xs 12])))
+              (let [visible? (cell false)]
+                (fieldset
 
-              (hr)))
+                  (uic/hover-activate-wrapper
+                    :action! #(swap! visible? not)
+                    (legend
+                      (text "~(vocab :crop-data-fieldset-label s/lang) ~(when-not visible? \" ...\")")))
 
-          )
-        )
-      )))
+                  (bs/form-group
+                    :toggle visible?
+                    (bs/control-label :col [:sm 2] (text "~(vocab :crop-dc-to-rel-dc-day-label s/lang)"))
+                    (let [dc* (cell nil)
+                          rel-dc-day* (cell nil)]
+                      (div
+                        :col [:xs 8]
+
+                        (loop-tpl
+                          :bindings [[row-no [dc rel-dc-day]]
+                                     (cell= (util/indexed (sort-by first (:crop/dc-to-rel-dc-days crop-data))))]
+                          (uie/create-crop-dc-to-rel-dc-day-inputs
+                            :fields {:row-no row-no
+                                     :row-action! #()  #_#(s/delete-db-entity @don-db-id)
+                                     :dc dc :dc! #() #_#(s/update-db-entity @don-db-id :donation/abs-start-day %)
+                                     :rel-dc-day rel-dc-day :rel-dc-day! #() #_#(s/update-db-entity @don-db-id :donation/abs-end-day %)}))
+                        (uie/create-crop-dc-to-rel-dc-day-inputs
+                          :fields {:row-action! #() #_#(when (and @abs-start-day* @abs-end-day* @amount*)
+                                                   (s/create-new-donation @db-id @abs-start-day* @abs-end-day* @amount*)
+                                                   (reset! abs-start-day* nil)
+                                                   (reset! abs-end-day* nil)
+                                                   (reset! amount* nil))
+                                   :dc dc* :dc! #() #_#(reset! abs-start-day* %)
+                                   :rel-dc-day rel-dc-day* :rel-dc-day! #() #_#(reset! abs-end-day* %)}))))
+
+                  (bs/form-group
+                    :toggle visible?
+                    (bs/control-label :col [:sm 2] (text "~(vocab :crop-dc-to-name-label s/lang)"))
+                    (let [dc* (cell nil)
+                          name* (cell nil)]
+                      (div
+                        :col [:xs 8]
+
+                        (loop-tpl
+                          :bindings [[row-no [dc name]]
+                                     (cell= (util/indexed (sort-by first (:crop/dc-to-developmental-state-names crop-data))))]
+                          (uie/create-crop-dc-to-dev-state-name-inputs
+                            :fields {:row-no row-no
+                                     :row-action! #()  #_#(s/delete-db-entity @don-db-id)
+                                     :dc dc :dc! #() #_#(s/update-db-entity @don-db-id :donation/abs-start-day %)
+                                     :name name :name! #() #_#(s/update-db-entity @don-db-id :donation/abs-end-day %)}))
+                        (uie/create-crop-dc-to-dev-state-name-inputs
+                          :fields {:row-action! #() #_#(when (and @abs-start-day* @abs-end-day* @amount*)
+                                                   (s/create-new-donation @db-id @abs-start-day* @abs-end-day* @amount*)
+                                                   (reset! abs-start-day* nil)
+                                                   (reset! abs-end-day* nil)
+                                                   (reset! amount* nil))
+                                   :dc dc* :dc! #() #_#(reset! abs-start-day* %)
+                                   :name name* :name! #() #_#(reset! abs-end-day* %)}))))
+
+                  (bs/form-group
+                    :toggle visible?
+                    (bs/control-label :col [:sm 2] (text "~(vocab :crop-rel-dc-day-to-aet7pet-label s/lang)"))
+                    (let [rel-dc-day* (cell nil)
+                          aet7pet* (cell nil)]
+                      (div
+                        :col [:xs 8]
+
+                        (loop-tpl
+                          :bindings [[row-no [rel-dc-day aet7pet]]
+                                     (cell= (util/indexed (sort-by first (:crop/rel-dc-day-to-quotient-aet-pets crop-data))))]
+                          (uie/create-crop-rel-dc-day-to-aet7pet-inputs
+                            :fields {:row-no row-no
+                                     :row-action! #()  #_#(s/delete-db-entity @don-db-id)
+                                     :rel-dc-day rel-dc-day :rel-dc-day! #() #_#(s/update-db-entity @don-db-id :donation/abs-start-day %)
+                                     :aet7pet (cell= (* aet7pet 100)) :aet7pet! #() #_#(s/update-db-entity @don-db-id :donation/abs-end-day %)}))
+                        (uie/create-crop-rel-dc-day-to-aet7pet-inputs
+                          :fields {:row-action! #() #_#(when (and @abs-start-day* @abs-end-day* @amount*)
+                                                   (s/create-new-donation @db-id @abs-start-day* @abs-end-day* @amount*)
+                                                   (reset! abs-start-day* nil)
+                                                   (reset! abs-end-day* nil)
+                                                   (reset! amount* nil))
+                                   :rel-dc-day rel-dc-day* :rel-dc-day! #() #_#(reset! abs-start-day* %)
+                                   :aet7pet aet7pet* :aet7pet! #() #_#(reset! abs-end-day* %)}))))
+
+                  (bs/form-group
+                    :toggle visible?
+                    (bs/control-label :col [:sm 2] (text "~(vocab :crop-rel-dc-day-to-cover-degree-label s/lang)"))
+                    (let [rel-dc-day* (cell nil)
+                          cover-degree* (cell nil)]
+                      (div
+                        :col [:xs 8]
+
+                        (loop-tpl
+                          :bindings [[row-no [rel-dc-day cover-degree]]
+                                     (cell= (util/indexed (sort-by first (:crop/rel-dc-day-to-cover-degrees crop-data))))]
+                          (uie/create-crop-rel-dc-day-to-cover-degree-inputs
+                            :fields {:row-no row-no
+                                     :row-action! #()  #_#(s/delete-db-entity @don-db-id)
+                                     :rel-dc-day rel-dc-day :rel-dc-day! #() #_#(s/update-db-entity @don-db-id :donation/abs-start-day %)
+                                     :cover-degree (cell= (* cover-degree 100)) :cover-degree! #() #_#(s/update-db-entity @don-db-id :donation/abs-end-day %)}))
+                        (uie/create-crop-rel-dc-day-to-cover-degree-inputs
+                          :fields {:row-action! #() #_#(when (and @abs-start-day* @abs-end-day* @amount*)
+                                                   (s/create-new-donation @db-id @abs-start-day* @abs-end-day* @amount*)
+                                                   (reset! abs-start-day* nil)
+                                                   (reset! abs-end-day* nil)
+                                                   (reset! amount* nil))
+                                   :rel-dc-day rel-dc-day* :rel-dc-day! #() #_#(reset! abs-start-day* %)
+                                   :cover-degree cover-degree* :cover-degree! #() #_#(reset! abs-end-day* %)}))))
+
+                  (bs/form-group
+                    :toggle visible?
+                    (bs/control-label :col [:sm 2] (text "~(vocab :crop-rel-dc-day-to-extraction-depth-label s/lang)"))
+                    (let [rel-dc-day* (cell nil)
+                          extraction-depth* (cell nil)]
+                      (div
+                        :col [:xs 8]
+
+                        (loop-tpl
+                          :bindings [[row-no [rel-dc-day extraction-depth]]
+                                     (cell= (util/indexed (sort-by first (:crop/rel-dc-day-to-quotient-aet-pets crop-data))))]
+                          (uie/create-crop-rel-dc-day-to-extraction-depth-inputs
+                            :fields {:row-no row-no
+                                     :row-action! #()  #_#(s/delete-db-entity @don-db-id)
+                                     :rel-dc-day rel-dc-day :rel-dc-day! #() #_#(s/update-db-entity @don-db-id :donation/abs-start-day %)
+                                     :extraction-depth (cell= (* extraction-depth 100)) :extraction-depth! #() #_#(s/update-db-entity @don-db-id :donation/abs-end-day %)}))
+                        (uie/create-crop-rel-dc-day-to-extraction-depth-inputs
+                          :fields {:row-action! #() #_#(when (and @abs-start-day* @abs-end-day* @amount*)
+                                                   (s/create-new-donation @db-id @abs-start-day* @abs-end-day* @amount*)
+                                                   (reset! abs-start-day* nil)
+                                                   (reset! abs-end-day* nil)
+                                                   (reset! amount* nil))
+                                   :rel-dc-day rel-dc-day* :rel-dc-day! #() #_#(reset! abs-start-day* %)
+                                   :extraction-depth extraction-depth* :extraction-depth! #() #_#(reset! abs-end-day* %)}))))
+
+                  (bs/form-group
+                    :toggle visible?
+                    (bs/control-label :col [:sm 2] (text "~(vocab :crop-rel-dc-day-to-transpiration-factor-label s/lang)"))
+                    (let [rel-dc-day* (cell nil)
+                          transpiration-factor* (cell nil)]
+                      (div
+                        :col [:xs 8]
+
+                        (loop-tpl
+                          :bindings [[row-no [rel-dc-day transpiration-factor]]
+                                     (cell= (util/indexed (sort-by first (:crop/rel-dc-day-to-transpiration-factors crop-data))))]
+                          (uie/create-crop-rel-dc-day-to-transpiration-factor-inputs
+                            :fields {:row-no row-no
+                                     :row-action! #()  #_#(s/delete-db-entity @don-db-id)
+                                     :rel-dc-day rel-dc-day :rel-dc-day! #() #_#(s/update-db-entity @don-db-id :donation/abs-start-day %)
+                                     :transpiration-factor transpiration-factor :transpiration-factor! #() #_#(s/update-db-entity @don-db-id :donation/abs-end-day %)}))
+                        (uie/create-crop-rel-dc-day-to-transpiration-factor-inputs
+                          :fields {:row-action! #() #_#(when (and @abs-start-day* @abs-end-day* @amount*)
+                                                   (s/create-new-donation @db-id @abs-start-day* @abs-end-day* @amount*)
+                                                   (reset! abs-start-day* nil)
+                                                   (reset! abs-end-day* nil)
+                                                   (reset! amount* nil))
+                                   :rel-dc-day rel-dc-day* :rel-dc-day! #() #_#(reset! abs-start-day* %)
+                                   :transpiration-factor transpiration-factor* :transpiration-factor! #() #_#(reset! abs-end-day* %)}))))
+
+                  #_(uie/crop-data-form-group
+                    :visible? visible?
+                    :weather-data (cell= (when (and local? (seq selected-years-set*))
+                                           (apply concat (map second weather-data))))
+                    :id-attr :weather-station/id
+                    :id id))))
+
+            ))))))

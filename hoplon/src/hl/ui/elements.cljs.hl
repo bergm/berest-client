@@ -33,8 +33,47 @@
            :remove-dc-assertion-label {:lang/de "DC Stadium entfernen"
                                        :lang/en "Remove DC assertion"}
 
-           :locked?-donation-label {:lang/de "Gesperrt?"
-                                    :lang/en "Locked?"}
+           :crop-name-placeholder {:lang/de "Name"
+                                   :lang/en "Name"}
+           :add-crop-dc-to-name-label {:lang/de "DC->Name hinzufügen"
+                                    :lang/en "Add DC->name"}
+           :remove-crop-dc-to-name-label {:lang/de "DC->Name entfernen"
+                                       :lang/en "Remove DC->name"}
+
+           :crop-rel-dc-day-placeholder {:lang/de "rel. Tag"
+                                         :lang/en "rel. day"}
+           :add-crop-dc-to-rel-dc-day-label {:lang/de "DC->rel. Tag hinzufügen"
+                                          :lang/en "Add DC->rel. day"}
+           :remove-crop-dc-to-rel-dc-day-label {:lang/de "DC->rel. Tag entfernen"
+                                             :lang/en "Remove DC->rel. day"}
+
+           :crop-cover-degree-placeholder {:lang/de "Bedeckungsgrad"
+                                           :lang/en "Cover degree"}
+           :add-crop-rel-dc-day-to-cover-degree-label {:lang/de "rel.Tag->Bedeckungsgrad hinzufügen"
+                                                       :lang/en "Add rel.day->cover degree"}
+           :remove-crop-rel-dc-day-to-cover-degree-label {:lang/de "rel.Tag->Bedeckungsgrad entfernen"
+                                                  :lang/en "Remove rel.day->cover degree"}
+
+           :crop-aet7pet-placeholder {:lang/de "AET/PET"
+                                      :lang/en "AET/PET"}
+           :add-crop-rel-dc-day-to-aet7pet-label {:lang/de "rel.Tag->AET/PET hinzufügen"
+                                                  :lang/en "Add rel.day->AET/PET"}
+           :remove-crop-rel-dc-day-to-aet7pet-label {:lang/de "rel.Tag->AET/PET entfernen"
+                                                  :lang/en "Remove rel.day->AET/PET"}
+
+           :crop-extraction-depth-placeholder {:lang/de "Entzugstiefe"
+                                               :lang/en "Extraction depth"}
+           :add-crop-rel-dc-day-to-extraction-depth-label {:lang/de "rel.Tag->Entzugstiefe hinzufügen"
+                                                           :lang/en "Add rel.day->extraction depth"}
+           :remove-crop-rel-dc-day-to-extraction-depth-label {:lang/de "rel.Tag->Entzugstiefe entfernen"
+                                                              :lang/en "Remove rel.day->extraction depth"}
+
+           :crop-transpiration-factor-placeholder {:lang/de "Transpirationsfaktor"
+                                               :lang/en "Transpiration factor"}
+           :add-crop-rel-dc-day-to-transpiration-factor-label {:lang/de "rel.Tag->Transpirationsfaktor hinzufügen"
+                                                           :lang/en "Add rel.day->Transpiration factor"}
+           :remove-crop-rel-dc-day-to-transpiration-factor-label {:lang/de "rel.Tag->Transpirationsfaktor entfernen"
+                                                              :lang/en "Remove rel.day->Transpiration factor"}
 
            :tavg-placeholder {:lang/de "Tmit"
                               :lang/en "Tavg"}
@@ -565,18 +604,333 @@
                              :prog? prog?* :prog?! #(reset! prog?* %)}))))
           (dissoc attrs :visible? :weather-data :id-attr :id) kids))
 
+(defelem
+  create-crop-dc-to-dev-state-name-inputs
+  [{{:keys [row-no row-action!
+            dc dc!
+            name name!]} :fields
+    opts :opts
+    :as attrs} kids]
+
+  (let [[dc-id name-id] (repeatedly gensym)]
+    ((div
+       :class "row"
+
+       (div
+         :col [:xs 2]
+         (div
+           :class "input-group"
+           (input
+             :id dc-id
+             :class "form-control"
+             :type "number"
+             :placeholder (cell= (vocab :dc-placeholder s/lang))
+             :step 1
+             :min 0
+             :max 100
+             :value dc
+             :on-change #(dc! (js/parseInt (val-id dc-id))))
+           (span :class "input-group-addon" "")))
+
+       (div
+         :col [:xs 2]
+         (div
+           :class "input-group"
+           (input
+             :id name-id
+             :class "form-control"
+             :type "text"
+             :placeholder (cell= (vocab :crop-name-placeholder s/lang))
+             :value name
+             :on-change #(name! (val-id name-id)))
+           (span :class "input-group-addon" "")))
+
+       (div
+         :col [:xs 2]
+         (input
+           :class (cell= {:btn true
+                          :btn-danger (not (nil? row-no))
+                          :btn-warning (nil? row-no)})
+           :type "button"
+           :value (cell= (if row-no (vocab :remove-crop-dc-to-name-label s/lang) (vocab :add-crop-dc-to-name-label s/lang)))
+           :on-click #(row-action! (some-> row-no deref)))))
+     (dissoc attrs :fields :opts) kids)))
+
+(defelem
+  create-crop-dc-to-rel-dc-day-inputs
+  [{{:keys [row-no row-action!
+            dc dc!
+            rel-dc-day rel-dc-day!]} :fields
+    opts :opts
+    :as attrs} kids]
+
+  (let [[dc-id rel-dc-day-id] (repeatedly gensym)]
+    ((div
+       :class "row"
+
+       (div
+         :col [:xs 2]
+         (div
+           :class "input-group"
+           (input
+             :id dc-id
+             :class "form-control"
+             :type "number"
+             :placeholder (cell= (vocab :dc-placeholder s/lang))
+             :step 1
+             :min 0
+             :max 100
+             :value dc
+             :on-change #(dc! (js/parseInt (val-id dc-id))))
+           (span :class "input-group-addon" "")))
+
+       (div
+         :col [:xs 2]
+         (div
+           :class "input-group"
+           (input
+             :id rel-dc-day-id
+             :class "form-control"
+             :type "number"
+             :placeholder (cell= (vocab :crop-rel-dc-day-placeholder s/lang))
+             :step 1
+             :min 1
+             :max 365
+             :value rel-dc-day
+             :on-change #(rel-dc-day! (js/parseInt (val-id rel-dc-day-id))))
+           (span :class "input-group-addon" "")))
+
+       (div
+         :col [:xs 2]
+         (input
+           :class (cell= {:btn true
+                          :btn-danger (not (nil? row-no))
+                          :btn-warning (nil? row-no)})
+           :type "button"
+           :value (cell= (if row-no (vocab :remove-crop-dc-to-rel-dc-day-label s/lang) (vocab :add-crop-dc-to-rel-dc-day-label s/lang)))
+           :on-click #(row-action! (some-> row-no deref)))))
+     (dissoc attrs :fields :opts) kids)))
 
 
+(defelem
+  create-crop-rel-dc-day-to-cover-degree-inputs
+  [{{:keys [row-no row-action!
+            rel-dc-day rel-dc-day!
+            cover-degree cover-degree!]} :fields
+    opts :opts
+    :as attrs} kids]
 
+  (let [[rel-dc-day-id cover-degree-id] (repeatedly gensym)]
+    ((div
+       :class "row"
 
+       (div
+         :col [:xs 2]
+         (div
+           :class "input-group"
+           (input
+             :id rel-dc-day-id
+             :class "form-control"
+             :type "number"
+             :placeholder (cell= (vocab :crop-rel-dc-day-placeholder s/lang))
+             :step 1
+             :min 1
+             :max 365
+             :value rel-dc-day
+             :on-change #(rel-dc-day! (js/parseInt (val-id rel-dc-day-id))))
+           (span :class "input-group-addon" "d")))
 
+       (div
+         :col [:xs 2]
+         (div
+           :class "input-group"
+           (input
+             :id cover-degree-id
+             :class "form-control"
+             :type "number"
+             :placeholder (cell= (vocab :crop-cover-degree-placeholder s/lang))
+             :step 1
+             :min 0
+             :max 100
+             :value cover-degree
+             :on-change #(cover-degree! (js/parseInt (val-id cover-degree-id))))
+           (span :class "input-group-addon" "%")))
 
+       (div
+         :col [:xs 2]
+         (input
+           :class (cell= {:btn true
+                          :btn-danger (not (nil? row-no))
+                          :btn-warning (nil? row-no)})
+           :type "button"
+           :value (cell= (if row-no (vocab :remove-crop-rel-dc-day-to-cover-degree-label s/lang) (vocab :add-crop-rel-dc-day-to-cover-degree-label s/lang)))
+           :on-click #(row-action! (some-> row-no deref)))))
+     (dissoc attrs :fields :opts) kids)))
 
+(defelem
+  create-crop-rel-dc-day-to-aet7pet-inputs
+  [{{:keys [row-no row-action!
+            rel-dc-day rel-dc-day!
+            aet7pet aet7pet!]} :fields
+    opts :opts
+    :as attrs} kids]
 
+  (let [[rel-dc-day-id aet7pet-id] (repeatedly gensym)]
+    ((div
+       :class "row"
 
+       (div
+         :col [:xs 2]
+         (div
+           :class "input-group"
+           (input
+             :id rel-dc-day-id
+             :class "form-control"
+             :type "number"
+             :placeholder (cell= (vocab :crop-rel-dc-day-placeholder s/lang))
+             :step 1
+             :min 1
+             :max 365
+             :value rel-dc-day
+             :on-change #(rel-dc-day! (js/parseInt (val-id rel-dc-day-id))))
+           (span :class "input-group-addon" "d")))
 
+       (div
+         :col [:xs 2]
+         (div
+           :class "input-group"
+           (input
+             :id aet7pet-id
+             :class "form-control"
+             :type "number"
+             :placeholder (cell= (vocab :crop-aet7pet-placeholder s/lang))
+             :step 1
+             :min 0
+             :max 100
+             :value aet7pet
+             :on-change #(aet7pet! (js/parseInt (val-id aet7pet-id))))
+           (span :class "input-group-addon" "%")))
 
+       (div
+         :col [:xs 2]
+         (input
+           :class (cell= {:btn true
+                          :btn-danger (not (nil? row-no))
+                          :btn-warning (nil? row-no)})
+           :type "button"
+           :value (cell= (if row-no (vocab :remove-crop-rel-dc-day-to-aet7pet-label s/lang) (vocab :add-crop-rel-dc-day-to-aet7pet-label s/lang)))
+           :on-click #(row-action! (some-> row-no deref)))))
+     (dissoc attrs :fields :opts) kids)))
 
+(defelem
+  create-crop-rel-dc-day-to-extraction-depth-inputs
+  [{{:keys [row-no row-action!
+            rel-dc-day rel-dc-day!
+            extraction-depth extraction-depth!]} :fields
+    opts :opts
+    :as attrs} kids]
+
+  (let [[rel-dc-day-id aet7pet-id] (repeatedly gensym)]
+    ((div
+       :class "row"
+
+       (div
+         :col [:xs 2]
+         (div
+           :class "input-group"
+           (input
+             :id rel-dc-day-id
+             :class "form-control"
+             :type "number"
+             :placeholder (cell= (vocab :crop-rel-dc-day-placeholder s/lang))
+             :step 1
+             :min 1
+             :max 365
+             :value rel-dc-day
+             :on-change #(rel-dc-day! (js/parseInt (val-id rel-dc-day-id))))
+           (span :class "input-group-addon" "d")))
+
+       (div
+         :col [:xs 2]
+         (div
+           :class "input-group"
+           (input
+             :id extraction-depth-id
+             :class "form-control"
+             :type "number"
+             :placeholder (cell= (vocab :crop-extraction-depth-placeholder s/lang))
+             :step 5
+             :min 0
+             :max 200
+             :value extraction-depth
+             :on-change #(extraction-depth! (js/parseInt (val-id extraction-depth-id))))
+           (span :class "input-group-addon" "cm")))
+
+       (div
+         :col [:xs 2]
+         (input
+           :class (cell= {:btn true
+                          :btn-danger (not (nil? row-no))
+                          :btn-warning (nil? row-no)})
+           :type "button"
+           :value (cell= (if row-no (vocab :remove-crop-rel-dc-day-to-extraction-depth-label s/lang) (vocab :add-crop-rel-dc-day-to-extraction-depth-label s/lang)))
+           :on-click #(row-action! (some-> row-no deref)))))
+     (dissoc attrs :fields :opts) kids)))
+
+(defelem
+  create-crop-rel-dc-day-to-transpiration-factor-inputs
+  [{{:keys [row-no row-action!
+            rel-dc-day rel-dc-day!
+            transpiration-factor transpiration-factor!]} :fields
+    opts :opts
+    :as attrs} kids]
+
+  (let [[rel-dc-day-id aet7pet-id] (repeatedly gensym)]
+    ((div
+       :class "row"
+
+       (div
+         :col [:xs 2]
+         (div
+           :class "input-group"
+           (input
+             :id rel-dc-day-id
+             :class "form-control"
+             :type "number"
+             :placeholder (cell= (vocab :crop-rel-dc-day-placeholder s/lang))
+             :step 1
+             :min 1
+             :max 365
+             :value rel-dc-day
+             :on-change #(rel-dc-day! (js/parseInt (val-id rel-dc-day-id))))
+           (span :class "input-group-addon" "d")))
+
+       (div
+         :col [:xs 2]
+         (div
+           :class "input-group"
+           (input
+             :id transpiration-factor-id
+             :class "form-control"
+             :type "number"
+             :placeholder (cell= (vocab :crop-transpiration-factor-placeholder s/lang))
+             :step 0.1
+             :min 0
+             :max 2
+             :value transpiration-factor
+             :on-change #(transpiration-factor! (js/parseInt (val-id transpiration-factor-id))))
+           (span :class "input-group-addon" "")))
+
+       (div
+         :col [:xs 2]
+         (input
+           :class (cell= {:btn true
+                          :btn-danger (not (nil? row-no))
+                          :btn-warning (nil? row-no)})
+           :type "button"
+           :value (cell= (if row-no (vocab :remove-crop-rel-dc-day-to-transpiration-factor-label s/lang) (vocab :add-crop-rel-dc-day-to-transpiration-factor-label s/lang)))
+           :on-click #(row-action! (some-> row-no deref)))))
+     (dissoc attrs :fields :opts) kids)))
 
 
 (defelem active

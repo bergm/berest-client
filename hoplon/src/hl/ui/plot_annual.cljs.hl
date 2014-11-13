@@ -204,8 +204,8 @@
            :calculate-fieldset-label {:lang/de "Schlag berechnen & Empfehlung"
                                       :lang/en "Calculate plot & recommendation"}
 
-           :lock-recommended-donation {:lang/de "Gabe sperren"
-                                       :lang/en "Lock donation"}
+           :add-recommended-donation {:lang/de "Gabe hinzufügen"
+                                       :lang/en "Add donation"}
 
            :recommendation-label {:lang/de "Empfehlung"
                                   :lang/en "Recommendation"}
@@ -1286,14 +1286,14 @@
 
               (div
                 :toggle (cell= (= action :irrigate))
-                :col [:xs 1]
+                :col [:xs 2]
                 (button
                   :class "btn btn-warning"
-                  :click #(s/create-new-donation @db-id @calc-until-abs-day* (or @donation* @donation) true)
-                  (text "~(vocab :lock-recommended-donation s/lang)")))
+                  :click #(s/create-new-donation @db-id @calc-until-abs-day* @calc-until-abs-day* (or @donation* @donation))
+                  (text "~(vocab :add-recommended-donation s/lang)")))
 
               (div
-                :col [:xs 7]
+                :col [:xs 6]
                 (p :class "form-control-static" (strong (text "~(when rec-text (rec-text s/lang))"))))))
 
        (cell-let [{:keys [sum-irrigation-water sum-irrigation-costs sum-profit sum-revenues]} economic-values]
