@@ -443,7 +443,8 @@
                                 :yAxis 1
                                 :tooltip {:valueSuffix " mm"}
                                 :color "#000000"
-                                :data []}
+                                :data []
+                                :visible false}
                                {:type "line"
                                 :name (vocab :sm-30-60 @s/lang)
                                 :yAxis 1
@@ -1184,35 +1185,35 @@
               (bs/form-group
                 :toggle visible?
                 (bs/control-label :col [:sm label-cols] (text "~(vocab :donations-label s/lang)"))
-                (let [abs-day* (cell nil)
-                      amount* (cell nil)
-                      locked?* (cell false)]
+                (let [abs-start-day* (cell nil)
+                      abs-end-day* (cell nil)
+                      amount* (cell nil)]
                      (div
                        :col [:xs (min (+ value-cols 4) (- 12 label-cols))]
 
                        (loop-tpl
                          :bindings [[row-no {don-db-id :db/id
-                                             abs-day :donation/abs-day
-                                             amount :donation/amount
-                                             locked-rec? :donation/locked-recommendation?}]
-                                    (cell= (util/indexed (sort-by :donation/abs-day donations)))]
+                                             abs-start-day :donation/abs-start-day
+                                             abs-end-day :donation/abs-end-day
+                                             amount :donation/amount}]
+                                    (cell= (util/indexed (sort-by :donation/abs-start-day donations)))]
                          (uie/create-donation-inputs
                            :fields {:row-no row-no
                                     :row-action! #(s/delete-db-entity @don-db-id)
                                     :year year
-                                    :abs-day abs-day :abs-day! #(s/update-db-entity @don-db-id :donation/abs-day %)
-                                    :amount amount :amount! #(s/update-db-entity @don-db-id :donation/amount % :value-type :double)
-                                    :locked? locked-rec? :set-locked?! #(s/update-db-entity @don-db-id :donation/locked-recommendation? %)}))
+                                    :abs-start-day abs-start-day :abs-start-day! #(s/update-db-entity @don-db-id :donation/abs-start-day %)
+                                    :abs-end-day abs-end-day :abs-end-day! #(s/update-db-entity @don-db-id :donation/abs-end-day %)
+                                    :amount amount :amount! #(s/update-db-entity @don-db-id :donation/amount % :value-type :double)}))
                        (uie/create-donation-inputs
-                         :fields {:row-action! #(when (and @abs-day* @amount*)
-                                                      (s/create-new-donation @db-id @abs-day* @amount* @locked?*)
-                                                      (reset! abs-day* nil)
-                                                      (reset! amount* nil)
-                                                      (reset! locked?* false))
+                         :fields {:row-action! #(when (and @abs-start-day* @abs-end-day* @amount*)
+                                                      (s/create-new-donation @db-id @abs-start-day* @abs-end-day* @amount*)
+                                                      (reset! abs-start-day* nil)
+                                                      (reset! abs-end-day* nil)
+                                                      (reset! amount* nil))
                                   :year year
-                                  :abs-day abs-day* :abs-day! #(reset! abs-day* %)
-                                  :amount amount* :amount! #(reset! amount* %)
-                                  :locked? locked?* :locked?! #(reset! locked?* %)}))))))
+                                  :abs-start-day abs-start-day* :abs-start-day! #(reset! abs-start-day* %)
+                                  :abs-end-day abs-end-day* :abs-end-day! #(reset! abs-end-day* %)
+                                  :amount amount* :amount! #(reset! amount* %)}))))))
 
        (let [visible? (cell false)]
             (fieldset
@@ -1247,11 +1248,14 @@
                :on-change #(reset! calc-until-abs-day (util/cljs-time-date->doy (cstf/parse (cstf/formatters :date)
                                                                                             (val-id calc-until-id))))))
 
-           (button
-             :style "float:right"
-             :class "btn btn-warning"
-             :click #(swap! recalc-count* inc)
-             (text "~(vocab :recalc-button-label s/lang)"))))
+           (div
+             :col [:xs 2]
+             :class (str "col-xs-offset-" (- 12 label-cols 2 2))
+             (button
+               :style "float:right"
+               :class "btn btn-warning btn-sm"
+               :click #(swap! recalc-count* inc)
+               (text "~(vocab :recalc-button-label s/lang)")))))
 
        (div
          :id chart-id
