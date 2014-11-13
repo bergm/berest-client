@@ -84,11 +84,11 @@
         :style "float: none"
         :href "#/farms"
         (img
-          :style "clear: both; width:90px"
+          :style "clear: both; height:50px"
           :src "irrigama-logo.png"
           :alt "Irrigama-Logo")
         (img
-          :style "clear: both; width:150px"
+          :style "clear: both; height:50px"
           :src "fbm-logo.png"
           :alt "FBM-Logo")
         (span
@@ -111,7 +111,10 @@
         :toggle s/logged-in?
         :class "navbar-right"
         (p
-          :class "navbar-text" (text "~(vocab :signed-in-as s/lang)")
+          :class "navbar-text"
+          :style "margin-top: 0px; margin-bottom: 0px;"
+
+          (text "~(vocab :signed-in-as s/lang)")
           (strong (text "~(:user/full-name s/user) "))
           (button
             :class "btn btn-default navbar-btn"
