@@ -281,15 +281,15 @@
                                             (.setData (clj->js data))))
 
                 dc (cell= (->> (:crop/dc-to-rel-dc-days crop-data)
-                               (mapv (fn [[k v]] {:name (str "<b>" (get (:crop/dc-to-developmental-state-names crop-data) k) "</b>")
+                               (mapv (fn [[k v]] {:name (str v " <b>" (get (:crop/dc-to-developmental-state-names crop-data) k) "</b>")
                                                   :x v :y k})
                                  ,,,)
                                (sort-by :x ,,,)))
                 _ (cell= (set-series-data 0 dc))
 
                 cover-degrees (cell= (->> (:crop/rel-dc-day-to-cover-degrees crop-data)
-                                          (into [],,,)
-                                          (sort-by first,,,)))
+                                          (into [] ,,,)
+                                          (sort-by first ,,,)))
                 _ (cell= (set-series-data 1 cover-degrees))
 
                 extraction-depths (cell= (->> (:crop/rel-dc-day-to-extraction-depths crop-data)

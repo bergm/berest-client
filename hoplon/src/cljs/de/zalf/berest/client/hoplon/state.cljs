@@ -104,6 +104,7 @@
 (defc calculating [])
 
 (defc= user (:user-credentials state))
+(cell= (println "user-creds: " (pr-str user)))
 
 (defc= lang (:language state))
 #_(cell= (println "lang: " (pr-str lang)))
@@ -114,8 +115,19 @@
 (defc= logged-in?   (not (nil? user)))
 #_(cell= (println "logged-in?: "(pr-str logged-in?)))
 
-(defc= admin-logged-in? (and (not (nil? user))
-                             ((:user/roles user) :user.role/admin)))
+(defn has-role
+  [user role]
+  (let [r (if (namespace role)
+            role
+            (keyword "user.role" (name role)))]
+    (and (not (nil? user))
+         ((:user/roles user) r))))
+
+(defn has-user-role
+  [role]
+  (has-role @user role))
+
+(defc= admin-logged-in? (has-role user :admin))
 
 (defc= show-login?  (and #_loaded? (not logged-in?)))
 #_(cell= (println "show-login?: " show-login?))

@@ -100,7 +100,7 @@
 
     (div
       :id "admin-pane"
-      :do-toggle (cell= (= s/route "#/admin"))
+      :toggle (cell= (= s/route "#/admin"))
 
       (div
         :id users-id
