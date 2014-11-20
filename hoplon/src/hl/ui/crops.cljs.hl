@@ -2,6 +2,7 @@
   (:require [de.zalf.berest.client.hoplon.util :as util]
             [de.zalf.berest.client.hoplon.state :as s]
             [ui.elements :as uie]
+            [ui.charts :as charts]
             [ui.components :as uic]
             [bootstrap-util :as bs]
             #_[cljs-time.coerce :as cstcoe]))
@@ -85,6 +86,57 @@
            }
           [element (or lang :lang/de)] "UNKNOWN element"))
 
+#_(defn crop-curves-chart-config
+  [render-to-div-id]
+  {:chart {:renderTo render-to-div-id
+           :defaultSeriesType "line"
+           :zoomType "x"
+           #_:spacingTop #_50}
+   :title {:text "" #_(vocab :chart-header @s/lang)
+           :x 0 #_-20}
+   :xAxis {:title {:text "relative DC Tage"}
+           ;:type "datetime"
+           #_:labels #_{:format "{value: %d.%m.%Y}"
+                                             :rotation 45
+                                             :align "left"}}
+   :yAxis [{:title {:text (str "<b>" (vocab :dc @s/lang) " []</b>")}}
+           {:title {:text (str "<b>" (vocab :cover-degree @s/lang) " [%]</b>")}}
+           {:title {:text (str "<b>" (vocab :extraction-depth @s/lang) " [cm]</b>")}}
+           {:title {:text (str "<b>" (vocab :aet-pet @s/lang) " [°C]</b>")}
+            :opposite true}
+           {:title {:text (str "<b>" (vocab :transpiration-factor @s/lang) " []</b>")}
+            :opposite true}]
+   :tooltip {:shared true
+             :crosshairs true}
+   :legend {:layout "horizontal" #_"vertical"
+            :align "center" #_"right"
+            :verticalAlign "top" #_"middle"
+            :borderWidth 0}
+   :series [{:name (vocab :dc @s/lang)
+             :yAxis 0
+             ;:tooltip {:valueSuffix " "}
+             :color "#CCCC00"
+             :data []}
+            {:name (vocab :cover-degree @s/lang)
+             :yAxis 1
+             :tooltip {:valueSuffix " %"}
+             :color "#339966"
+             :data []}
+            {:name (vocab :extraction-depth @s/lang)
+             :yAxis 2
+             :tooltip {:valueSuffix " cm"}
+             :color "#FF0000"
+             :data []}
+            {:name (vocab :aet-pet @s/lang)
+             :yAxis 3
+             ;:tooltip {:valueSuffix " mm"}
+             :color "#00FF00"
+             :data []}
+            {:name (vocab :transpiration-factor @s/lang)
+             :yAxis 4
+             ;:tooltip {:valueSuffix " "}
+             :color "#CC0066"
+             :data []}]})
 
 (defn crops-pane
   []
@@ -214,62 +266,7 @@
                 _ (cell= (when (and id (not= id (:crop/id crop-data)))
                                (s/load-crop-data ~(cell crop-data) id)))
 
-                ;keep crop data in sync with currently activated elements as these
-                ;are backed by stem cell state
-                #__ #_(cell= (when (and crop-data (not= id (:crop/id crop-data)))
-                               (reset! ~(cell data-visible?) false)
-                               (reset! ~(cell crop-data) nil)))
-
-                chart-config {:chart {:renderTo chart-id
-                                      :defaultSeriesType "line"
-                                      :zoomType "x"
-                                      #_:spacingTop #_50}
-                              :title {:text "" #_(vocab :chart-header @s/lang)
-                                      :x 0 #_-20}
-                              :xAxis {:title {:text "relative DC Tage"}
-                                      ;:type "datetime"
-                                      #_:labels #_{:format "{value: %d.%m.%Y}"
-                                             :rotation 45
-                                             :align "left"}}
-                              :yAxis [{:title {:text (str (vocab :dc @s/lang) " []")}}
-                                      {:title {:text (str (vocab :cover-degree @s/lang) " [%]")}}
-                                      {:title {:text (str (vocab :extraction-depth @s/lang) " [dm]")}}
-                                      {:title {:text (str (vocab :aet-pet @s/lang) " [°C]")}
-                                       :opposite true}
-                                      {:title {:text (str (vocab :transpiration-factor @s/lang) " []")}
-                                       :opposite true}]
-                              :tooltip {:shared true
-                                        :crosshairs true}
-                              :legend {:layout "horizontal" #_"vertical"
-                                       :align "center" #_"right"
-                                       :verticalAlign "top" #_"middle"
-                                       :borderWidth 0}
-                              :series [{:name (vocab :dc @s/lang)
-                                        :yAxis 0
-                                        ;:tooltip {:valueSuffix " "}
-                                        ;:color "#FF6600"
-                                        :data []}
-                                       {:name (vocab :cover-degree @s/lang)
-                                        :yAxis 1
-                                        :tooltip {:valueSuffix " %"}
-                                        ;:color "#FF0000"
-                                        :data []}
-                                       {:name (vocab :extraction-depth @s/lang)
-                                        :yAxis 2
-                                        :tooltip {:valueSuffix " dm"}
-                                        ;:color "blue"
-                                        :data []}
-                                       {:name (vocab :aet-pet @s/lang)
-                                        :yAxis 3
-                                        ;:tooltip {:valueSuffix " mm"}
-                                        ;:color "#FF6600"
-                                        :data []}
-                                       {:name (vocab :transpiration-factor @s/lang)
-                                        :yAxis 4
-                                        ;:tooltip {:valueSuffix " "}
-                                        ;:color "#FF6600"
-                                        :data []}]}
-                _ (with-timeout 0 (js/Highcharts.Chart. (clj->js chart-config)))
+                _ (with-timeout 0 (js/Highcharts.Chart. (clj->js (charts/crop-curves-chart-config chart-id))))
 
                 set-series-data (fn [series-index data]
                                     (some-> chart-id
@@ -293,8 +290,11 @@
                 _ (cell= (set-series-data 1 cover-degrees))
 
                 extraction-depths (cell= (->> (:crop/rel-dc-day-to-extraction-depths crop-data)
-                                              (into [],,,)
-                                              (sort-by first,,,)))
+                                              (map (fn [[rel-dc-day depth-dm]]
+                                                     [rel-dc-day (* depth-dm 10)])
+                                                   ,,,)
+                                              (into [] ,,,)
+                                              (sort-by first ,,,)))
                 _ (cell= (set-series-data 2 extraction-depths))
 
                 aet-pet (cell= (->> (:crop/rel-dc-day-to-quotient-aet-pets crop-data)

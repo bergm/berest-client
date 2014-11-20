@@ -1,5 +1,6 @@
 (ns ui.plot-annual
   (:require [clojure.set :as set]
+            [ui.charts :as charts]
             [ui.elements :as uie]
             [ui.components :as uic]
             [ui.technology :as technology]
@@ -248,6 +249,9 @@
            :target-aet-pet {:lang/de "Ziel AET/PET"
                             :lang/en "Target AET/PET"}
 
+           :crop-curves-chart-fieldset-label {:lang/de "Fruchtart Steuerkurven"
+                                              :lang/en "Crop curves"}
+
            }
           [element (or lang :lang/de)] "UNKNOWN element"))
 
@@ -334,6 +338,7 @@
          new-crop-instance-id
          calc-until-id
          chart-id
+         crop-curves-chart-id
          recommended-donation-id
          plot-line-id plot-band-id] (repeatedly gensym)
 
@@ -376,6 +381,20 @@
         inputs (cell= (:inputs calc-result))
         #__ #_(cell= (println "inputs: " (pr-str inputs)
                           "\n chart-id: " chart-id))
+
+        crop-rotation (cell= (->> inputs
+                                  (reduce (fn [m {:keys [crop-id abs-day]}]
+                                            (if-let [{:keys [from _]} (m crop-id)]
+                                              (assoc m crop-id {:from from :to abs-day})
+                                              (assoc m crop-id {:from abs-day})))
+                                          {} ,,,)
+                                  (map (fn [[crop-id from-to]]
+                                         [from-to crop-id]))
+                                  (sort-by #(-> % first :from) ,,,)))
+        _ (cell= (println "crop-rotation: " (pr-str crop-rotation)))
+
+        crop-data (cell= (:crops calc-result))
+        _ (cell= (println "crop-data: " (pr-str crop-data)))
 
         economic-values (cell= (let [relevant-inputs (filter #(and (:profit-per-dt %) (:avg-additional-yield-per-mm %)) inputs)]
                                     (reduce (fn [{:keys [sum-irrigation-water sum-irrigation-costs sum-profit sum-revenues]}
@@ -646,6 +665,12 @@
                               ,,,)
                             (sort-by first ,,,)))
         ;_ (cell= (set-series-data 0 sms-0-10))
+
+        ;initialize no matter what the chart config, but it should be hidden for non-admins and non-consultants
+        _ (with-timeout 0 (js/Highcharts.Chart. (clj->js (charts/crop-curves-chart-config crop-curves-chart-id))))
+
+        #__ #_(cell= (when (and s/logged-in? (or (s/has-user-role :consultant) (s/has-user-role :admin)))
+                   (charts/set-crop-curve-data crop-curves-chart-id crop-data)))
         ]
        ((bs/form
        :opts [:horizontal]
@@ -1383,5 +1408,49 @@
                                                "red"
                                                "black")})
                          (text "~(util/round sum-profit :digits 0) €"))))))
+
+       (fieldset
+         :toggle (cell= (or s/consultant-logged-in? s/admin-logged-in?))
+
+         (uic/hover-activate-wrapper
+           :action! #(swap! visible? not)
+           (legend
+             (text "~(vocab :crop-curves-chart-fieldset-label s/lang) ~(when-not visible? \" ...\")")))
+
+         (div
+           :col [:xs 3]
+           ;:class "col-xs-offset-8"
+
+           (select
+             ;:toggle show-select
+             :id "bla-id"
+             :class "form-control"
+             (option "")
+             (loop-tpl
+               :bindings [[{:keys [from to]} crop-id] crop-rotation]
+               (option :value crop-id
+                       (text "~{crop-id} | ~{from} -> ~{to}")))))
+
+         #_(bs/form-group
+           (bs/control-label :col [:sm label-cols] :for year-id (text "~(vocab :year-label s/lang)"))
+           (div
+             :col [:xs value-cols]
+             (p :toggle no-edit? :class "form-control-static" (text "~{year}"))
+             (input
+               :id year-id
+               :toggle edit?
+               :class "form-control"
+               :type "number"
+               :step 1
+               :min 1961
+               :max 2100
+               :placeholder (cell= (vocab :year-placeholder s/lang))
+               :value year
+               :on-change #(year! (js/parseFloat (val-id year-id))))
+             ))
+
+         (div
+           :id crop-curves-chart-id
+           :col [:xs 12]))
 
        ) (dissoc attrs :fields :opts) kids)))

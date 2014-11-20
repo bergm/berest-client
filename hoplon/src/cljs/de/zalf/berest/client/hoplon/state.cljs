@@ -128,6 +128,7 @@
   (has-role @user role))
 
 (defc= admin-logged-in? (has-role user :admin))
+(defc= consultant-logged-in? (has-role user :consultant))
 
 (defc= show-login?  (and #_loaded? (not logged-in?)))
 #_(cell= (println "show-login?: " show-login?))
