@@ -340,7 +340,8 @@
          chart-id
          crop-curves-chart-id
          recommended-donation-id
-         plot-line-id plot-band-id] (repeatedly gensym)
+         plot-line-id plot-band-id
+         crop-id-select-id] (repeatedly gensym)
 
         calc-until-abs-day (cell nil)
         calc-until-abs-day* (cell= (if calc-until-abs-day
@@ -393,8 +394,8 @@
                                   (sort-by #(-> % first :from) ,,,)))
         _ (cell= (println "crop-rotation: " (pr-str crop-rotation)))
 
-        crop-data (cell= (:crops calc-result))
-        _ (cell= (println "crop-data: " (pr-str crop-data)))
+        crop-rotation-data (cell= (:crops calc-result))
+        _ (cell= (println "crop-rotation-data: " (pr-str crop-rotation-data)))
 
         economic-values (cell= (let [relevant-inputs (filter #(and (:profit-per-dt %) (:avg-additional-yield-per-mm %)) inputs)]
                                     (reduce (fn [{:keys [sum-irrigation-water sum-irrigation-costs sum-profit sum-revenues]}
@@ -1409,48 +1410,42 @@
                                                "black")})
                          (text "~(util/round sum-profit :digits 0) €"))))))
 
-       (fieldset
-         :toggle (cell= (or s/consultant-logged-in? s/admin-logged-in?))
+       (let [visible? (cell true)
 
-         (uic/hover-activate-wrapper
-           :action! #(swap! visible? not)
-           (legend
-             (text "~(vocab :crop-curves-chart-fieldset-label s/lang) ~(when-not visible? \" ...\")")))
+             selected-crop-id (cell (if (seq @crop-rotation)
+                                      (-> @crop-rotation first second)))
+             selected-crop-data (cell= (get crop-rotation-data selected-crop-id))
 
-         (div
-           :col [:xs 3]
-           ;:class "col-xs-offset-8"
+             _ (cell= (when (and s/logged-in? (or (s/has-user-role :consultant) (s/has-user-role :admin)))
+                        (charts/set-crop-curve-data crop-curves-chart-id selected-crop-data)))]
 
-           (select
-             ;:toggle show-select
-             :id "bla-id"
-             :class "form-control"
-             (option "")
-             (loop-tpl
-               :bindings [[{:keys [from to]} crop-id] crop-rotation]
-               (option :value crop-id
-                       (text "~{crop-id} | ~{from} -> ~{to}")))))
+         (fieldset
+           :toggle (cell= (or s/consultant-logged-in? s/admin-logged-in?))
 
-         #_(bs/form-group
-           (bs/control-label :col [:sm label-cols] :for year-id (text "~(vocab :year-label s/lang)"))
+           (uic/hover-activate-wrapper
+             :action! #(swap! visible? not)
+             (legend
+               (text "~(vocab :crop-curves-chart-fieldset-label s/lang) ~(when-not visible? \" ...\")")))
+
            (div
-             :col [:xs value-cols]
-             (p :toggle no-edit? :class "form-control-static" (text "~{year}"))
-             (input
-               :id year-id
-               :toggle edit?
-               :class "form-control"
-               :type "number"
-               :step 1
-               :min 1961
-               :max 2100
-               :placeholder (cell= (vocab :year-placeholder s/lang))
-               :value year
-               :on-change #(year! (js/parseFloat (val-id year-id))))
-             ))
+             :toggle visible?
+             :col [:xs 4]
+             ;:class "col-xs-offset-8"
 
-         (div
-           :id crop-curves-chart-id
-           :col [:xs 12]))
+             (select
+               ;:toggle show-select
+               :id crop-id-select-id
+               :class "form-control"
+               :change #(reset! selected-crop-id (val-id crop-id-select-id))
+               (loop-tpl
+                 :bindings [[{:keys [from to]} crop-id] crop-rotation]
+                 (option :value crop-id
+                         :selected (cell= (= selected-crop-id crop-id))
+                         (text "~{crop-id} | ~(:crop/name (crop-rotation-data crop-id)) | ~{from} -> ~{to}")))))
+
+           (div
+             :toggle visible?
+             :id crop-curves-chart-id
+             :col [:xs 12])))
 
        ) (dissoc attrs :fields :opts) kids)))
