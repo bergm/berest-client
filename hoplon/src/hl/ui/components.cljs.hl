@@ -74,26 +74,28 @@
         (span :class "icon-bar")
         (span :class "icon-bar")
         (span :class "icon-bar"))
-      #_(img
-        :class "navbar-brand"
-        :style "width:90px"
-        :src "irrigama-logo.png"
-        :alt "Irrigama-Logo")
-      (a
+      (span
         :class "navbar-brand"
         :style "float: none"
-        :href "#/farms"
         (img
           :style "clear: both; height:50px"
           :src "irrigama-logo.png"
           :alt "Irrigama-Logo")
-        (img
-          :style "clear: both; height:50px"
-          :src "fbm-logo.png"
-          :alt "FBM-Logo")
-        (span
-          :toggle s/show-content?
-          :style "vertical-align: middle; font-size:24px; font-weight:bold" "IRRIGAMA.WEB")))
+        (a
+          :class "navbar-brand"
+          :style "float:none"
+          :href "http://www.fbm-ev.de"
+          (img
+            :style "clear: both; height:50px"
+            :src "fbm-logo.png"
+            :alt "FBM-Logo"))
+        (a
+          :class "navbar-brand"
+          :style "float: none"
+          :href "#/farms"
+          (span
+            :toggle s/show-content?
+            :style "vertical-align: middle; font-size:24px; font-weight:bold" "IRRIGAMA.WEB"))))
     (div
       :class "collapse navbar-collapse"
       (ul

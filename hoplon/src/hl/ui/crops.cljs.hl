@@ -86,58 +86,6 @@
            }
           [element (or lang :lang/de)] "UNKNOWN element"))
 
-#_(defn crop-curves-chart-config
-  [render-to-div-id]
-  {:chart {:renderTo render-to-div-id
-           :defaultSeriesType "line"
-           :zoomType "x"
-           #_:spacingTop #_50}
-   :title {:text "" #_(vocab :chart-header @s/lang)
-           :x 0 #_-20}
-   :xAxis {:title {:text "relative DC Tage"}
-           ;:type "datetime"
-           #_:labels #_{:format "{value: %d.%m.%Y}"
-                                             :rotation 45
-                                             :align "left"}}
-   :yAxis [{:title {:text (str "<b>" (vocab :dc @s/lang) " []</b>")}}
-           {:title {:text (str "<b>" (vocab :cover-degree @s/lang) " [%]</b>")}}
-           {:title {:text (str "<b>" (vocab :extraction-depth @s/lang) " [cm]</b>")}}
-           {:title {:text (str "<b>" (vocab :aet-pet @s/lang) " [°C]</b>")}
-            :opposite true}
-           {:title {:text (str "<b>" (vocab :transpiration-factor @s/lang) " []</b>")}
-            :opposite true}]
-   :tooltip {:shared true
-             :crosshairs true}
-   :legend {:layout "horizontal" #_"vertical"
-            :align "center" #_"right"
-            :verticalAlign "top" #_"middle"
-            :borderWidth 0}
-   :series [{:name (vocab :dc @s/lang)
-             :yAxis 0
-             ;:tooltip {:valueSuffix " "}
-             :color "#CCCC00"
-             :data []}
-            {:name (vocab :cover-degree @s/lang)
-             :yAxis 1
-             :tooltip {:valueSuffix " %"}
-             :color "#339966"
-             :data []}
-            {:name (vocab :extraction-depth @s/lang)
-             :yAxis 2
-             :tooltip {:valueSuffix " cm"}
-             :color "#FF0000"
-             :data []}
-            {:name (vocab :aet-pet @s/lang)
-             :yAxis 3
-             ;:tooltip {:valueSuffix " mm"}
-             :color "#00FF00"
-             :data []}
-            {:name (vocab :transpiration-factor @s/lang)
-             :yAxis 4
-             ;:tooltip {:valueSuffix " "}
-             :color "#CC0066"
-             :data []}]})
-
 (defn crops-pane
   []
   (let [filter-criterium (cell "A")
@@ -156,10 +104,14 @@
                                         s/minimal-all-crops)
                                 s/minimal-all-crops))
 
-        selected-crop (cell nil)
+        #_selected-crop #_(cell nil)
+        selected-crop (cell= (when-let [cid (:crop-id s/route-params)]
+                               (first (filter #(= (:crop/id %) cid) s/minimal-all-crops))))
         _ (cell= (println "selected-crop: " (pr-str selected-crop)))
         _ (cell= (when filtered-crops
-                       (reset! ~(cell selected-crop) nil)))]
+                   (s/set-route-params :crop-id nil)))
+
+        [chart-id] (repeatedly gensym)]
 
     (div
       :id "crops-pane"
@@ -194,11 +146,6 @@
       (div
         :class "row"
 
-        (div :col [:xs 12] (hr)))
-
-      (div
-        :class "row"
-
         (div
           :col [:xs 12]
 
@@ -207,11 +154,12 @@
 
             (thead
               (tr
-                (th (text "~(vocab :th-crop-number s/lang)"))
-                (th (text "~(vocab :th-crop-cultivation-type s/lang)"))
-                (th (text "~(vocab :th-crop-usage s/lang)"))
-                (th (text "~(vocab :th-crop-name s/lang)"))
-                (th (text "~(vocab :th-crop-symbol s/lang)"))))
+                (th :style "width:5%" "" #_(text "~(vocab :th-weather-jump s/lang)"))
+                (th :style "width:7%" (text "~(vocab :th-crop-number s/lang)"))
+                (th :style "width:7%" (text "~(vocab :th-crop-cultivation-type s/lang)"))
+                (th :style "width:16%" (text "~(vocab :th-crop-usage s/lang)"))
+                (th :style "width:40%" (text "~(vocab :th-crop-name s/lang)"))
+                (th :style "width:25%" (text "~(vocab :th-crop-symbol s/lang)"))))
 
             (tbody
               (loop-tpl
@@ -225,24 +173,47 @@
                            (cell= (sort-by :crop/name filtered-crops))]
                 (let [hover? (cell false)
                       selected? (cell= (= id (:crop/id selected-crop)))]
-                     (tr
-                       :class (cell= {:warning (and hover? (not selected?))
-                                      :success selected?})
-                       :mouseenter #(reset! hover? true)
-                       :mouseleave #(reset! hover? false)
-                       :click #(reset! selected-crop @crop)
-
-                       (td (text "~{number}"))
-                       (td (text "~{cultivation-type}"))
-                       (td (text "~{usage}"))
-                       (td (text "~{name}"))
-                       (td (text "~{symbol}")))))))))
-
-      (div
-        :class "row"
-        :toggle (cell= (not (nil? selected-crop)))
-
-        (div :col [:xs 12] (hr)))
+                  (tr
+                    :mouseenter #(reset! hover? true)
+                    :mouseleave #(reset! hover? false)
+                    (td
+                      :style "text-align: center; vertical-align: middle"
+                      :class (cell= {:warning (and hover? (not selected?))
+                                     :success selected?})
+                      :click #(do
+                               (some-> chart-id by-id .scrollIntoView)
+                               (s/set-route-params :weather-station-id @id))
+                      (span :class "glyphicon glyphicon-arrow-down"))
+                    (td
+                      :style "vertical-align: middle"
+                      :class (cell= {:warning (and hover? (not selected?))
+                                     :success selected?})
+                      :click #(s/set-route-params :crop-id @id)
+                      (text "~{number}"))
+                    (td
+                      :style "vertical-align: middle"
+                      :class (cell= {:warning (and hover? (not selected?))
+                                     :success selected?})
+                      :click #(s/set-route-params :crop-id @id)
+                      (text "~{cultivation-type}"))
+                    (td
+                      :style "vertical-align: middle"
+                      :class (cell= {:warning (and hover? (not selected?))
+                                     :success selected?})
+                      :click #(s/set-route-params :crop-id @id)
+                      (text "~{usage}"))
+                    (td
+                      :style "vertical-align: middle"
+                      :class (cell= {:warning (and hover? (not selected?))
+                                     :success selected?})
+                      :click #(s/set-route-params :crop-id @id)
+                      (text "~{name}"))
+                    (td
+                      :style "vertical-align: middle"
+                      :class (cell= {:warning (and hover? (not selected?))
+                                     :success selected?})
+                      :click #(s/set-route-params :crop-id @id)
+                      (text "~{symbol}")))))))))
 
       (bs/form
         :toggle (cell= (not (nil? selected-crop)))
@@ -253,7 +224,7 @@
                     name :crop/name
                     symbol :crop/symbol} selected-crop]
 
-          (let [[name-id symbol-id chart-id] (repeatedly gensym)
+          (let [[name-id symbol-id] (repeatedly gensym)
                 edit? (cell false)
                 no-edit? (cell= (not edit?))
 
@@ -261,53 +232,14 @@
                            :symbol nil}
 
                 crop-data (cell nil)
+
                 _ (cell= (when crop-data (println "crop-data: " (pr-str crop-data))))
 
                 _ (cell= (when (and id (not= id (:crop/id crop-data)))
                                (s/load-crop-data ~(cell crop-data) id)))
 
                 _ (with-timeout 0 (js/Highcharts.Chart. (clj->js (charts/crop-curves-chart-config chart-id))))
-
-                set-series-data (fn [series-index data]
-                                    (some-> chart-id
-                                            by-id
-                                            js/jQuery
-                                            .highcharts
-                                            .-series
-                                            (#(nth % series-index),,,)
-                                            (.setData (clj->js data))))
-
-                dc (cell= (->> (:crop/dc-to-rel-dc-days crop-data)
-                               (mapv (fn [[k v]] {:name (str v " <b>" (get (:crop/dc-to-developmental-state-names crop-data) k) "</b>")
-                                                  :x v :y k})
-                                 ,,,)
-                               (sort-by :x ,,,)))
-                _ (cell= (set-series-data 0 dc))
-
-                cover-degrees (cell= (->> (:crop/rel-dc-day-to-cover-degrees crop-data)
-                                          (into [] ,,,)
-                                          (sort-by first ,,,)))
-                _ (cell= (set-series-data 1 cover-degrees))
-
-                extraction-depths (cell= (->> (:crop/rel-dc-day-to-extraction-depths crop-data)
-                                              (map (fn [[rel-dc-day depth-dm]]
-                                                     [rel-dc-day (* depth-dm 10)])
-                                                   ,,,)
-                                              (into [] ,,,)
-                                              (sort-by first ,,,)))
-                _ (cell= (set-series-data 2 extraction-depths))
-
-                aet-pet (cell= (->> (:crop/rel-dc-day-to-quotient-aet-pets crop-data)
-                                    (into [],,,)
-                                    (sort-by first,,,)))
-                _ (cell= (set-series-data 3 aet-pet))
-
-                transpiration-factors (cell= (->> (:crop/rel-dc-day-to-transpiration-factors crop-data)
-                                                  (into [],,,)
-                                                  (sort-by first,,,)))
-                _ (cell= (set-series-data 4 transpiration-factors))
-
-                ]
+                _ (cell= (charts/set-crop-curve-data chart-id crop-data))]
 
             (div
 
@@ -344,7 +276,6 @@
 
                 (div
                   :id chart-id
-                  ;:style "width:100%"
                   :col [:xs 12]))
 
               (let [visible? (cell false)]

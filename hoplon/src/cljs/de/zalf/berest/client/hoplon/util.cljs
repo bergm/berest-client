@@ -48,6 +48,14 @@
   [date]
   (cstf/unparse (cstf/formatters :date) date))
 
+(defn cljs-time-date->german-d-m-y
+  [date]
+  (cstf/unparse (cstf/formatter "dd.MM.yyyy") date))
+
+(defn doy->german-d-m-y
+  [doy & [year]]
+  (cljs-time-date->german-d-m-y (doy->cljs-time-date doy year)))
+
 (defn is-leap-year [year]
   (= 0 (rem (- 2012 year) 4)))
 

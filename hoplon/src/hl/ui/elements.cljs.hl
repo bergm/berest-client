@@ -390,7 +390,7 @@
               :on-change #(date! (cstcoe/to-date (cstf/parse (cstf/formatters :date)
                                                              (val-id date-id))))))
 
-          (div
+          #_(div
             :col [:xs 2]
             (div
               :class "input-group"
@@ -587,10 +587,10 @@
                                         (s/update-db-entity @db-id :weather-data/prognosis-date date)
                                         (s/retract-db-value @db-id :weather-data/prognosis-date date))}))
                   (create-weather-data-inputs
-                    :fields {:row-action! #(when (and @date* (or @evap* (and @tavg* @globrad*)) @precip*)
+                    :fields {:row-action! #(when (and @date* (or @precip* @evap* (and @tavg* @globrad*)))
                                                  (s/create-new-weather-data id-attr @id @date* @tavg* @globrad*
                                                                             @evap* @precip* (when @prog?* @date*))
-                                                 (reset! date* nil)
+                                                 (reset! date* (cstcoe/to-date (cstc/now)))
                                                  (reset! evap* nil)
                                                  (reset! tavg* nil)
                                                  (reset! globrad* nil)
@@ -830,7 +830,7 @@
     opts :opts
     :as attrs} kids]
 
-  (let [[rel-dc-day-id aet7pet-id] (repeatedly gensym)]
+  (let [[rel-dc-day-id extraction-depth-id] (repeatedly gensym)]
     ((div
        :class "row"
 
@@ -885,7 +885,7 @@
     opts :opts
     :as attrs} kids]
 
-  (let [[rel-dc-day-id aet7pet-id] (repeatedly gensym)]
+  (let [[rel-dc-day-id transpiration-factor-id] (repeatedly gensym)]
     ((div
        :class "row"
 

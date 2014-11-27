@@ -249,8 +249,8 @@
            :target-aet-pet {:lang/de "Ziel AET/PET"
                             :lang/en "Target AET/PET"}
 
-           :crop-curves-chart-fieldset-label {:lang/de "Fruchtart Steuerkurven"
-                                              :lang/en "Crop curves"}
+           :crop-curves-chart-fieldset-label {:lang/de "DC angepasste Fruchtart Steuerkurven"
+                                              :lang/en "DC adjusted crop curves"}
 
            }
           [element (or lang :lang/de)] "UNKNOWN element"))
@@ -1410,11 +1410,13 @@
                                                "black")})
                          (text "~(util/round sum-profit :digits 0) €"))))))
 
-       (let [visible? (cell true)
+       (let [visible? (cell false)
 
-             selected-crop-id (cell (if (seq @crop-rotation)
-                                      (-> @crop-rotation first second)))
-             selected-crop-data (cell= (get crop-rotation-data selected-crop-id))
+             selected-crop-id (cell nil)
+             selected-crop-id* (cell= (or selected-crop-id
+                                          (if (seq crop-rotation)
+                                            (-> crop-rotation first second))))
+             selected-crop-data (cell= (get crop-rotation-data selected-crop-id*))
 
              _ (cell= (when (and s/logged-in? (or (s/has-user-role :consultant) (s/has-user-role :admin)))
                         (charts/set-crop-curve-data crop-curves-chart-id selected-crop-data)))]
@@ -1429,19 +1431,18 @@
 
            (div
              :toggle visible?
-             :col [:xs 4]
-             ;:class "col-xs-offset-8"
+             :col [:xs 5]
 
              (select
-               ;:toggle show-select
                :id crop-id-select-id
                :class "form-control"
                :change #(reset! selected-crop-id (val-id crop-id-select-id))
                (loop-tpl
                  :bindings [[{:keys [from to]} crop-id] crop-rotation]
-                 (option :value crop-id
-                         :selected (cell= (= selected-crop-id crop-id))
-                         (text "~{crop-id} | ~(:crop/name (crop-rotation-data crop-id)) | ~{from} -> ~{to}")))))
+                 (cell-let [[from-date to-date] (map #(util/doy->german-d-m-y % year) [from to])]
+                   (option :value crop-id
+                           :selected (cell= (= selected-crop-id crop-id))
+                           (text "~{crop-id} | ~(:crop/name (crop-rotation-data crop-id)) | ~{from-date} -> ~{to-date}"))))))
 
            (div
              :toggle visible?

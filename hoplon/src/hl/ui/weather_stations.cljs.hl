@@ -12,8 +12,10 @@
 (defn vocab
   "translatable vocabulary for this page"
   [element lang]
-  (get-in {:new-weather-station-button {:lang/de "Neu"
-                                        :lang/en "New"}
+  (get-in {:new-local-weather-station-button {:lang/de "Neue lokale WS"
+                                              :lang/en "New local ws"}
+           :delete-local-weather-station-button {:lang/de "L.WS löschen"
+                                        :lang/en "Delete l.ws"}
            :new-weather-station-value {:lang/de "Neue lokale Wetterstation"
                                         :lang/en "New local weather-station"}
 
@@ -35,6 +37,8 @@
            :long-placeholder {:lang/de "Längengrad"
                               :lang/en "Longitude"}
 
+           :th-weather-jump {:lang/de ""
+                             :lang/en ""}
            :th-weather-station-name {:lang/de "Name"
                                      :lang/en "Name"}
            :th-local-weather-station? {:lang/de "Lokal?"
@@ -63,20 +67,25 @@
 
 (defn weather-stations-pane
   []
-  (let [selected-weather-station-id (cell nil)
+  (let [                                                    ;pane-visible? (cell= (= s/route "#/weather"))
 
-        #_selected-weather-station #_(cell nil)
-        selected-weather-station (cell= (first (filter #(= (:weather-station/id %)
-                                                           selected-weather-station-id)
-                                                       (:weather-stations s/state))))
-        ;_ (cell= (println "selected-ws: " (pr-str selected-weather-station)))
+        ;old-pane-query-params (cell nil)
+
+        #__ #_(cell= (if pane-visible?
+                   (when (and (not (:weather-station-id s/route-params)) (:weather-station-id old-pane-query-params))
+                     (s/set-route-params :weather-station-id (:weather-station-id old-pane-query-params)))
+                   (reset! ~(cell old-pane-query-params) {:weather-station-id (:weather-station-id s/route-params)})))
+
+        selected-weather-station (cell= (when-let [wsid (:weather-station-id s/route-params)]
+                                          (first (filter #(= (:weather-station/id %) wsid) s/user-weather-stations))))
+        ;_ (cell= (println "selected-weather-station: " (pr-str selected-weather-station)))
 
         new-weather-station-no (cell 0)
 
-        weather-stations-count (cell= (count (:weather-stations s/state)))
+        weather-stations-count (cell= (count s/user-weather-stations))
         many-weather-stations? (cell= (> weather-stations-count 1))
-        _ (cell= (when (= weather-stations-count 1) (reset! selected-weather-station-id
-                                                            (:weather-station/id (first (:weather-stations s/state))))))
+        _ (cell= (when (= weather-stations-count 1)
+                   (s/set-route-params :weather-station-id (-> s/user-weather-stations first :weather-station/id))))
         ]
        (div
          :id "weather-stations-pane"
@@ -86,7 +95,7 @@
            :class "row"
 
            (div
-             :col [:xs 11]
+             :col [:xs 12]
 
              (table
                :class "table"
@@ -94,13 +103,23 @@
 
                (thead
                  (tr
-                   (th (text "~(vocab :th-weather-station-name s/lang)"))
+                   (th :style "width:5%" (text "~(vocab :th-weather-jump s/lang)"))
+                   (th :style "width:55%" (text "~(vocab :th-weather-station-name s/lang)"))
                    (th (text "~(vocab :th-local-weather-station? s/lang)"))
+                   (th
+                     :style "width:10%; text-align:right"
+                     (button
+                       :class "btn btn-warning btn-sm btn-block"
+                       :click #(let [temp-weather-station-name (str (vocab :new-weather-station-value @s/lang) " "
+                                                                    (swap! new-weather-station-no inc))]
+                                (s/create-new-local-user-weather-station temp-weather-station-name))
+                       (text "~(vocab :new-local-weather-station-button s/lang)")))
                    #_(th (text "~(vocab :th-farm-state s/lang)"))))
 
                (tbody
                  (loop-tpl
-                   :bindings [{id :weather-station/id
+                   :bindings [{db-id :db/id
+                               id :weather-station/id
                                name :weather-station/name
                                local? :weather-station/local-user-station?
                                :as weather-station}
@@ -108,36 +127,41 @@
                                               (:weather-stations s/state)))]
                    (let [hover? (cell false)
                          selected? (cell= (= id (:weather-station/id selected-weather-station)))]
-                        (tr
-                          :class (cell= {:warning (and hover? (not selected?))
-                                         :success selected?})
-                          :mouseenter #(reset! hover? true)
-                          :mouseleave #(reset! hover? false)
-                          :click #(reset! selected-weather-station-id @id)
+                     (tr
+                       :mouseenter #(reset! hover? true)
+                       :mouseleave #(reset! hover? false)
+                       (td
+                         :style "text-align: center; vertical-align: middle"
+                         :class (cell= {:warning (and hover? (not selected?))
+                                        :success selected?})
+                         :click #(do
+                                  (some-> "weather-data-curves" by-id .scrollIntoView)
+                                  (s/set-route-params :weather-station-id @id))
+                         (span :class "glyphicon glyphicon-arrow-down"))
+                       (td
+                         :style "vertical-align: middle"
+                         :class (cell= {:warning (and hover? (not selected?))
+                                        :success selected?})
+                         :click #(s/set-route-params :weather-station-id @id)
+                         (text "~(or name id)"))
 
-                          (td (text "~(or name id)"))
-                          (td (span :class (cell= {:glyphicon (and (not (nil? local?))
-                                                                   local?)
-                                                   :glyphicon-ok (and (not (nil? local?))
-                                                                      local?)})))
-                          #_(td (span :class "glyphicon glyphicon-ok"))))))))
-
-           (div
-             :col [:xs 1]
-
-             (button
-               :class "btn btn-warning btn-block"
-               :click #(let [temp-weather-station-name (str (vocab :new-weather-station-value @s/lang) " "
-                                                            (swap! new-weather-station-no inc))]
-                            (s/create-new-local-user-weather-station temp-weather-station-name))
-               (text "~(vocab :new-weather-station-button s/lang)"))))
-
-         (div
-           :class "row"
-           :toggle (cell= (and selected-weather-station many-weather-stations?))
-           (div
-             :col [:xs 12]
-             (hr)))
+                       (td
+                         :style "vertical-align: middle"
+                         :class (cell= {:warning (and hover? (not selected?))
+                                        :success selected?})
+                         :click #(s/set-route-params :weather-station-id @id)
+                         (span :class (cell= {:glyphicon (and (not (nil? local?))
+                                                              local?)
+                                              :glyphicon-ok (and (not (nil? local?))
+                                                                 local?)})))
+                       (td
+                         :style "text-align:right"
+                         (uic/safe-delete-button
+                           :toggle (and (not (nil? local?))
+                                        local?)
+                           :small-button? true
+                           :action! #(s/delete-db-entity @db-id)
+                           :value (cell= (vocab :delete-local-weather-station-button s/lang)))))))))))
 
          (bs/form
            :toggle (cell= (not (nil? selected-weather-station)))
@@ -340,6 +364,7 @@
 
 
                    (bs/form-group
+                     :id "weather-data-curves"
                      :toggle (cell= (not (nil? (seq selected-years-set*))))
 
                      (bs/control-label :col [:xs 2] :for years-id (text "~(vocab :chart-year s/lang)"))

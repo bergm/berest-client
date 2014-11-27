@@ -67,8 +67,8 @@
            :crop-rel-dc-day-to-transpiration-factor-label {:lang/de "rel.Tag->Transpirationsfaktor"
                                                            :lang/en "rel.day->transpiration factor"}
 
-           :dc {:lang/de "BEREST DC Code"
-                :lang/en "BEREST DC code"}
+           :dc {:lang/de "DC Code"
+                :lang/en "DC code"}
 
            :cover-degree {:lang/de "Bedeckungsgrad"
                           :lang/en "Cover degree"}
