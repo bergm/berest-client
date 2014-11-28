@@ -67,16 +67,7 @@
 
 (defn weather-stations-pane
   []
-  (let [                                                    ;pane-visible? (cell= (= s/route "#/weather"))
-
-        ;old-pane-query-params (cell nil)
-
-        #__ #_(cell= (if pane-visible?
-                   (when (and (not (:weather-station-id s/route-params)) (:weather-station-id old-pane-query-params))
-                     (s/set-route-params :weather-station-id (:weather-station-id old-pane-query-params)))
-                   (reset! ~(cell old-pane-query-params) {:weather-station-id (:weather-station-id s/route-params)})))
-
-        selected-weather-station (cell= (when-let [wsid (:weather-station-id s/route-params)]
+  (let [selected-weather-station (cell= (when-let [wsid (:weather-station-id s/route-params)]
                                           (first (filter #(= (:weather-station/id %) wsid) s/user-weather-stations))))
         ;_ (cell= (println "selected-weather-station: " (pr-str selected-weather-station)))
 
@@ -178,7 +169,7 @@
                 long :geo-coord/longitude} :weather-station/geo-coord} selected-weather-station]
 
              (let [[name-input lat-input long-input chart-id years-id] (repeatedly gensym)
-                   edit? (cell true)
+                   edit? (cell= s/admin-logged-in?) #_(cell true)
                    no-edit? (cell= (not edit?))
 
                    station-data (cell {:name nil

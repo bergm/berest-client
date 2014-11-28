@@ -282,6 +282,7 @@
                   farm-name :farm/name
                   avg-irrigation-costs :farm/avg-irrigation-costs
                   addresses :farm/addresses
+                  contacts :farm/contacts
                   farm-notes :farm/notes
                   authorative-weather-station :farm/authorative-weather-station
                   weather-station :farm/weather-station
@@ -301,6 +302,7 @@
                           :fields {:id farm-id
                                    :name farm-name :name! #(s/update-db-entity @farm-db-id :farm/name %)
                                    :addresses addresses
+                                   :contacts contacts
                                    :notes farm-notes :notes! #(s/update-db-entity @farm-db-id :farm/notes %)
 
                                    :avg-irrigation-costs avg-irrigation-costs

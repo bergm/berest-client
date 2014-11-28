@@ -17,15 +17,15 @@
 
            :address-fieldset-label {:lang/de "Adressdaten"
                                     :lang/en "Address data"}
-           :new-address-button-label {:lang/de "Neue Adresse ..."
-                                      :lang/en "New address ..."}
+           :new-address-button-label {:lang/de "Neue Adresse"
+                                      :lang/en "New address"}
            :delete-address-button-label {:lang/de "A. löschen!"
                                          :lang/en "Delete address!"}
 
            :contacts-fieldset-label {:lang/de "Kontaktdaten"
                                     :lang/en "Contact data"}
-           :new-contact-button-label {:lang/de "Neuer Kontakt ..."
-                                      :lang/en "New contact ..."}
+           :new-contact-button-label {:lang/de "Neuer Kontakt"
+                                      :lang/en "New contact"}
            :delete-contact-button-label {:lang/de "K. löschen!"
                                          :lang/en "Delete contact!"}
 
@@ -141,13 +141,6 @@
                  :click #(s/create-new-farm-address @id)
                  (text "~(vocab :new-address-button-label s/lang)"))))
 
-           (div
-             :toggle visible?
-             :class "row"
-             (div
-               :col [:xs 12]
-               (hr)))
-
            (loop-tpl
              :bindings [{db-id :db/id
                          description :address/description
@@ -158,7 +151,7 @@
                          municipality :address/municipality
                          municipality-short :address/municipality-short
                          state :address/state
-                         state-short :state-short
+                         state-short :address/state-short
                          country :address/country
                          country-short :address/country-short
                          :as address} addresses]
@@ -167,7 +160,7 @@
 
                (div
                  :toggle visible?
-                 :col [:xs 11]
+                 :col [:xs 10]
 
                  (addr/address
                    :fields {:description description :description! #(s/update-db-entity @db-id :address/description %)
@@ -189,10 +182,11 @@
 
                (div
                  :toggle visible?
-                 :col [:xs 1]
+                 :col [:xs 2]
 
                  (uic/safe-delete-button
                    :toggle edit?
+                   :small-button? true
                    :action! #(s/delete-db-entity @db-id)
                    :value (cell= (vocab :delete-address-button-label s/lang))))))))
 
@@ -208,13 +202,6 @@
                  :class "btn btn-warning btn-sm"
                  :click #(s/create-new-farm-contact @id)
                  (text "~(vocab :new-contact-button-label s/lang)"))))
-
-           (div
-             :toggle visible?
-             :class "row"
-             (div
-               :col [:xs 12]
-               (hr)))
 
            (loop-tpl
              :bindings [{db-id :db/id
@@ -232,7 +219,7 @@
 
                (div
                  :toggle visible?
-                 :col [:xs 11]
+                 :col [:xs 10]
 
                  (contacts/contact
                    :fields {:title title :title! #(s/update-db-entity @db-id :person/title %)
@@ -250,7 +237,7 @@
 
                (div
                  :toggle visible?
-                 :col [:xs 1]
+                 :col [:xs 2]
 
                  (uic/safe-delete-button
                    :toggle edit?

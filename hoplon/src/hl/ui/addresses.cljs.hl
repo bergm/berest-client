@@ -256,7 +256,7 @@
             (bs/control-label :col [:sm label-cols] :for state-short-id (text "~(vocab :state-short-label s/lang)"))
             (div
               :col [:xs value-cols]
-              (p :toggle no-edit? :class "form-control-static" (text "~{state}"))
+              (p :toggle no-edit? :class "form-control-static" (text "~{state-short}"))
               (input
                 :id state-short-id
                 :toggle edit?
