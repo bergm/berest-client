@@ -53,6 +53,7 @@
 
 
 (defc routeHash (.. js/window -location -hash))
+#_(cell= (println "routeHash: " (pr-str routeHash)))
 (def full-route (h/route-cell routeHash #(reset! routeHash %)))
 (defc= route+params (str/split full-route #"\?|\&|="))
 (defc= route (first route+params))
@@ -60,6 +61,14 @@
 (defc= route-params (into {} (for [[k v] (partition 2 (rest route+params))]
                                [(keyword k) v])))
 #_(cell= (println "route-params: " (pr-str route-params)))
+
+(defc= route-params-str
+       (->> route-params
+            (map (fn [[k v]] (when v (str (name k) "=" v))) ,,,)
+            (remove nil? ,,,)
+            (str/join "&" ,,,)))
+#_(cell= (println "route-params-str: " (pr-str route-params-str)))
+
 (defn clear-route+params
   []
   (reset! routeHash ""))
@@ -82,12 +91,7 @@
 
 (defn set-route-params
   [& params]
-  (apply set-route+params nil params)
-  #_(->> (merge @route-params (into {} (for [[k v] (partition 2 params)] [k v])))
-       (map (fn [[k v]] (str (name k) "=" v)) ,,,)
-       (str/join "&" ,,,)
-       (str @route "?" ,,,)
-       (reset! routeHash ,,,)))
+  (apply set-route+params nil params))
 
 (defn set-route
   [route*]

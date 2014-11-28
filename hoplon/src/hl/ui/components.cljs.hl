@@ -101,14 +101,32 @@
       (ul
         :toggle s/logged-in?
         :class "nav navbar-nav"
-        (li :class (cell= {:active (= s/route "#/farms")}) (a :href "#/farms" (cell= (vocab :nav-farms s/lang))))
-        (li :class (cell= {:active (= s/route "#/weather")}) (a :href "#/weather" (cell= (vocab :nav-weather s/lang))))
-        (li :class (cell= {:active (= s/route "#/crops")}) (a :href "#/crops" (cell= (vocab :nav-crops s/lang))))
-        (li :class (cell= {:active (= s/route "#/settings")}) (a :href "#/settings" (cell= (vocab :nav-settings s/lang))))
+        (li
+          :class (cell= {:active (= s/route "#/farms")})
+          (a
+            :href (cell= (str "#/farms?" s/route-params-str))
+            (cell= (vocab :nav-farms s/lang))))
+        (li
+          :class (cell= {:active (= s/route "#/weather")})
+          (a
+            :href (cell= (str "#/weather?" s/route-params-str))
+            (cell= (vocab :nav-weather s/lang))))
+        (li
+          :class (cell= {:active (= s/route "#/crops")})
+          (a
+            :href (cell= (str "#/crops?" s/route-params-str))
+            (cell= (vocab :nav-crops s/lang))))
+        (li
+          :class (cell= {:active (= s/route "#/settings")})
+          (a
+            :href (cell= (str "#/settings?" s/route-params-str))
+            (cell= (vocab :nav-settings s/lang))))
         (li
           :toggle s/admin-logged-in?
           :class (cell= {:active (= s/route "#/admin")})
-          (a :href "#/admin" (cell= (vocab :nav-admin s/lang)))))
+          (a
+            :href (str "#/admin" s/route-params-str)
+            (cell= (vocab :nav-admin s/lang)))))
       (div
         :toggle s/logged-in?
         :class "navbar-right"
