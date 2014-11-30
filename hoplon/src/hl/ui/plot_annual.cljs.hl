@@ -1231,8 +1231,7 @@
                                 (input
                                   :id enter-mm?-id
                                   :type "checkbox"
-                                  :checked enter-mm?
-                                  :value "enter-mm?"
+                                  :value enter-mm?
                                   :on-change #(reset! enter-mm? (val-id enter-mm?-id)))
                                 (text "~(vocab :use-avg-yield-per-mm?-label s/lang)"))))])
 

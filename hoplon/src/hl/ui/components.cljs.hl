@@ -315,12 +315,13 @@
                          (action!))
                 :value value)
               (span
-                :id checked-id
+
                 :class "input-group-addon"
                 (input
+                  :id checked-id
                   :type "checkbox"
                   :value checked?
-                  :change #(reset! checked? #_(val-id checked-id) (-> % .-target .-checked))))))
+                  :change #(reset! checked? (val-id checked-id))))))
        (dissoc attrs :action! :value :small-button?) kids))
 
 (defelem hover-activate-wrapper

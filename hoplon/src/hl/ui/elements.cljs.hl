@@ -122,7 +122,7 @@
                   (= true value) (.attr e k k)
                   :else (.attr e k (str value)))))
 
-(defmethod tailrecursion.hoplon/do! :checked
+#_(defmethod tailrecursion.hoplon/do! :checked
            [elem key value]
            (let [e (js/jQuery elem)
                  k (name key)]
@@ -456,8 +456,7 @@
               (input
                 :id prog?-id
                 :type "checkbox"
-                :checked prog?
-                :value "prog?"
+                :value prog?
                 :on-change #(prog?! (val-id prog?-id)))
               (text "~(vocab :prog?-label s/lang)")))
 
@@ -929,6 +928,70 @@
                           :btn-warning (nil? row-no)})
            :type "button"
            :value (cell= (if row-no (vocab :remove-crop-rel-dc-day-to-transpiration-factor-label s/lang) (vocab :add-crop-rel-dc-day-to-transpiration-factor-label s/lang)))
+           :on-click #(row-action! (some-> row-no deref)))))
+     (dissoc attrs :fields :opts) kids)))
+
+(defelem
+  create-com-con-inputs
+  [{{:keys [row-no row-action!
+            id id!
+            type type!]} :fields
+    opts :opts
+    :as attrs} kids]
+
+  (let [[id-id type-id] (repeatedly gensym)]
+    ((div
+       :class "row"
+
+       (div
+         :col [:xs 4]
+         (p :toggle no-edit? :class "form-control-static" (text "~{id}"))
+         (input
+           :id id-id
+           :toggle edit?
+           :class "form-control"
+           :type "text"
+           :placeholder (cell= (vocab :com-con-placeholder s/lang))
+           :value id
+           :on-change #(id! @db-id :com-con/id (val-id id))))
+
+       (div
+         :col [:xs 3]
+         (select
+           :id type-id
+           :class "form-control"
+           :change #(type! @db-id :com-con/type (keyword "com-con" (val-id type-id)))
+           (option :value "" "")
+           (option :value "mobile-phone"
+                   :selected (cell= (= :com-con.type/mobile-phone type))
+                   (text "~(vocab :com-con-mobile-phone-label s/lang)"))
+           (option :value "fixed-phone"
+                   :selected (cell= (= :com-con.type/fixed-phone type))
+                   (text "~(vocab :com-con-fixed-phone-label s/lang)"))
+           (option :value "fax"
+                   :selected (cell= (= :com-con.type/fax type))
+                   (text "~(vocab :com-con-fax-label s/lang)"))
+           (option :value "skype"
+                   :selected (cell= (= :com-con.type/skype type))
+                   (text "~(vocab :com-con-skype-label s/lang)"))
+           (option :value "email"
+                   :selected (cell= (= :com-con.type/email type))
+                   (text "~(vocab :com-con-email-label s/lang)"))
+           (option :value "minstant-messaging"
+                   :selected (cell= (= :com-con.type/instant-messaging type))
+                   (text "~(vocab :com-con-instant-messaging-label s/lang)"))
+           (option :value "uri"
+                   :selected (cell= (= :com-con.type/uri type))
+                   (text "~(vocab :com-con-uri-label s/lang)"))))
+
+       (div
+         :col [:xs 2]
+         (input
+           :class (cell= {:btn true
+                          :btn-danger (not (nil? row-no))
+                          :btn-warning (nil? row-no)})
+           :type "button"
+           :value (cell= (if row-no (vocab :remove-com-con-label s/lang) (vocab :add-com-con-label s/lang)))
            :on-click #(row-action! (some-> row-no deref)))))
      (dissoc attrs :fields :opts) kids)))
 

@@ -191,6 +191,9 @@
 (def create-new-crop-instance (mkremote 'de.zalf.berest.web.castra.api/create-new-crop-instance state error loading))
 (def create-new-dc-assertion (mkremote 'de.zalf.berest.web.castra.api/create-new-dc-assertion state error loading))
 (def create-new-weather-data (mkremote 'de.zalf.berest.web.castra.api/create-new-weather-data state error loading))
+(def create-new-com-con (mkremote 'de.zalf.berest.web.castra.api/create-new-com-con state error loading))
+
+#_(def update-is-main-contact? (mkremote 'de.zalf.berest.web.castra.api/update-is-main-contact? state error loading))
 
 (def update-db-entity (mkremote 'de.zalf.berest.web.castra.api/update-db-entity state error loading))
 (def retract-db-value (mkremote 'de.zalf.berest.web.castra.api/retract-db-value state error loading))

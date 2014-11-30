@@ -49,7 +49,8 @@
 
 (defelem
   contact
-  [{{:keys [title title!
+  [{{:keys [db-id
+            title title!
             first-name first-name!
             last-name last-name!
             roles roles!
@@ -65,6 +66,7 @@
          first-name-id last-name-id roles-id com-connections-id
          is-main-contact?-id
          notes-id] (repeatedly gensym)
+        _ (cell= (println first-name " is-main-contact? " (pr-str is-main-contact?)))
         ]
        ((bs/form
           :opts [:horizontal]
@@ -126,7 +128,6 @@
                 :value roles
                 :on-change #(roles! (val-id roles-id)))))
 
-
           (bs/form-group
             (bs/control-label :col [:sm label-cols] :for notes-id (text "~(vocab :notes-label s/lang)"))
             (div
@@ -144,14 +145,48 @@
           (bs/form-group
             (bs/control-label :col [:sm label-cols] :for is-main-contact?-id (text "~(vocab :is-main-contact?-label s/lang)"))
             (div
-              :col [:xs value-cols]
-              (p :toggle no-edit? :class "form-control-static" (text "~{is-main-contact?}"))
+              :col [:xs 1]
               (input
-                :id roles-id
-                :toggle edit?
-                :class "form-control"
-                :type "text"
-                :placeholder (cell= (vocab :is-main-contact?-placeholder s/lang))
+                :id is-main-contact?-id
+                :type "checkbox"
+                :value is-main-contact?
+                :on-change #(is-main-contact?! (val-id is-main-contact?-id)))))
+
+          (bs/form-group
+            (bs/control-label :col [:sm label-cols] :for com-con-id (text "~(vocab :com-con-id-label s/lang)"))
+
+            (let [com-con-id* (cell nil)
+                  com-con-type* (cell nil)]
+              (div
+                :col [:xs (- 12 label-cols)]
+
+                (loop-tpl
+                  :bindings [{com-con-db-id :db/id
+                              com-con-id :com-con/id
+                              com-con-type :com-con/type
+                              :as com-con} com-connections]
+
+                  (uie/create-com-con-inputs
+                    :fields {:row-no row-no
+                             :row-action! #(s/delete-db-entity @com-con-db-id)
+                             :id com-con-id :id! #(s/update-db-entity @com-con-db-id :com-con/id %)
+                             :type com-con-type :type! #(s/update-db-entity @com-con-db-id :com-con/type %)}))
+
+                (uie/create-donation-inputs
+                  :fields {:row-action! #(when (and @com-con-id* @com-con-type*)
+                                          (s/create-new-com-con @db-id @com-con-id* @com-con-type*)
+                                          (reset! com-con-id* nil)
+                                          (reset! com-con-type* nil))
+                           :id com-con-id :id! #(reset! com-con-id* %)
+                           :type com-con-type :type! #(reset! com-con-type* %)}))))
+
+          (bs/form-group
+            (bs/control-label :col [:sm label-cols] :for is-main-contact?-id (text "~(vocab :is-main-contact?-label s/lang)"))
+            (div
+              :col [:xs 1]
+              (input
+                :id is-main-contact?-id
+                :type "checkbox"
                 :value is-main-contact?
                 :on-change #(is-main-contact?! (val-id is-main-contact?-id)))))
 

@@ -222,7 +222,8 @@
                  :col [:xs 10]
 
                  (contacts/contact
-                   :fields {:title title :title! #(s/update-db-entity @db-id :person/title %)
+                   :fields {:db-id db-id
+                            :title title :title! #(s/update-db-entity @db-id :person/title %)
                             :first-name first-name :first-name! #(s/update-db-entity @db-id :person/first-name %)
                             :last-name last-name :last-name! #(s/update-db-entity @db-id :person/last-name %)
                             :roles roles :roles! #(s/update-db-entity @db-id :person/roles %)
