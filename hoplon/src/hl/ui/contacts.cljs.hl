@@ -31,6 +31,9 @@
                :is-main-contact?-label {:lang/de "Haupt-Kontakt?"
                                     :lang/en "Main contact?"}
 
+               :com-con-id-label {:lang/de "Kommunikation"
+                                  :lang/en "Communication"}
+
                :notes-label {:lang/de "Notizen"
                              :lang/en "Notes"}
                :notes-placeholder {:lang/de "Hier können Notizen zum Kontakt gemacht werden ..."
@@ -142,7 +145,7 @@
                 :value notes
                 :on-change #(notes! (val-id notes-id)))))
 
-          (bs/form-group
+          #_(bs/form-group
             (bs/control-label :col [:sm label-cols] :for is-main-contact?-id (text "~(vocab :is-main-contact?-label s/lang)"))
             (div
               :col [:xs 1]
@@ -156,29 +159,35 @@
             (bs/control-label :col [:sm label-cols] :for com-con-id (text "~(vocab :com-con-id-label s/lang)"))
 
             (let [com-con-id* (cell nil)
+                  com-con-desc* (cell nil)
                   com-con-type* (cell nil)]
               (div
                 :col [:xs (- 12 label-cols)]
 
                 (loop-tpl
-                  :bindings [{com-con-db-id :db/id
-                              com-con-id :com-con/id
-                              com-con-type :com-con/type
-                              :as com-con} com-connections]
+                  :bindings [[row-no {com-con-db-id :db/id
+                                      com-con-id :com-con/id
+                                      com-con-desc :com-con/description
+                                      com-con-type :com-con/type
+                                      :as com-con}]
+                             (cell= (util/indexed (sort-by :db/id com-connections)))]
 
                   (uie/create-com-con-inputs
                     :fields {:row-no row-no
                              :row-action! #(s/delete-db-entity @com-con-db-id)
                              :id com-con-id :id! #(s/update-db-entity @com-con-db-id :com-con/id %)
+                             :desc com-con-desc :desc! #(s/update-db-entity @com-con-db-id :com-con/description %)
                              :type com-con-type :type! #(s/update-db-entity @com-con-db-id :com-con/type %)}))
 
-                (uie/create-donation-inputs
+                (uie/create-com-con-inputs
                   :fields {:row-action! #(when (and @com-con-id* @com-con-type*)
-                                          (s/create-new-com-con @db-id @com-con-id* @com-con-type*)
+                                          (s/create-new-com-con @db-id @com-con-id* @com-con-desc* @com-con-type*)
                                           (reset! com-con-id* nil)
+                                          (reset! com-con-desc* nil)
                                           (reset! com-con-type* nil))
-                           :id com-con-id :id! #(reset! com-con-id* %)
-                           :type com-con-type :type! #(reset! com-con-type* %)}))))
+                           :id com-con-id* :id! #(reset! com-con-id* %)
+                           :desc com-con-desc* :desc! #(reset! com-con-desc* %)
+                           :type com-con-type* :type! #(reset! com-con-type* %)}))))
 
           (bs/form-group
             (bs/control-label :col [:sm label-cols] :for is-main-contact?-id (text "~(vocab :is-main-contact?-label s/lang)"))

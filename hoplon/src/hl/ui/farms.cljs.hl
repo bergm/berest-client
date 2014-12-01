@@ -499,14 +499,14 @@
                                          :value-cols 3}))
 
                               (let [recalc-count (cell 0)
-                                    _ (cell= (println "recalc-count: " recalc-count))
+                                    ;_ (cell= (println "recalc-count: " recalc-count))
 
-                                    _ (cell= (print "annuals: " (pr-str annuals)))
+                                    ;_ (cell= (print "annuals: " (pr-str annuals)))
 
                                     annual-years (cell= (->> annuals
                                                              (map :plot.annual/year ,,,)
                                                              sort))
-                                    _ (cell= (print "annual-years: " (pr-str annual-years)))
+                                    ;_ (cell= (print "annual-years: " (pr-str annual-years)))
 
                                     annual-plot-details-visible?* (cell true)
                                     annual-plot-details-visible? (cell= (and (seq annual-years)
@@ -514,10 +514,15 @@
 
                                     current-year (.getFullYear (js/Date.))
 
-                                    selected-annual-year (cell= (or (some-> (:year s/route-params) js/parseInt)
-                                                                    ((into #{} annual-years) current-year)
-                                                                    (last annual-years)))
-                                    ;_ (cell= (println "selected-annual-year: " selected-annual-year))
+                                    selected-annual-year (cell= (let [annual-years-set (into #{} annual-years)]
+                                                                  (or (if-let [param-year (some-> (:year s/route-params) js/parseInt)]
+                                                                        (annual-years-set param-year))
+                                                                      (annual-years-set current-year)
+                                                                      (last annual-years))))
+                                    #__ #_(cell= (println "selected-annual-year: " (pr-str selected-annual-year)
+                                                      "param-year: " (pr-str (some-> (:year s/route-params) js/parseInt))))
+                                    _ (cell= (when (not= selected-annual-year (some-> (:year s/route-params) js/parseInt))
+                                               (s/set-route-params :year selected-annual-year)))
 
                                     selected-annual (cell= (first (filter #(= selected-annual-year (:plot.annual/year %)) annuals)))
                                     _ (cell= (when (and selected-plot selected-annual)

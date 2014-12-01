@@ -75,27 +75,43 @@
            :remove-crop-rel-dc-day-to-transpiration-factor-label {:lang/de "rel.Tag->Transpirationsfaktor entfernen"
                                                               :lang/en "Remove rel.day->Transpiration factor"}
 
+           :com-con-id-placeholder {:lang/de "Nummer/Id"
+                                    :lang/en "Number/Id"}
+           :com-con-desc-placeholder {:lang/de "Hinweis: z.B. Privat/Arbeit"
+                                      :lang/en "Note: e.g. private/work"}
+           :add-com-con-label {:lang/de "Verbindung hinzufügen"
+                               :lang/en "Add connection"}
+           :remove-com-con-label {:lang/de "Verbindung entfernen"
+                                  :lang/en "Remove connection"}
+           :com-con-mobile-phone-label {:lang/de "Handy"
+                                        :lang/en "Mobile"}
+           :com-con-fixed-phone-label {:lang/de "Festnetz"
+                                       :lang/en "Fixed-line"}
+           :com-con-fax-label {:lang/de "Fax"
+                               :lang/en "Fax"}
+           :com-con-skype-label {:lang/de "Skype"
+                                 :lang/en "Skype"}
+           :com-con-email-label {:lang/de "E-Mail"
+                                 :lang/en "Email"}
+           :com-con-instant-messaging-label {:lang/de "Instant-Messaging"
+                                             :lang/en "Instant messaging"}
+           :com-con-mobile-uri-label {:lang/de "URL"
+                                      :lang/en "URL"}
+
            :tavg-placeholder {:lang/de "Tmit"
                               :lang/en "Tavg"}
-
            :globrad-placeholder {:lang/de "Globalstrahlung"
                                  :lang/en "Global radiation"}
-
            :evap-placeholder {:lang/de "Verdunstung"
                              :lang/en "Evaporation"}
-
            :precip-placeholder {:lang/de "Niederschlag"
                                 :lang/en "Precipitation"}
-
            :prog?-label {:lang/de "Prognose?"
                          :lang/en "Prognosis?"}
-
            :remove-weather-data-label {:lang/de "Entfernen"
                                        :lang/en "Remove"}
-
            :add-weather-data-label {:lang/de "Hinzufügen"
                                     :lang/en "Add"}
-
            :weather-data-label {:lang/de "Datensätze"
                                 :lang/en "Datasets"}
 
@@ -224,13 +240,17 @@
 
        (div
          :col [:xs 4]
-         (input
+         (button
            :class (cell= {:btn true
+                          :btn-sm true
                           :btn-danger (not (nil? row-no))
                           :btn-warning (nil? row-no)})
-           :type "button"
-           :value (cell= (if row-no (vocab :remove-layer-label s/lang) (vocab :add-layer-label s/lang)))
-           :on-click #(row-action! (some-> row-no deref)))))
+           ;:type "button"
+           ;:value (cell= (if row-no (vocab :remove-layer-label s/lang) (vocab :add-layer-label s/lang)))
+           :on-click #(row-action! (some-> row-no deref))
+           (span :class (cell= {:glyphicon true
+                                :glyphicon-trash (not (nil? row-no))
+                                :glyphicon-plus (nil? row-no)})))))
      (dissoc attrs :fields :opts) kids)))
 
 
@@ -279,13 +299,17 @@
 
        (div
          :col [:xs 4]
-         (input
+         (button
            :class (cell= {:btn true
+                          :btn-sm true
                           :btn-danger (not (nil? row-no))
                           :btn-warning (nil? row-no)})
-           :type "button"
-           :value (cell= (if row-no (vocab :remove-layer-label s/lang) (vocab :add-layer-label s/lang)))
-           :on-click #(row-action! (some-> row-no deref)))))
+           ;:type "button"
+           ;:value (cell= (if row-no (vocab :remove-layer-label s/lang) (vocab :add-layer-label s/lang)))
+           :on-click #(row-action! (some-> row-no deref))
+           (span :class (cell= {:glyphicon true
+                                :glyphicon-trash (not (nil? row-no))
+                                :glyphicon-plus (nil? row-no)})))))
      (dissoc attrs :fields :opts) kids)))
 
 
@@ -304,7 +328,7 @@
     ((div
        :class "row"
        (div
-         :col [:xs 3]
+         :col [:xs 4]
          (div
            :class "input-group"
            (span :class "input-group-addon" "von")
@@ -321,7 +345,7 @@
                                                                                (val-id abs-start-day-id)))))))
 
        (div
-         :col [:xs 3]
+         :col [:xs 4]
          (div
            :class "input-group"
            (span :class "input-group-addon" "bis")
@@ -353,14 +377,18 @@
            (span :class "input-group-addon" "mm")))
 
        (div
-         :col [:xs 3]
-         (input
+         :col [:xs 1]
+         (button
            :class (cell= {:btn true
+                          :btn-sm true
                           :btn-danger (not (nil? row-no))
                           :btn-warning (nil? row-no)})
-           :type "button"
-           :value (cell= (if row-no (vocab :remove-donation-label s/lang) (vocab :add-donation-label s/lang)))
-           :on-click #(row-action! (some-> row-no deref)))))
+           ;:type "button"
+           ;:value (cell= (if row-no (vocab :remove-donation-label s/lang) (vocab :add-donation-label s/lang)))
+           :on-click #(row-action! (some-> row-no deref))
+           (span :class (cell= {:glyphicon true
+                                :glyphicon-trash (not (nil? row-no))
+                                :glyphicon-plus (nil? row-no)})))))
      (dissoc attrs :fields :opts) kids)))
 
 (defelem
@@ -450,7 +478,7 @@
               (span :class "input-group-addon" "mm")))
 
           (div
-            :col [:xs 1]
+            :col [:xs 2]
             (label
               :class "checkbox-inline"
               (input
@@ -461,14 +489,16 @@
               (text "~(vocab :prog?-label s/lang)")))
 
           (div
-            :col [:xs 2]
-            (input
+            :col [:xs 1]
+            (button
               :class (cell= {:btn true
+                             :btn-sm true
                              :btn-danger (not (nil? row-no))
                              :btn-warning (nil? row-no)})
-              :type "button"
-              :value (cell= (if row-no (vocab :remove-weather-data-label s/lang) (vocab :add-weather-data-label s/lang)))
-              :on-click #(row-action! (some-> row-no deref)))))
+              :on-click #(row-action! (some-> row-no deref))
+              (span :class (cell= {:glyphicon true
+                                   :glyphicon-trash (not (nil? row-no))
+                                   :glyphicon-plus (nil? row-no)})))))
         (dissoc attrs :fields :opts) kids)))
 
 
@@ -533,15 +563,19 @@
 
        (div
          :col [:xs 3]
-         (input
+         (button
            :class (cell= {:btn true
+                          :btn-sm true
                           :btn-danger (not (nil? row-no))
                           :btn-warning (nil? row-no)})
-           :type "button"
-           :value (cell= (if row-no
+           ;:type "button"
+           #_:value #_(cell= (if row-no
                            (vocab :remove-dc-assertion-label s/lang)
                            (vocab :add-dc-assertion-label s/lang)))
-           :on-click #(row-action! (some-> row-no deref)))))
+           :on-click #(row-action! (some-> row-no deref))
+           (span :class (cell= {:glyphicon true
+                                :glyphicon-trash (not (nil? row-no))
+                                :glyphicon-plus (nil? row-no)})))))
      (dissoc attrs :fields :opts) kids)))
 
 
@@ -646,13 +680,17 @@
 
        (div
          :col [:xs 2]
-         (input
+         (button
            :class (cell= {:btn true
+                          :btn-sm true
                           :btn-danger (not (nil? row-no))
                           :btn-warning (nil? row-no)})
-           :type "button"
-           :value (cell= (if row-no (vocab :remove-crop-dc-to-name-label s/lang) (vocab :add-crop-dc-to-name-label s/lang)))
-           :on-click #(row-action! (some-> row-no deref)))))
+           ;:type "button"
+           ;:value (cell= (if row-no (vocab :remove-crop-dc-to-name-label s/lang) (vocab :add-crop-dc-to-name-label s/lang)))
+           :on-click #(row-action! (some-> row-no deref))
+           (span :class (cell= {:glyphicon true
+                                :glyphicon-trash (not (nil? row-no))
+                                :glyphicon-plus (nil? row-no)})))))
      (dissoc attrs :fields :opts) kids)))
 
 (defelem
@@ -701,13 +739,17 @@
 
        (div
          :col [:xs 2]
-         (input
+         (button
            :class (cell= {:btn true
+                          :btn-sm true
                           :btn-danger (not (nil? row-no))
                           :btn-warning (nil? row-no)})
-           :type "button"
-           :value (cell= (if row-no (vocab :remove-crop-dc-to-rel-dc-day-label s/lang) (vocab :add-crop-dc-to-rel-dc-day-label s/lang)))
-           :on-click #(row-action! (some-> row-no deref)))))
+           ;:type "button"
+           ;:value (cell= (if row-no (vocab :remove-crop-dc-to-rel-dc-day-label s/lang) (vocab :add-crop-dc-to-rel-dc-day-label s/lang)))
+           :on-click #(row-action! (some-> row-no deref))
+           (span :class (cell= {:glyphicon true
+                                :glyphicon-trash (not (nil? row-no))
+                                :glyphicon-plus (nil? row-no)})))))
      (dissoc attrs :fields :opts) kids)))
 
 
@@ -757,13 +799,17 @@
 
        (div
          :col [:xs 2]
-         (input
+         (button
            :class (cell= {:btn true
+                          :btn-sm true
                           :btn-danger (not (nil? row-no))
                           :btn-warning (nil? row-no)})
-           :type "button"
-           :value (cell= (if row-no (vocab :remove-crop-rel-dc-day-to-cover-degree-label s/lang) (vocab :add-crop-rel-dc-day-to-cover-degree-label s/lang)))
-           :on-click #(row-action! (some-> row-no deref)))))
+           ;:type "button"
+           ;:value (cell= (if row-no (vocab :remove-crop-rel-dc-day-to-cover-degree-label s/lang) (vocab :add-crop-rel-dc-day-to-cover-degree-label s/lang)))
+           :on-click #(row-action! (some-> row-no deref))
+           (span :class (cell= {:glyphicon true
+                                :glyphicon-trash (not (nil? row-no))
+                                :glyphicon-plus (nil? row-no)})))))
      (dissoc attrs :fields :opts) kids)))
 
 (defelem
@@ -812,13 +858,17 @@
 
        (div
          :col [:xs 2]
-         (input
+         (button
            :class (cell= {:btn true
+                          :btn-sm true
                           :btn-danger (not (nil? row-no))
                           :btn-warning (nil? row-no)})
-           :type "button"
-           :value (cell= (if row-no (vocab :remove-crop-rel-dc-day-to-aet7pet-label s/lang) (vocab :add-crop-rel-dc-day-to-aet7pet-label s/lang)))
-           :on-click #(row-action! (some-> row-no deref)))))
+           ;:type "button"
+           ;:value (cell= (if row-no (vocab :remove-crop-rel-dc-day-to-aet7pet-label s/lang) (vocab :add-crop-rel-dc-day-to-aet7pet-label s/lang)))
+           :on-click #(row-action! (some-> row-no deref))
+           (span :class (cell= {:glyphicon true
+                                :glyphicon-trash (not (nil? row-no))
+                                :glyphicon-plus (nil? row-no)})))))
      (dissoc attrs :fields :opts) kids)))
 
 (defelem
@@ -867,13 +917,17 @@
 
        (div
          :col [:xs 2]
-         (input
+         (button
            :class (cell= {:btn true
+                          :btn-sm true
                           :btn-danger (not (nil? row-no))
                           :btn-warning (nil? row-no)})
-           :type "button"
-           :value (cell= (if row-no (vocab :remove-crop-rel-dc-day-to-extraction-depth-label s/lang) (vocab :add-crop-rel-dc-day-to-extraction-depth-label s/lang)))
-           :on-click #(row-action! (some-> row-no deref)))))
+           ;:type "button"
+           ;:value (cell= (if row-no (vocab :remove-crop-rel-dc-day-to-extraction-depth-label s/lang) (vocab :add-crop-rel-dc-day-to-extraction-depth-label s/lang)))
+           :on-click #(row-action! (some-> row-no deref))
+           (span :class (cell= {:glyphicon true
+                                :glyphicon-trash (not (nil? row-no))
+                                :glyphicon-plus (nil? row-no)})))))
      (dissoc attrs :fields :opts) kids)))
 
 (defelem
@@ -922,45 +976,58 @@
 
        (div
          :col [:xs 2]
-         (input
+         (button
            :class (cell= {:btn true
+                          :btn-sm true
                           :btn-danger (not (nil? row-no))
                           :btn-warning (nil? row-no)})
-           :type "button"
-           :value (cell= (if row-no (vocab :remove-crop-rel-dc-day-to-transpiration-factor-label s/lang) (vocab :add-crop-rel-dc-day-to-transpiration-factor-label s/lang)))
-           :on-click #(row-action! (some-> row-no deref)))))
+           ;:type "button"
+           ;:value (cell= (if row-no (vocab :remove-crop-rel-dc-day-to-transpiration-factor-label s/lang) (vocab :add-crop-rel-dc-day-to-transpiration-factor-label s/lang)))
+           :on-click #(row-action! (some-> row-no deref))
+           (span :class (cell= {:glyphicon true
+                                :glyphicon-trash (not (nil? row-no))
+                                :glyphicon-plus (nil? row-no)})))))
      (dissoc attrs :fields :opts) kids)))
 
 (defelem
   create-com-con-inputs
   [{{:keys [row-no row-action!
             id id!
+            desc desc!
             type type!]} :fields
     opts :opts
     :as attrs} kids]
 
-  (let [[id-id type-id] (repeatedly gensym)]
+  (let [[id-id desc-id type-id] (repeatedly gensym)]
     ((div
        :class "row"
 
        (div
          :col [:xs 4]
-         (p :toggle no-edit? :class "form-control-static" (text "~{id}"))
          (input
            :id id-id
-           :toggle edit?
            :class "form-control"
            :type "text"
-           :placeholder (cell= (vocab :com-con-placeholder s/lang))
+           :placeholder (cell= (vocab :com-con-id-placeholder s/lang))
            :value id
-           :on-change #(id! @db-id :com-con/id (val-id id))))
+           :on-change #(id! (val-id id-id))))
+
+       (div
+         :col [:xs 3]
+         (input
+           :id desc-id
+           :class "form-control"
+           :type "text"
+           :placeholder (cell= (vocab :com-con-desc-placeholder s/lang))
+           :value desc
+           :on-change #(desc! (val-id desc-id))))
 
        (div
          :col [:xs 3]
          (select
            :id type-id
            :class "form-control"
-           :change #(type! @db-id :com-con/type (keyword "com-con" (val-id type-id)))
+           :change #(type! (keyword "com-con.type" (val-id type-id)))
            (option :value "" "")
            (option :value "mobile-phone"
                    :selected (cell= (= :com-con.type/mobile-phone type))
@@ -986,13 +1053,15 @@
 
        (div
          :col [:xs 2]
-         (input
+         (button
            :class (cell= {:btn true
+                          :btn-sm true
                           :btn-danger (not (nil? row-no))
                           :btn-warning (nil? row-no)})
-           :type "button"
-           :value (cell= (if row-no (vocab :remove-com-con-label s/lang) (vocab :add-com-con-label s/lang)))
-           :on-click #(row-action! (some-> row-no deref)))))
+           :click #(row-action! (some-> row-no deref))
+           (span :class (cell= {:glyphicon true
+                                :glyphicon-trash (not (nil? row-no))
+                                :glyphicon-plus (nil? row-no)})))))
      (dissoc attrs :fields :opts) kids)))
 
 

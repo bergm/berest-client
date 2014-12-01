@@ -133,13 +133,16 @@
            (uic/hover-activate-wrapper
              :action! #(swap! visible? not)
              (legend
-               (text "~(vocab :address-fieldset-label s/lang) ~(when-not visible? \" ...\")")
-               (button
-                 :toggle visible?
-                 :style "float:right"
-                 :class "btn btn-warning btn-sm"
-                 :click #(s/create-new-farm-address @id)
-                 (text "~(vocab :new-address-button-label s/lang)"))))
+               :style "padding-left:0px"
+               :col [:xs 11]
+               (text "~(vocab :address-fieldset-label s/lang) ~(when-not visible? \" ...\")")))
+           (button
+             :col [:xs 1]
+             :toggle visible?
+             ;:style "float:right"
+             :class "btn btn-warning btn-sm"
+             :click #(s/create-new-farm-address @id)
+             (text "~(vocab :new-address-button-label s/lang)"))
 
            (loop-tpl
              :bindings [{db-id :db/id
@@ -154,7 +157,8 @@
                          state-short :address/state-short
                          country :address/country
                          country-short :address/country-short
-                         :as address} addresses]
+                         :as address}
+                        (cell= (sort-by :db/id addresses))]
              (div
                :class "row"
 
@@ -195,13 +199,16 @@
            (uic/hover-activate-wrapper
              :action! #(swap! visible? not)
              (legend
-               (text "~(vocab :contacts-fieldset-label s/lang) ~(when-not visible? \" ...\")")
-               (button
-                 :toggle visible?
-                 :style "float:right"
-                 :class "btn btn-warning btn-sm"
-                 :click #(s/create-new-farm-contact @id)
-                 (text "~(vocab :new-contact-button-label s/lang)"))))
+               :style "padding-left:0px"
+               :col [:xs 11]
+               (text "~(vocab :contacts-fieldset-label s/lang) ~(when-not visible? \" ...\")")))
+           (button
+             :col [:xs 1]
+             :toggle visible?
+             ;:style "float:right"
+             :class "btn btn-warning btn-sm"
+             :click #(s/create-new-farm-contact @id)
+             (text "~(vocab :new-contact-button-label s/lang)"))
 
            (loop-tpl
              :bindings [{db-id :db/id
@@ -212,7 +219,7 @@
                          com-connections :person/com-connections
                          is-main-contact? :person/is-main-contact
                          notes :person/notes
-                         :as contact} contacts]
+                         :as contact} (cell= (sort-by #(str (:person/last-name %) ", " (:person/first-name %)) contacts))]
              ;:bind-ids [farm-id]
              (div
                :class "row"
