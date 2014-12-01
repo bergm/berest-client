@@ -499,7 +499,7 @@
                                          :value-cols 3}))
 
                               (let [recalc-count (cell 0)
-                                    ;_ (cell= (println "recalc-count: " recalc-count))
+                                    _ (cell= (println "recalc-count: " recalc-count))
 
                                     ;_ (cell= (print "annuals: " (pr-str annuals)))
 
@@ -525,10 +525,10 @@
                                                (s/set-route-params :year selected-annual-year)))
 
                                     selected-annual (cell= (first (filter #(= selected-annual-year (:plot.annual/year %)) annuals)))
-                                    _ (cell= (when (and selected-plot selected-annual)
+                                    #__ #_(cell= (when (and selected-plot selected-annual)
                                                    farm-weather-data
                                                    (swap! ~(cell recalc-count) inc)))
-                                    ;_ (cell= (println "selected-annual: " (pr-str selected-annual)))
+                                    #__ #_(cell= (println "selected-annual: " (pr-str selected-annual)))
                                     ]
 
                                    [(uic/hover-toggle-panel

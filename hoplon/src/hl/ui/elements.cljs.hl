@@ -508,24 +508,20 @@
             dc->names
             year
             abs-day abs-day!
-            ;at-abs-day at-abs-day!
             dc dc!]} :fields
-    {:keys [#_link-abs-days
-            #_hide-at-abs-day]} :opts
     :as attrs} kids]
 
   (let [year* (cell= (or year (cstc/year (cstc/now))))
-        [#_at-abs-day-id abs-day-id dc-id dc-select-id] (repeatedly gensym)]
+        [abs-day-id dc-id dc-select-id] (repeatedly gensym)]
     ((div
        :class "row"
 
        (div
-         :col [:xs 3]
+         :col [:xs 4]
          (input
            :id abs-day-id
            :class "form-control"
            :type "date"
-           ;:placeholder (cell= (vocab :abs-day-placeholder s/lang))
            :value (cell= (if abs-day
                            (util/cljs-time-date->iso-y-m-d (util/doy->cljs-time-date abs-day year*))
                            (if (= year* (cstc/year (cstc/now)))
@@ -535,7 +531,7 @@
                                                                        (val-id abs-day-id))))))
 
        (div
-         :col [:xs 2]
+         :col [:xs 3]
          (input
            :id dc-id
            :class "form-control"
@@ -562,16 +558,12 @@
                      (text "~{dc*} | ~{name}")))))
 
        (div
-         :col [:xs 3]
+         :col [:xs 1]
          (button
            :class (cell= {:btn true
                           :btn-sm true
                           :btn-danger (not (nil? row-no))
                           :btn-warning (nil? row-no)})
-           ;:type "button"
-           #_:value #_(cell= (if row-no
-                           (vocab :remove-dc-assertion-label s/lang)
-                           (vocab :add-dc-assertion-label s/lang)))
            :on-click #(row-action! (some-> row-no deref))
            (span :class (cell= {:glyphicon true
                                 :glyphicon-trash (not (nil? row-no))

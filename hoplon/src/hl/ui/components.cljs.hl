@@ -296,10 +296,10 @@
 
 
 (defelem safe-delete-button
-      [{:keys [action! value small-button?]
-        :as attrs} kids]
-      ((let [checked? (cell false)
-             checked-id (gensym)]
+         [{:keys [action! value small-button?]
+           :as attrs} kids]
+         ((let [checked? (cell false)
+                checked-id (gensym)]
             (div
               :class "input-group"
               (input
@@ -322,7 +322,7 @@
                   :type "checkbox"
                   :value checked?
                   :change #(reset! checked? (val-id checked-id))))))
-       (dissoc attrs :action! :value :small-button?) kids))
+          (dissoc attrs :action! :value :small-button?) kids))
 
 (defelem hover-activate-wrapper
          [{:keys [action!]

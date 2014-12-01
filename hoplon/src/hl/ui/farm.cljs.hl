@@ -139,7 +139,6 @@
            (button
              :col [:xs 1]
              :toggle visible?
-             ;:style "float:right"
              :class "btn btn-warning btn-sm"
              :click #(s/create-new-farm-address @id)
              (text "~(vocab :new-address-button-label s/lang)"))
@@ -205,7 +204,6 @@
            (button
              :col [:xs 1]
              :toggle visible?
-             ;:style "float:right"
              :class "btn btn-warning btn-sm"
              :click #(s/create-new-farm-contact @id)
              (text "~(vocab :new-contact-button-label s/lang)"))

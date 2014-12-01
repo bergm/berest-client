@@ -69,7 +69,7 @@
          first-name-id last-name-id roles-id com-connections-id
          is-main-contact?-id
          notes-id] (repeatedly gensym)
-        _ (cell= (println first-name " is-main-contact? " (pr-str is-main-contact?)))
+        ;_ (cell= (println first-name " is-main-contact? " (pr-str is-main-contact?)))
         ]
        ((bs/form
           :opts [:horizontal]
@@ -144,16 +144,6 @@
                 :placeholder (cell= (vocab :notes-placeholder s/lang))
                 :value notes
                 :on-change #(notes! (val-id notes-id)))))
-
-          #_(bs/form-group
-            (bs/control-label :col [:sm label-cols] :for is-main-contact?-id (text "~(vocab :is-main-contact?-label s/lang)"))
-            (div
-              :col [:xs 1]
-              (input
-                :id is-main-contact?-id
-                :type "checkbox"
-                :value is-main-contact?
-                :on-change #(is-main-contact?! (val-id is-main-contact?-id)))))
 
           (bs/form-group
             (bs/control-label :col [:sm label-cols] :for com-con-id (text "~(vocab :com-con-id-label s/lang)"))
