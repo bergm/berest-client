@@ -499,7 +499,7 @@
                                          :value-cols 3}))
 
                               (let [recalc-count (cell 0)
-                                    _ (cell= (println "recalc-count: " recalc-count))
+                                    ;_ (cell= (println "recalc-count: " recalc-count))
 
                                     ;_ (cell= (print "annuals: " (pr-str annuals)))
 

@@ -306,7 +306,7 @@
         ;_ (cell= (println "technology-available?: " technology-available?))
 
         initial-dc-assertions-available? (cell= (do
-                                                  (println "crop-instances: " (pr-str crop-instances))
+                                                  #_(println "crop-instances: " (pr-str crop-instances))
                                                   (and crop-instances
                                                      (reduce #(and %1 (boolean (seq %2))) true
                                                              (map :crop.instance/dc-assertions crop-instances)))))
@@ -345,7 +345,7 @@
 
         recalc-count* (cell 0)
         recalc-count** (cell= (+ recalc-count* recalc-count))
-        _ (cell= (println "recalc-count**: " recalc-count**))
+        ;_ (cell= (println "recalc-count**: " recalc-count**))
 
         calc-result* (cell nil)
         calc-result (cell= (when calculation-data-complete?
@@ -417,7 +417,7 @@
         ;_ (cell= (println "economic-values: " (pr-str economic-values)))
 
         recommendation (cell= (:recommendation calc-result))
-        _ (cell= (println "recommendation: " (pr-str recommendation)))
+        ;_ (cell= (println "recommendation: " (pr-str recommendation)))
 
         chart-config {:chart {:renderTo chart-id
                               ;:defaultSeriesType "spline"
@@ -684,8 +684,7 @@
            :class "col-xs-offset-10"
            (uic/safe-delete-button
              :small-button? true
-             :action! #(do (println "delete annual plot id: " @db-id " year: " @year)
-                           (s/delete-db-entity @db-id))
+             :action! #(s/delete-db-entity @db-id)
              :value (cell= (str year " " (vocab :delete-plot-annual-button-label s/lang))))))
 
        #_(button
@@ -776,7 +775,8 @@
                 (let [depth* (cell nil)
                       sm* (cell nil)
                       unit* (cell= (vocab (keyword ((fnil clojure.core/name "") initial-sm-unit)) s/lang))
-                      _ (cell= (println "initial-soil-moistures: " (pr-str initial-soil-moistures)))]
+                      ;_ (cell= (println "initial-soil-moistures: " (pr-str initial-soil-moistures)))
+                      ]
                      (div
                        :col [:xs (min (+ value-cols 2) (- 12 label-cols))]
                        #_(p :toggle no-edit? :class "form-control-static" (text "~{irrigation-area}"))
@@ -917,7 +917,8 @@
                           (let [depth* (cell nil)
                                 sm* (cell nil)
                                 unit* (cell= (vocab (keyword ((fnil clojure.core/name "") sm-unit)) s/lang))
-                                _ (cell= (println "sm-values: " (pr-str sm-values)))]
+                                ;_ (cell= (println "sm-values: " (pr-str sm-values)))
+                                ]
                             (div
                               :col [:xs (min (+ value-cols 2) (- 12 label-cols))]
 

@@ -146,12 +146,13 @@
                 :on-change #(notes! (val-id notes-id)))))
 
           (bs/form-group
-            (bs/control-label :col [:sm label-cols] :for com-con-id (text "~(vocab :com-con-id-label s/lang)"))
+            (bs/control-label :col [:sm label-cols] :for com-connections-id (text "~(vocab :com-con-id-label s/lang)"))
 
             (let [com-con-id* (cell nil)
                   com-con-desc* (cell nil)
                   com-con-type* (cell nil)]
               (div
+                :id com-connections-id
                 :col [:xs (- 12 label-cols)]
 
                 (loop-tpl

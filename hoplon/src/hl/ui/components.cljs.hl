@@ -125,7 +125,7 @@
           :toggle s/admin-logged-in?
           :class (cell= {:active (= s/route "#/admin")})
           (a
-            :href (str "#/admin" s/route-params-str)
+            :href (cell= (str "#/admin?" s/route-params-str))
             (cell= (vocab :nav-admin s/lang)))))
       (div
         :toggle s/logged-in?

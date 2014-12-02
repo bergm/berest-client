@@ -103,12 +103,12 @@
 (def clear-error!   #(reset! error nil))
 
 (defc csv-result nil)
-(cell= (println "csv-result: " (pr-str csv-result)))
+#_(cell= (println "csv-result: " (pr-str csv-result)))
 (defc calc-error nil)
 (defc calculating [])
 
 (defc= user (:user-credentials state))
-(cell= (println "user-creds: " (pr-str user)))
+#_(cell= (println "user-creds: " (pr-str user)))
 
 (defc= lang (:language state))
 #_(cell= (println "lang: " (pr-str lang)))

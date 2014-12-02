@@ -44,10 +44,10 @@
         donations (cell [{:day 1 :month 4 :amount 22}
                          {:day 2 :month 5 :amount 10}
                          {:day 11 :month 7 :amount 30}])
-        _ (cell= (println "donations: " (pr-str donations)))
+        ;_ (cell= (println "donations: " (pr-str donations)))
 
         temp-donations (cell {:day nil :month nil :amount nil})
-        _ (cell= (println "temp-donations: " (pr-str temp-donations)))
+        ;_ (cell= (println "temp-donations: " (pr-str temp-donations)))
 
         remove-donation-row! (fn [row-no]
                               (reset! donations (->> @donations

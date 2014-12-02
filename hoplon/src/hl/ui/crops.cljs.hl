@@ -107,7 +107,7 @@
         #_selected-crop #_(cell nil)
         selected-crop (cell= (when-let [cid (:crop-id s/route-params)]
                                (first (filter #(= (:crop/id %) cid) s/minimal-all-crops))))
-        _ (cell= (println "selected-crop: " (pr-str selected-crop)))
+        ;_ (cell= (println "selected-crop: " (pr-str selected-crop)))
         _ (cell= (when filtered-crops
                    (s/set-route-params :crop-id nil)))
 
