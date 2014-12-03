@@ -226,14 +226,14 @@
            (span :class "input-group-addon" "cm")))
 
        (div
-         :col [:xs 4]
+         :col [:xs 3]
          (select
            :id value-id
            :class "form-control"
            :on-change #(value! (val-id value-id))
            (option "")
-           (for #_loop-tpl
-                #_:bindings [[name _] (sort-by #(-> first :soil.type.ka5/name) @s/ka5-soil-types)]
+           (loop-tpl
+             :bindings [[name _] (cell= (sort-by first s/ka5-soil-types))]
              (option :value name
                      :selected (cell= (= name value))
                      (text "~{name}")))))
