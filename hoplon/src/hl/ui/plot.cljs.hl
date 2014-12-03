@@ -541,7 +541,8 @@
                  :toggle edit?
                  :id weather-station-id
                  :class "form-control"
-                 :on-change #(weather-station! (js/parseInt (val-id weather-station-id)))
+                 :change #(let [v (val-id weather-station-id)]
+                           (weather-station! (when (seq v) (js/parseInt v))))
                  (option :value "" "")
                  (loop-tpl
                    :bindings [{ws-db-id :db/id

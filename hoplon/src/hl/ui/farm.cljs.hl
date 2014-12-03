@@ -301,7 +301,8 @@
                :toggle edit?
                :id authorative-ws-id
                :class "form-control"
-               :on-change #(authorative-weather-station! (js/parseInt (val-id authorative-ws-id)))
+               :change #(let [v (val-id authorative-ws-id)]
+                         (authorative-weather-station! (when (seq v) (js/parseInt v))))
                (option :value "" "")
                (loop-tpl
                  :bindings [{ws-db-id :db/id
@@ -328,7 +329,8 @@
                :toggle edit?
                :id ws-id
                :class "form-control"
-               :on-change #(weather-station! (js/parseInt (val-id ws-id)))
+               :change #(let [v (val-id ws-id)]
+                         (weather-station! (when (seq v) (js/parseInt v))))
                (option :value "" "")
                (loop-tpl
                  :bindings [{ws-db-id :db/id

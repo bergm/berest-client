@@ -168,6 +168,7 @@
         selected-farm (cell= (when-let [fid (:farm-id s/route-params)]
                                (when-let [fs (:farms s/state)]
                                  (fs (UUID. fid)))))
+        ;_ (cell= (println "selected-farm: " (pr-str selected-farm)))
 
         plots-count (cell= (count (:plots selected-farm)))
         _ (cell= (when (= plots-count 1)
@@ -310,10 +311,14 @@
                                                                                :value-type :double)
 
                                    :authorative-weather-station authorative-weather-station
-                                   :authorative-weather-station! #(s/update-db-entity @farm-db-id :farm/authorative-weather-station %)
+                                   :authorative-weather-station! #(if-let [ws-id (and (nil? %) (get @authorative-weather-station :weather-station/id))]
+                                                                   (s/retract-db-value @farm-db-id :farm/authorative-weather-station [:weather-station/id ws-id])
+                                                                   (s/update-db-entity @farm-db-id :farm/authorative-weather-station %))
 
                                    :weather-station weather-station
-                                   :weather-station! #(s/update-db-entity @farm-db-id :farm/weather-station %)
+                                   :weather-station! #(if-let [ws-id (and (nil? %) (get @weather-station :weather-station/id))]
+                                                       (s/retract-db-value @farm-db-id :farm/weather-station [:weather-station/id ws-id])
+                                                       (s/update-db-entity @farm-db-id :farm/weather-station %))
 
                                    :weather-data farm-weather-data}
                           :opts {:edit? true
@@ -476,7 +481,9 @@
                                            :annuals annuals
 
                                            :weather-station weather-station
-                                           :weather-station! #(s/update-db-entity @plot-db-id :plot/weather-station %)
+                                           :weather-station! #(if-let [p-id (and (nil? %) (get @weather-station :weather-station/id))]
+                                                               (s/retract-db-value @plot-db-id :plot/weather-station [:weather-station/id p-id])
+                                                               (s/update-db-entity @plot-db-id :plot/weather-station %))
 
                                            :weather-data plot-weather-data
 
