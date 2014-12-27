@@ -161,12 +161,15 @@
         _ (cell= (set-series-data chart-div-id 0 dc))
 
         cover-degrees (cell= (->> (:crop/rel-dc-day-to-cover-degrees crop-data)
+                                  (map (fn [[rel-dc-day cd]]
+                                         [rel-dc-day (* cd 100)])
+                                       ,,,)
                                   (into [] ,,,)
                                   (sort-by first ,,,)))
         _ (cell= (set-series-data chart-div-id 1 cover-degrees))
 
         extraction-depths (cell= (->> (:crop/rel-dc-day-to-extraction-depths crop-data)
-                                      (map (fn [[rel-dc-day depth-dm]]
+                                      #_(map (fn [[rel-dc-day depth-dm]]
                                              [rel-dc-day (* depth-dm 10)])
                                            ,,,)
                                       (into [] ,,,)

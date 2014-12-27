@@ -35,6 +35,20 @@
            :symbol-placeholder {:lang/de "Symbol der Fruchtart"
                               :lang/en "Symbol of crop"}
 
+           :description-label {:lang/de "Beschreibung"
+                          :lang/en "Description"}
+           :description-placeholder {:lang/de "Beschreibung der Fruchtart"
+                                :lang/en "Description of crop"}
+
+           :number-cult-type-usage-label {:lang/de "Nummer/Anbauform/Nutzung"
+                                                :lang/en "Number/Cult.type/Usage"}
+           :number-placeholder {:lang/de "Nummer"
+                                :lang/en "Number"}
+           :cultivation-type-placeholder {:lang/de "Anbauform"
+                                          :lang/en "Cultivation type"}
+           :usage-placeholder {:lang/de "Nutzung"
+                               :lang/en "Usage"}
+
            :th-user-crop? {:lang/de "Nutzer?"
                            :lang/en "User?"}
            :th-crop-number {:lang/de "Nummer"
@@ -80,6 +94,11 @@
            :crop-rel-dc-day-to-transpiration-factor-label {:lang/de "rel.Tag->Transpirationsfaktor"
                                                            :lang/en "rel.day->transpiration factor"}
 
+           :crop-effectivity-quotient-label {:lang/de "Effektivitätsquotient"
+                                             :lang/en "Effectivity quotient"}
+           :crop-effectivity-quotient-placeholder {:lang/de "Effektivitätsquotient"
+                                                   :lang/en "Effectivity quotient"}
+
            :dc {:lang/de "BEREST DC Code"
                 :lang/en "BEREST DC code"}
 
@@ -121,6 +140,10 @@
         ;_ (cell= (println "selected-crop: " (pr-str selected-crop)))
         _ (cell= (when filtered-crops
                    (s/set-route-params :crop-id nil)))
+
+        _ (cell= (let [id (:crop/id selected-crop)]
+                   (when (and id (not= id (:crop/id s/processed-crop-data)))
+                     (s/load-crop-data id))))
 
         new-crop-no (cell 0)
 
@@ -263,12 +286,16 @@
         (cell-let [{db-id :db/id
                     id :crop/id
                     name :crop/name
-                    symbol :crop/symbol} selected-crop]
+                    description :crop/description
+                    symbol :crop/symbol
+                    number :crop/number
+                    cultivation-type :crop/cultivation-type
+                    effectivity-quotient :crop/effectivity-quotient
+                    usage :crop/usage} s/raw-crop-data]
 
-          (let [[name-id symbol-id] (repeatedly gensym)
-
-                _ (cell= (when (and id (not= id (:crop/id s/processed-crop-data)))
-                           (s/load-crop-data id)))
+          (let [[name-id description-id symbol-id
+                 number-id cultivation-type-id usage-id
+                 crop-effectivity-quotient-id] (repeatedly gensym)
 
                 _ (with-timeout 0 (js/Highcharts.Chart. (clj->js (charts/crop-curves-chart-config chart-id))))
                 _ (cell= (charts/set-crop-curve-data chart-id s/processed-crop-data))
@@ -304,8 +331,58 @@
                     :class "form-control"
                     :type "text"
                     :placeholder (cell= (vocab :symbol-placeholder s/lang))
-                    :value long
+                    :value symbol
                     :on-change #(s/update-crop-db-entity @id @db-id :crop/symbol (val-id symbol-id)))))
+
+              (bs/form-group
+                (bs/control-label :col [:sm 2] :for description-id (text "~(vocab :description-label s/lang)"))
+                (div
+                  :col [:xs 6]
+                  (p :toggle no-edit? :class "form-control-static" (text "~{description}"))
+                  (input
+                    :id description-id
+                    :toggle edit?
+                    :class "form-control"
+                    :type "text"
+                    :placeholder (cell= (vocab :description-placeholder s/lang))
+                    :value description
+                    :on-change #(s/update-crop-db-entity @id @db-id :crop/description (val-id description-id)))))
+
+              (bs/form-group
+                (bs/control-label :col [:sm 2] :for description-id (text "~(vocab :number-cult-type-usage-label s/lang)"))
+                (div
+                  :col [:xs 2]
+                  (p :toggle no-edit? :class "form-control-static" (text "~{number}"))
+                  (input
+                    :id number-id
+                    :toggle edit?
+                    :class "form-control"
+                    :type "text"
+                    :placeholder (cell= (vocab :number-placeholder s/lang))
+                    :value number
+                    :on-change #(s/update-crop-db-entity @id @db-id :crop/number (val-id number-id))))
+                (div
+                  :col [:xs 2]
+                  (p :toggle no-edit? :class "form-control-static" (text "~{cultivation-type}"))
+                  (input
+                    :id cultivation-type-id
+                    :toggle edit?
+                    :class "form-control"
+                    :type "text"
+                    :placeholder (cell= (vocab :cultivation-type-placeholder s/lang))
+                    :value cultivation-type
+                    :on-change #(s/update-crop-db-entity @id @db-id :crop/cultivation-type (val-id cultivation-type-id))))
+                (div
+                  :col [:xs 2]
+                  (p :toggle no-edit? :class "form-control-static" (text "~{usage}"))
+                  (input
+                    :id usage-id
+                    :toggle edit?
+                    :class "form-control"
+                    :type "text"
+                    :placeholder (cell= (vocab :usage-placeholder s/lang))
+                    :value usage
+                    :on-change #(s/update-crop-db-entity @id @db-id :crop/usage (val-id usage-id)))))
 
               (div
                 :class "row"
@@ -325,11 +402,11 @@
 
                   (bs/form-group
                     :toggle visible?
-                    (bs/control-label :col [:sm 2] (text "~(vocab :crop-dc-to-rel-dc-day-label s/lang)"))
+                    (bs/control-label :col [:sm 3] (text "~(vocab :crop-dc-to-rel-dc-day-label s/lang)"))
                     (let [dc* (cell nil)
                           rel-dc-day* (cell nil)]
                       (div
-                        :col [:xs 8]
+                        :col [:xs 9]
 
                         (loop-tpl
                           :bindings [[row-no {db-id :db/id
@@ -353,11 +430,11 @@
 
                   (bs/form-group
                     :toggle visible?
-                    (bs/control-label :col [:sm 2] (text "~(vocab :crop-dc-to-name-label s/lang)"))
+                    (bs/control-label :col [:sm 3] (text "~(vocab :crop-dc-to-name-label s/lang)"))
                     (let [dc* (cell nil)
                           name* (cell nil)]
                       (div
-                        :col [:xs 8]
+                        :col [:xs 9]
 
                         (loop-tpl
                           :bindings [[row-no {db-id :db/id
@@ -381,11 +458,11 @@
 
                   (bs/form-group
                     :toggle visible?
-                    (bs/control-label :col [:sm 2] (text "~(vocab :crop-rel-dc-day-to-aet7pet-label s/lang)"))
+                    (bs/control-label :col [:sm 3] (text "~(vocab :crop-rel-dc-day-to-aet7pet-label s/lang)"))
                     (let [rel-dc-day* (cell nil)
                           aet7pet* (cell nil)]
                       (div
-                        :col [:xs 8]
+                        :col [:xs 9]
 
                         (loop-tpl
                           :bindings [[row-no {db-id :db/id
@@ -413,11 +490,11 @@
 
                   (bs/form-group
                     :toggle visible?
-                    (bs/control-label :col [:sm 2] (text "~(vocab :crop-rel-dc-day-to-cover-degree-label s/lang)"))
+                    (bs/control-label :col [:sm 3] (text "~(vocab :crop-rel-dc-day-to-cover-degree-label s/lang)"))
                     (let [rel-dc-day* (cell nil)
                           cover-degree* (cell nil)]
                       (div
-                        :col [:xs 8]
+                        :col [:xs 9]
 
                         (loop-tpl
                           :bindings [[row-no {db-id :db/id
@@ -445,11 +522,11 @@
 
                   (bs/form-group
                     :toggle visible?
-                    (bs/control-label :col [:sm 2] (text "~(vocab :crop-rel-dc-day-to-extraction-depth-label s/lang)"))
+                    (bs/control-label :col [:sm 3] (text "~(vocab :crop-rel-dc-day-to-extraction-depth-label s/lang)"))
                     (let [rel-dc-day* (cell nil)
                           extraction-depth* (cell nil)]
                       (div
-                        :col [:xs 8]
+                        :col [:xs 9]
 
                         (loop-tpl
                           :bindings [[row-no {db-id :db/id
@@ -477,11 +554,11 @@
 
                   (bs/form-group
                     :toggle visible?
-                    (bs/control-label :col [:sm 2] (text "~(vocab :crop-rel-dc-day-to-transpiration-factor-label s/lang)"))
+                    (bs/control-label :col [:sm 3] (text "~(vocab :crop-rel-dc-day-to-transpiration-factor-label s/lang)"))
                     (let [rel-dc-day* (cell nil)
                           transpiration-factor* (cell nil)]
                       (div
-                        :col [:xs 8]
+                        :col [:xs 9]
 
                         (loop-tpl
                           :bindings [[row-no {db-id :db/id
@@ -508,11 +585,25 @@
                                    :transpiration-factor transpiration-factor*
                                    :transpiration-factor! #(reset! transpiration-factor* %)}))))
 
-                  #_(uie/crop-data-form-group
-                    :visible? visible?
-                    :weather-data (cell= (when (and local? (seq selected-years-set*))
-                                           (apply concat (map second weather-data))))
-                    :id-attr :weather-station/id
-                    :id id))))
-
-            ))))))
+                  (bs/form-group
+                    :toggle visible?
+                    (bs/control-label :col [:sm 3] :for crop-effectivity-quotient-id (text "~(vocab :crop-effectivity-quotient-label s/lang)"))
+                    (div
+                      :col [:xs 2]
+                      #_(p :toggle no-edit? :class "form-control-static" (text "~{effectivity-quotient}"))
+                      (div
+                        :class "input-group"
+                        (input
+                          :id crop-effectivity-quotient-id
+                          ;:toggle edit?
+                          :class "form-control"
+                          :type "number"
+                          :step 0.1
+                          :min 0
+                          :max 2
+                          :placeholder (cell= (vocab :crop-effectivity-quotient-placeholder s/lang))
+                          :value effectivity-quotient
+                          :on-change #(s/update-crop-db-entity @id @db-id
+                                                               :crop/effectivity-quotient (js/parseFloat (val-id crop-effectivity-quotient-id))
+                                                               :value-type :double))
+                        (span :class "input-group-addon" "")))))))))))))

@@ -1025,11 +1025,14 @@
                 (option "")
                 (loop-tpl
                   :bindings [{id :crop/id
+                              number :crop/number
+                              cult-type :crop/cultivation-type
+                              usage :crop/usage
                               name :crop/name
                               symbol :crop/symbol}
                              (cell= (sort-by :crop/name s/minimal-all-crops))]
                   (option :value id
-                          (text "~{id} | ~{symbol} | ~{name}")))))
+                          (text "~{number}/~{cult-type}/~{usage} | ~{symbol} | ~{name}")))))
               (button
                 :toggle visible?
                 :col [:xs 1]
