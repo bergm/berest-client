@@ -96,7 +96,7 @@
                  (tr
                    (th :style "width:5%" (text "~(vocab :th-weather-jump s/lang)"))
                    (th :style "width:55%" (text "~(vocab :th-weather-station-name s/lang)"))
-                   (th (text "~(vocab :th-local-weather-station? s/lang)"))
+                   (th :style "width:30%" (text "~(vocab :th-local-weather-station? s/lang)"))
                    (th
                      :style "width:10%; text-align:right"
                      (button
@@ -137,7 +137,7 @@
                          (text "~(or name id)"))
 
                        (td
-                         :style "vertical-align: middle"
+                         :style "text-align: center; vertical-align: middle"
                          :class (cell= {:warning (and hover? (not selected?))
                                         :success selected?})
                          :click #(s/set-route-params :weather-station-id @id)

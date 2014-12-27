@@ -16,6 +16,15 @@
            :query-placeholder {:lang/de "Achtung LEERE SUCHE!! Alle Fruchtarten anzeigen kann lange dauern!!!"
                                 :lang/en "Attention EMPTY SEARCH!! Showing all crops might take long!!!"}
 
+           :new-crop-filter-value {:lang/de "Neuer Fruchtartname"
+                                   :lang/en "New crop name"}
+
+           :new-crop-button {:lang/de "Neue Fruchtart"
+                             :lang/en "New crop"}
+
+           :copy-crop-button {:lang/de "Fruchtart kopieren"
+                             :lang/en "Copy crop"}
+
            :name-label {:lang/de "Name"
                         :lang/en "Name"}
            :name-placeholder {:lang/de "Name der Fruchtart"
@@ -26,6 +35,8 @@
            :symbol-placeholder {:lang/de "Symbol der Fruchtart"
                               :lang/en "Symbol of crop"}
 
+           :th-user-crop? {:lang/de "Nutzer?"
+                           :lang/en "User?"}
            :th-crop-number {:lang/de "Nummer"
                             :lang/en "Number"}
            :th-crop-cultivation-type {:lang/de "Anbauform"
@@ -111,6 +122,8 @@
         _ (cell= (when filtered-crops
                    (s/set-route-params :crop-id nil)))
 
+        new-crop-no (cell 0)
+
         [chart-id] (repeatedly gensym)]
 
     (div
@@ -158,12 +171,24 @@
                 (th :style "width:7%" (text "~(vocab :th-crop-number s/lang)"))
                 (th :style "width:7%" (text "~(vocab :th-crop-cultivation-type s/lang)"))
                 (th :style "width:16%" (text "~(vocab :th-crop-usage s/lang)"))
-                (th :style "width:40%" (text "~(vocab :th-crop-name s/lang)"))
-                (th :style "width:25%" (text "~(vocab :th-crop-symbol s/lang)"))))
+                (th :style "width:33%" (text "~(vocab :th-crop-name s/lang)"))
+                (th :style "width:18%" (text "~(vocab :th-crop-symbol s/lang)"))
+                (th :style "width:5%" (text "~(vocab :th-user-crop? s/lang)"))
+                (th
+                  :style "width:10%; text-align:right"
+                  (button
+                    :class "btn btn-warning btn-sm btn-block"
+                    :click #(let [temp-crop-name (str (vocab :new-crop-filter-value @s/lang) " "
+                                                      (swap! new-crop-no inc))]
+                             (s/create-new-crop temp-crop-name)
+                             (reset! filter-criterium temp-crop-name))
+                    (text "~(vocab :new-crop-button s/lang)")))))
 
             (tbody
               (loop-tpl
-                :bindings [{id :crop/id
+                :bindings [{db-id :db/id
+                            id :crop/id
+                            crop-type :crop-type
                             name :crop/name
                             symbol :crop/symbol
                             number :crop/number
@@ -213,33 +238,44 @@
                       :class (cell= {:warning (and hover? (not selected?))
                                      :success selected?})
                       :click #(s/set-route-params :crop-id @id)
-                      (text "~{symbol}")))))))))
+                      (text "~{symbol}"))
+                    (td
+                      :style "text-align: center; vertical-align: middle"
+                      :class (cell= {:warning (and hover? (not selected?))
+                                     :success selected?})
+                      :click #(s/set-route-params :crop-id @id)
+                      (span :class (cell= {:glyphicon (= crop-type :user)
+                                           :glyphicon-ok (= crop-type :user)})))
+                    (td
+                      :style "text-align:right"
+                      (button
+                        :class "btn btn-warning btn-sm btn-block"
+                        :click #(let [temp-crop-name (str @name " (Kopie)")]
+                                 (s/copy-crop @id temp-crop-name)
+                                 (reset! filter-criterium temp-crop-name))
+                        (text "~(vocab :copy-crop-button s/lang)"))))))))))
 
       (bs/form
         :toggle (cell= (not (nil? selected-crop)))
         :opts [:horizontal]
         :name "crops-form"
 
-        (cell-let [{id :crop/id
+        (cell-let [{db-id :db/id
+                    id :crop/id
                     name :crop/name
                     symbol :crop/symbol} selected-crop]
 
           (let [[name-id symbol-id] (repeatedly gensym)
-                edit? (cell false)
-                no-edit? (cell= (not edit?))
 
-                form-data {:name nil
-                           :symbol nil}
-
-                crop-data (cell nil)
-
-                _ (cell= (when crop-data (println "crop-data: " (pr-str crop-data))))
-
-                _ (cell= (when (and id (not= id (:crop/id crop-data)))
-                               (s/load-crop-data ~(cell crop-data) id)))
+                _ (cell= (when (and id (not= id (:crop/id s/processed-crop-data)))
+                           (s/load-crop-data id)))
 
                 _ (with-timeout 0 (js/Highcharts.Chart. (clj->js (charts/crop-curves-chart-config chart-id))))
-                _ (cell= (charts/set-crop-curve-data chart-id crop-data))]
+                _ (cell= (charts/set-crop-curve-data chart-id s/processed-crop-data))
+
+                edit? (cell= (or s/user-crop? s/admin-logged-in?))
+                no-edit? (cell= (not edit?))
+                ]
 
             (div
 
@@ -255,7 +291,7 @@
                     :type "text"
                     :placeholder (cell= (vocab :name-placeholder s/lang))
                     :value name
-                    :on-change #(swap! form-data assoc :name (val-id name-id)))))
+                    :on-change #(s/update-crop-db-entity @id @db-id :crop/name (val-id name-id)))))
 
               (bs/form-group
                 (bs/control-label :col [:sm 2] :for symbol-id (text "~(vocab :symbol-label s/lang)"))
@@ -269,7 +305,7 @@
                     :type "text"
                     :placeholder (cell= (vocab :symbol-placeholder s/lang))
                     :value long
-                    :on-change #(swap! form-data assoc :symbol (val-id symbol-id)))))
+                    :on-change #(s/update-crop-db-entity @id @db-id :crop/symbol (val-id symbol-id)))))
 
               (div
                 :class "row"
@@ -280,6 +316,7 @@
 
               (let [visible? (cell false)]
                 (fieldset
+                  :toggle edit?
 
                   (uic/hover-activate-wrapper
                     :action! #(swap! visible? not)
@@ -295,21 +332,24 @@
                         :col [:xs 8]
 
                         (loop-tpl
-                          :bindings [[row-no [dc rel-dc-day]]
-                                     (cell= (util/indexed (sort-by first (:crop/dc-to-rel-dc-days crop-data))))]
+                          :bindings [[row-no {db-id :db/id
+                                              dc :kv/dc
+                                              rel-dc-day :kv/rel-dc-day}]
+                                     (cell= (util/indexed (sort-by :kv/dc (:crop/dc-to-rel-dc-days s/raw-crop-data))))]
                           (uie/create-crop-dc-to-rel-dc-day-inputs
                             :fields {:row-no row-no
-                                     :row-action! #()  #_#(s/delete-db-entity @don-db-id)
-                                     :dc dc :dc! #() #_#(s/update-db-entity @don-db-id :donation/abs-start-day %)
-                                     :rel-dc-day rel-dc-day :rel-dc-day! #() #_#(s/update-db-entity @don-db-id :donation/abs-end-day %)}))
+                                     :row-action! #(s/delete-crop-db-entity @id @db-id)
+                                     :dc dc :dc! #(s/update-crop-db-entity @id @db-id :kv/dc %)
+                                     :rel-dc-day rel-dc-day :rel-dc-day! #(s/update-crop-db-entity @id @db-id :kv/rel-dc-day %)}))
                         (uie/create-crop-dc-to-rel-dc-day-inputs
-                          :fields {:row-action! #() #_#(when (and @abs-start-day* @abs-end-day* @amount*)
-                                                   (s/create-new-donation @db-id @abs-start-day* @abs-end-day* @amount*)
-                                                   (reset! abs-start-day* nil)
-                                                   (reset! abs-end-day* nil)
-                                                   (reset! amount* nil))
-                                   :dc dc* :dc! #() #_#(reset! abs-start-day* %)
-                                   :rel-dc-day rel-dc-day* :rel-dc-day! #() #_#(reset! abs-end-day* %)}))))
+                          :fields {:row-action! #(when (and @dc* @rel-dc-day*)
+                                                   (s/create-new-crop-kv-pair @id :crop/dc-to-rel-dc-days
+                                                                              :kv/dc @dc*
+                                                                              :kv/rel-dc-day @rel-dc-day*)
+                                                   (reset! dc* nil)
+                                                   (reset! rel-dc-day* nil))
+                                   :dc dc* :dc! #(reset! dc* %)
+                                   :rel-dc-day rel-dc-day* :rel-dc-day! #(reset! rel-dc-day* %)}))))
 
                   (bs/form-group
                     :toggle visible?
@@ -320,21 +360,24 @@
                         :col [:xs 8]
 
                         (loop-tpl
-                          :bindings [[row-no [dc name]]
-                                     (cell= (util/indexed (sort-by first (:crop/dc-to-developmental-state-names crop-data))))]
+                          :bindings [[row-no {db-id :db/id
+                                              dc :kv/dc
+                                              name :kv/name}]
+                                     (cell= (util/indexed (sort-by :kv/name (:crop/dc-to-developmental-state-names s/raw-crop-data))))]
                           (uie/create-crop-dc-to-dev-state-name-inputs
                             :fields {:row-no row-no
-                                     :row-action! #()  #_#(s/delete-db-entity @don-db-id)
-                                     :dc dc :dc! #() #_#(s/update-db-entity @don-db-id :donation/abs-start-day %)
-                                     :name name :name! #() #_#(s/update-db-entity @don-db-id :donation/abs-end-day %)}))
+                                     :row-action! #(s/delete-crop-db-entity @id @db-id)
+                                     :dc dc :dc! #(s/update-crop-db-entity @id @db-id :kv/dc %)
+                                     :name name :name! #(s/update-crop-db-entity @id @db-id :kv/name %)}))
                         (uie/create-crop-dc-to-dev-state-name-inputs
-                          :fields {:row-action! #() #_#(when (and @abs-start-day* @abs-end-day* @amount*)
-                                                   (s/create-new-donation @db-id @abs-start-day* @abs-end-day* @amount*)
-                                                   (reset! abs-start-day* nil)
-                                                   (reset! abs-end-day* nil)
-                                                   (reset! amount* nil))
-                                   :dc dc* :dc! #() #_#(reset! abs-start-day* %)
-                                   :name name* :name! #() #_#(reset! abs-end-day* %)}))))
+                          :fields {:row-action! #(when (and @dc* @name*)
+                                                  (s/create-new-crop-kv-pair @id :crop/dc-to-developmental-state-names
+                                                                             :kv/dc @dc*
+                                                                             :kv/name @name*)
+                                                  (reset! dc* nil)
+                                                  (reset! name* nil))
+                                   :dc dc* :dc! #(reset! dc* %)
+                                   :name name* :name! #(reset! name* %)}))))
 
                   (bs/form-group
                     :toggle visible?
@@ -345,21 +388,28 @@
                         :col [:xs 8]
 
                         (loop-tpl
-                          :bindings [[row-no [rel-dc-day aet7pet]]
-                                     (cell= (util/indexed (sort-by first (:crop/rel-dc-day-to-quotient-aet-pets crop-data))))]
+                          :bindings [[row-no {db-id :db/id
+                                              aet7pet :kv/quotient-aet-pet
+                                              rel-dc-day :kv/rel-dc-day}]
+                                     (cell= (util/indexed (sort-by :kv/rel-dc-day (:crop/rel-dc-day-to-quotient-aet-pets s/raw-crop-data))))]
                           (uie/create-crop-rel-dc-day-to-aet7pet-inputs
                             :fields {:row-no row-no
-                                     :row-action! #()  #_#(s/delete-db-entity @don-db-id)
-                                     :rel-dc-day rel-dc-day :rel-dc-day! #() #_#(s/update-db-entity @don-db-id :donation/abs-start-day %)
-                                     :aet7pet (cell= (* aet7pet 100)) :aet7pet! #() #_#(s/update-db-entity @don-db-id :donation/abs-end-day %)}))
+                                     :row-action! #(s/delete-crop-db-entity @id @db-id)
+                                     :rel-dc-day rel-dc-day :rel-dc-day! #(s/update-crop-db-entity @id @db-id :kv/rel-dc-day %)
+                                     :aet7pet (cell= (* aet7pet 100))
+                                     :aet7pet! #(s/update-crop-db-entity @id @db-id
+                                                                         :kv/quotient-aet-pet (/ (double %) 100.)
+                                                                         :value-type :double)}))
                         (uie/create-crop-rel-dc-day-to-aet7pet-inputs
-                          :fields {:row-action! #() #_#(when (and @abs-start-day* @abs-end-day* @amount*)
-                                                   (s/create-new-donation @db-id @abs-start-day* @abs-end-day* @amount*)
-                                                   (reset! abs-start-day* nil)
-                                                   (reset! abs-end-day* nil)
-                                                   (reset! amount* nil))
-                                   :rel-dc-day rel-dc-day* :rel-dc-day! #() #_#(reset! abs-start-day* %)
-                                   :aet7pet aet7pet* :aet7pet! #() #_#(reset! abs-end-day* %)}))))
+                          :fields {:row-action! #(when (and @rel-dc-day* @aet7pet*)
+                                                  (s/create-new-crop-kv-pair @id :crop/rel-dc-day-to-quotient-aet-pets
+                                                                             :kv/rel-dc-day @rel-dc-day*
+                                                                             :kv/quotient-aet-pet (/ (double @aet7pet*) 100.)
+                                                                             :value-type :double)
+                                                  (reset! rel-dc-day* nil)
+                                                  (reset! aet7pet* nil))
+                                   :rel-dc-day rel-dc-day* :rel-dc-day! #(reset! rel-dc-day* %)
+                                   :aet7pet aet7pet* :aet7pet! #(reset! aet7pet* %)}))))
 
                   (bs/form-group
                     :toggle visible?
@@ -370,21 +420,28 @@
                         :col [:xs 8]
 
                         (loop-tpl
-                          :bindings [[row-no [rel-dc-day cover-degree]]
-                                     (cell= (util/indexed (sort-by first (:crop/rel-dc-day-to-cover-degrees crop-data))))]
+                          :bindings [[row-no {db-id :db/id
+                                              cover-degree :kv/cover-degree
+                                              rel-dc-day :kv/rel-dc-day}]
+                                     (cell= (util/indexed (sort-by :kv/rel-dc-day (:crop/rel-dc-day-to-cover-degrees s/raw-crop-data))))]
                           (uie/create-crop-rel-dc-day-to-cover-degree-inputs
                             :fields {:row-no row-no
-                                     :row-action! #()  #_#(s/delete-db-entity @don-db-id)
-                                     :rel-dc-day rel-dc-day :rel-dc-day! #() #_#(s/update-db-entity @don-db-id :donation/abs-start-day %)
-                                     :cover-degree (cell= (* cover-degree 100)) :cover-degree! #() #_#(s/update-db-entity @don-db-id :donation/abs-end-day %)}))
+                                     :row-action! #(s/delete-crop-db-entity @id @db-id)
+                                     :rel-dc-day rel-dc-day :rel-dc-day! #(s/update-crop-db-entity @id @db-id :kv/rel-dc-day %)
+                                     :cover-degree (cell= (* cover-degree 100))
+                                     :cover-degree! #(s/update-crop-db-entity @id @db-id
+                                                                              :kv/cover-degree (/ (double %) 100.)
+                                                                              :value-type :double)}))
                         (uie/create-crop-rel-dc-day-to-cover-degree-inputs
-                          :fields {:row-action! #() #_#(when (and @abs-start-day* @abs-end-day* @amount*)
-                                                   (s/create-new-donation @db-id @abs-start-day* @abs-end-day* @amount*)
-                                                   (reset! abs-start-day* nil)
-                                                   (reset! abs-end-day* nil)
-                                                   (reset! amount* nil))
-                                   :rel-dc-day rel-dc-day* :rel-dc-day! #() #_#(reset! abs-start-day* %)
-                                   :cover-degree cover-degree* :cover-degree! #() #_#(reset! abs-end-day* %)}))))
+                          :fields {:row-action! #(when (and @rel-dc-day* @cover-degree*)
+                                                  (s/create-new-crop-kv-pair @id :crop/rel-dc-day-to-cover-degrees
+                                                                             :kv/rel-dc-day @rel-dc-day*
+                                                                             :kv/cover-degree (/ (double @cover-degree*) 100.)
+                                                                             :value-type :double)
+                                                  (reset! rel-dc-day* nil)
+                                                  (reset! cover-degree* nil))
+                                   :rel-dc-day rel-dc-day* :rel-dc-day! #(reset! rel-dc-day* %)
+                                   :cover-degree cover-degree* :cover-degree! #(reset! cover-degree* %)}))))
 
                   (bs/form-group
                     :toggle visible?
@@ -395,21 +452,28 @@
                         :col [:xs 8]
 
                         (loop-tpl
-                          :bindings [[row-no [rel-dc-day extraction-depth]]
-                                     (cell= (util/indexed (sort-by first (:crop/rel-dc-day-to-quotient-aet-pets crop-data))))]
+                          :bindings [[row-no {db-id :db/id
+                                              extraction-depth :kv/extraction-depth
+                                              rel-dc-day :kv/rel-dc-day}]
+                                     (cell= (util/indexed (sort-by :kv/rel-dc-day (:crop/rel-dc-day-to-extraction-depths s/raw-crop-data))))]
                           (uie/create-crop-rel-dc-day-to-extraction-depth-inputs
                             :fields {:row-no row-no
-                                     :row-action! #()  #_#(s/delete-db-entity @don-db-id)
-                                     :rel-dc-day rel-dc-day :rel-dc-day! #() #_#(s/update-db-entity @don-db-id :donation/abs-start-day %)
-                                     :extraction-depth (cell= (* extraction-depth 100)) :extraction-depth! #() #_#(s/update-db-entity @don-db-id :donation/abs-end-day %)}))
+                                     :row-action! #(s/delete-crop-db-entity @id @db-id)
+                                     :rel-dc-day rel-dc-day :rel-dc-day! #(s/update-crop-db-entity @id @db-id :kv/rel-dc-day %)
+                                     :extraction-depth extraction-depth
+                                     :extraction-depth! #(s/update-crop-db-entity @id @db-id
+                                                                                  :kv/extraction-depth %
+                                                                                  :value-type :int)}))
                         (uie/create-crop-rel-dc-day-to-extraction-depth-inputs
-                          :fields {:row-action! #() #_#(when (and @abs-start-day* @abs-end-day* @amount*)
-                                                   (s/create-new-donation @db-id @abs-start-day* @abs-end-day* @amount*)
-                                                   (reset! abs-start-day* nil)
-                                                   (reset! abs-end-day* nil)
-                                                   (reset! amount* nil))
-                                   :rel-dc-day rel-dc-day* :rel-dc-day! #() #_#(reset! abs-start-day* %)
-                                   :extraction-depth extraction-depth* :extraction-depth! #() #_#(reset! abs-end-day* %)}))))
+                          :fields {:row-action! #(when (and @rel-dc-day* @extraction-depth*)
+                                                  (s/create-new-crop-kv-pair @id :crop/rel-dc-day-to-extraction-depths
+                                                                             :kv/rel-dc-day @rel-dc-day*
+                                                                             :kv/extraction-depth @extraction-depth*
+                                                                             :value-type :int)
+                                                  (reset! rel-dc-day* nil)
+                                                  (reset! extraction-depth* nil))
+                                   :rel-dc-day rel-dc-day* :rel-dc-day! #(reset! rel-dc-day* %)
+                                   :extraction-depth extraction-depth* :extraction-depth! #(reset! extraction-depth* %)}))))
 
                   (bs/form-group
                     :toggle visible?
@@ -420,21 +484,29 @@
                         :col [:xs 8]
 
                         (loop-tpl
-                          :bindings [[row-no [rel-dc-day transpiration-factor]]
-                                     (cell= (util/indexed (sort-by first (:crop/rel-dc-day-to-transpiration-factors crop-data))))]
+                          :bindings [[row-no {db-id :db/id
+                                              transpiration-factor :kv/transpiration-factor
+                                              rel-dc-day :kv/rel-dc-day}]
+                                     (cell= (util/indexed (sort-by :kv/rel-dc-day (:crop/rel-dc-day-to-transpiration-factors s/raw-crop-data))))]
                           (uie/create-crop-rel-dc-day-to-transpiration-factor-inputs
                             :fields {:row-no row-no
-                                     :row-action! #()  #_#(s/delete-db-entity @don-db-id)
-                                     :rel-dc-day rel-dc-day :rel-dc-day! #() #_#(s/update-db-entity @don-db-id :donation/abs-start-day %)
-                                     :transpiration-factor transpiration-factor :transpiration-factor! #() #_#(s/update-db-entity @don-db-id :donation/abs-end-day %)}))
+                                     :row-action! #(s/delete-crop-db-entity @id @db-id)
+                                     :rel-dc-day rel-dc-day :rel-dc-day! #(s/update-crop-db-entity @id @db-id :kv/rel-dc-day %)
+                                     :transpiration-factor transpiration-factor
+                                     :transpiration-factor! #(s/update-crop-db-entity @id @db-id
+                                                                                      :kv/transpiration-factor %
+                                                                                      :value-type :double)}))
                         (uie/create-crop-rel-dc-day-to-transpiration-factor-inputs
-                          :fields {:row-action! #() #_#(when (and @abs-start-day* @abs-end-day* @amount*)
-                                                   (s/create-new-donation @db-id @abs-start-day* @abs-end-day* @amount*)
-                                                   (reset! abs-start-day* nil)
-                                                   (reset! abs-end-day* nil)
-                                                   (reset! amount* nil))
-                                   :rel-dc-day rel-dc-day* :rel-dc-day! #() #_#(reset! abs-start-day* %)
-                                   :transpiration-factor transpiration-factor* :transpiration-factor! #() #_#(reset! abs-end-day* %)}))))
+                          :fields {:row-action! #(when (and @rel-dc-day* @transpiration-factor*)
+                                                  (s/create-new-crop-kv-pair @id :crop/rel-dc-day-to-transpiration-factors
+                                                                             :kv/rel-dc-day @rel-dc-day*
+                                                                             :kv/transpiration-factor @transpiration-factor*
+                                                                             :value-type :double)
+                                                  (reset! rel-dc-day* nil)
+                                                  (reset! transpiration-factor* nil))
+                                   :rel-dc-day rel-dc-day* :rel-dc-day! #(reset! rel-dc-day* %)
+                                   :transpiration-factor transpiration-factor*
+                                   :transpiration-factor! #(reset! transpiration-factor* %)}))))
 
                   #_(uie/crop-data-form-group
                     :visible? visible?

@@ -32,6 +32,13 @@
 (defc weather-station-data {})
 #_(cell= (println "weather-station-data: " (pr-str weather-station-data)))
 
+(defc crop-state nil)
+(cell= (when crop-state (println "crop-state: " (pr-str crop-state))))
+
+(defc= processed-crop-data (:processed crop-state))
+(defc= raw-crop-data (:raw crop-state))
+(defc= user-crop? (= (:crop-type crop-state) :user))
+
 ;derived state
 
 (defc= farms (:farms state))
@@ -164,10 +171,11 @@
 (def load-static-state
   (mkremote 'de.zalf.berest.web.castra.api/get-static-state static-state error loading))
 
-(defn load-crop-data
+#_(defn load-crop-data
   [result-cell crop-id]
   ((mkremote 'de.zalf.berest.web.castra.api/get-crop-data
              result-cell error loading) crop-id))
+(def load-crop-data (mkremote 'de.zalf.berest.web.castra.api/get-crop-data crop-state error loading))
 
 (def create-new-farm (mkremote 'de.zalf.berest.web.castra.api/create-new-farm state error loading))
 (def create-new-plot (mkremote 'de.zalf.berest.web.castra.api/create-new-plot state error loading))
@@ -193,14 +201,19 @@
 (def create-new-weather-data (mkremote 'de.zalf.berest.web.castra.api/create-new-weather-data state error loading))
 (def create-new-com-con (mkremote 'de.zalf.berest.web.castra.api/create-new-com-con state error loading))
 
+(def create-new-crop (mkremote 'de.zalf.berest.web.castra.api/create-new-crop static-state error loading))
+(def copy-crop (mkremote 'de.zalf.berest.web.castra.api/copy-crop static-state error loading))
+
 #_(def update-is-main-contact? (mkremote 'de.zalf.berest.web.castra.api/update-is-main-contact? state error loading))
 
 (def update-db-entity (mkremote 'de.zalf.berest.web.castra.api/update-db-entity state error loading))
 (def retract-db-value (mkremote 'de.zalf.berest.web.castra.api/retract-db-value state error loading))
-
 (def delete-db-entity (mkremote 'de.zalf.berest.web.castra.api/delete-db-entity state error loading))
 (def delete-db-entities (mkremote 'de.zalf.berest.web.castra.api/delete-db-entity state error loading))
 
+(def update-crop-db-entity (mkremote 'de.zalf.berest.web.castra.api/update-crop-db-entity crop-state error loading))
+(def delete-crop-db-entity (mkremote 'de.zalf.berest.web.castra.api/delete-crop-db-entity crop-state error loading))
+(def create-new-crop-kv-pair (mkremote 'de.zalf.berest.web.castra.api/create-new-crop-kv-pair crop-state error loading))
 
 ;TODO: can't update weather-stations easily as they're actually shared most of the time, do this later properly
 #_(def update-weather-station (mkremote 'de.zalf.berest.web.castra.api/update-weather-station state error loading))

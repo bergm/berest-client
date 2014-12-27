@@ -963,7 +963,7 @@
              :min 0
              :max 2
              :value transpiration-factor
-             :on-change #(transpiration-factor! (js/parseInt (val-id transpiration-factor-id))))
+             :on-change #(transpiration-factor! (js/parseFloat (val-id transpiration-factor-id))))
            (span :class "input-group-addon" "")))
 
        (div
