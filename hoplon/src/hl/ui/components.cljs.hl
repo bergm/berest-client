@@ -140,6 +140,7 @@
             :class "btn btn-default navbar-btn"
             :on-click #(do
                         (s/logout!)
+                        (reset! s/static-state nil)
                         (s/clear-route+params))
             "Logout"))))))
 
@@ -151,8 +152,7 @@
         :id "login-pane"
         :class "center"
         :toggle s/show-login?
-        :style "width:80%;"; background-image: url('irrigama-web-small.jpg'); background-size: 100%; background-repeat: no-repeat"
-        #_(div :style "height: 400px")
+        :style "width:80%;"
         (bs/form
           :opts [:horizontal]
           :id "login"
@@ -162,15 +162,8 @@
                     (do! (by-id user-id) :value "")
                     (do! (by-id pwd-id) :value ""))
           (bs/form-group
-            #_(bs/control-label
-              :col [:xs 2]
-              :class "col-xs-offset-2"
-              :for user-id
-              (text "~(vocab :username s/lang)"))
-
             (div
               :col [:xs 3]
-              ;:class "col-xs-offset-4"
               (input
                 :id user-id
                 :class "form-control"
@@ -192,34 +185,7 @@
               :class "col-xs-offset-1"
               (button
                 :class "form-control btn btn-primary"
-                :type "submit" "Login"))
-
-            )
-
-          #_(bs/form-group
-            #_(bs/control-label
-              :col [:xs 2]
-              :class "col-xs-offset-2"
-              :for pwd-id
-              (text "~(vocab :password s/lang)"))
-
-            (div
-              :col [:xs 3]
-              :class "col-xs-offset-4"
-              (input
-                :id pwd-id
-                :class "form-control"
-                :placeholder (cell= (vocab :pwd-placeholder s/lang))
-                :type "password")))
-
-          #_(bs/form-group
-            (div
-              :col [:xs 3]
-              :class "col-xs-offset-4"
-              (button
-                :class "form-control btn btn-primary"
                 :type "submit" "Login"))))
-        #_(div :style "height: 300px")
 
         (div
           :class "row"
@@ -227,72 +193,7 @@
           (img
             :col [:xs 12]
             :class "img-responsive"
-            :src "irrigama-web-small.jpg"))
-
-        )
-
-      #_(img
-        :class "img-responsive"
-        :src "irrigama-web-small.jpg")
-
-      )
-
-    #_(;img :style "z-index: 1; width: 100%" :src "irrigama-web.jpg"
-     (div
-           :id "login-pane"
-           :class "center"
-           :toggle s/show-login?
-           :style "width:80%; background-image: url('irrigama-web-small.jpg'); background-size: 100%; background-repeat: no-repeat"
-           (div :style "height: 400px")
-           (bs/form
-             :opts [:horizontal]
-             :id "login"
-             :submit #(do
-                       (s/login! (val-id user-id) (val-id pwd-id))
-                       (s/set-route "#/farms")
-                       (do! (by-id user-id) :value "")
-                       (do! (by-id pwd-id) :value ""))
-             (bs/form-group
-               #_(bs/control-label
-                 :col [:xs 2]
-                 :class "col-xs-offset-2"
-                 :for user-id
-                 (text "~(vocab :username s/lang)"))
-
-               (div
-                 :col [:xs 3]
-                 :class "col-xs-offset-4"
-                 (input
-                   :id user-id
-                   :class "form-control"
-                   :placeholder (cell= (vocab :user-placeholder s/lang))
-                   :type "text"
-                   :autofocus "autofocus")))
-
-             (bs/form-group
-               #_(bs/control-label
-                 :col [:xs 2]
-                 :class "col-xs-offset-2"
-                 :for pwd-id
-                 (text "~(vocab :password s/lang)"))
-
-               (div
-                 :col [:xs 3]
-                 :class "col-xs-offset-4"
-                 (input
-                   :id pwd-id
-                   :class "form-control"
-                   :placeholder (cell= (vocab :pwd-placeholder s/lang))
-                   :type "password")))
-
-             (bs/form-group
-               (div
-                 :col [:xs 3]
-                 :class "col-xs-offset-4"
-                 (button
-                   :class "form-control btn btn-primary"
-                   :type "submit" "Login"))))
-           (div :style "height: 300px")))))
+            :src "irrigama-web-small.jpg"))))))
 
 
 (defelem safe-delete-button

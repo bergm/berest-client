@@ -146,7 +146,7 @@
                                               :glyphicon-ok (and (not (nil? local?))
                                                                  local?)})))
                        (td
-                         :style "text-align:right"
+                         :style "text-align:right; vertical-align: middle"
                          (uic/safe-delete-button
                            :toggle (and (not (nil? local?))
                                         local?)

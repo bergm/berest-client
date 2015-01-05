@@ -34,9 +34,6 @@
 
 (s/login! "zalf" "fLAz")
 
-(cell= (when (and s/logged-in? (not s/static-state))
-         (s/load-static-state)))
-
 (cell= (print (:trace s/error)))
 
 

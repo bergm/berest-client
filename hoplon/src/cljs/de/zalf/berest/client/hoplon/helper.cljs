@@ -36,3 +36,6 @@
   [f arg2 arg3 arg1]
   (f arg1 arg2 arg3))
 
+(defn quote-regex
+  [regex]
+  (.replace regex (js/RegExp "([()[{*+.$^\\|?])" "g") "\\$1"))

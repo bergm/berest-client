@@ -1320,7 +1320,7 @@
                :value (cell= (if (and calc-until-abs-day* year)
                                (->> (util/doy->cljs-time-date calc-until-abs-day* year)
                                     (cstf/unparse (cstf/formatters :date),,,))
-                               (str year "-12-31")))
+                               (str (or year (cstc/year (cstc/now))) "-12-31")))
                :on-change #(reset! calc-until-abs-day (util/cljs-time-date->doy (cstf/parse (cstf/formatters :date)
                                                                                             (val-id calc-until-id))))))
 

@@ -9,7 +9,8 @@
             [ui.farm :as farm]
             [ui.plot :as plot]
             [ui.plot-annual :as plot-annual]
-            [bootstrap-util :as bs]))
+            [bootstrap-util :as bs]
+            [de.zalf.berest.client.hoplon.helper :as h]))
 
 
 (defn vocab
@@ -145,7 +146,7 @@
                                             (if value
                                               (let [lc-name (.toLowerCase value)]
                                                 (if (> fc-count 1)
-                                                  (> (.search lc-name lc-filter-criterium) -1)
+                                                  (> (.search lc-name (h/quote-regex lc-filter-criterium)) -1)
                                                   (= (.charAt lc-name 0) fc-first-char)))
                                               true)))
                                         (:farms s/state))
@@ -364,7 +365,7 @@
                                        :mouseenter #(reset! hover? true)
                                        :mouseleave #(reset! hover? false)
                                        (td
-                                         :style "text-align:center;vertical-align: middle"
+                                         :style "text-align:center; vertical-align: middle"
                                          :class (cell= {:warning (and hover? (not selected?))
                                                         :success selected?})
                                          :click #(do
@@ -397,7 +398,7 @@
                                          :click #(s/set-route-params :plot-id @plot-id)
                                          "in 4 Tg." #_(span :class "glyphicon glyphicon-ok"))
                                        (td
-                                         :style "text-align: right"
+                                         :style "text-align: right; vertical-align: middle"
                                          (uic/safe-delete-button
                                            ;:toggle hover?
                                            :small-button? true

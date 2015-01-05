@@ -33,11 +33,11 @@
 #_(cell= (println "weather-station-data: " (pr-str weather-station-data)))
 
 (defc crop-state nil)
-(cell= (when crop-state (println "crop-state: " (pr-str crop-state))))
+#_(cell= (when crop-state (println "crop-state: " (pr-str crop-state))))
 
 (defc= processed-crop-data (:processed crop-state))
 (defc= raw-crop-data (:raw crop-state))
-(defc= user-crop? (= (:crop-type crop-state) :user))
+#_(defc= user-crop? (= (:crop-type crop-state) :user))
 
 ;derived state
 
@@ -126,6 +126,7 @@
 (defc= logged-in?   (not (nil? user)))
 #_(cell= (println "logged-in?: "(pr-str logged-in?)))
 
+
 (defn has-role
   [user role]
   (let [r (if (namespace role)
@@ -165,16 +166,11 @@
   ((mkremote 'de.zalf.berest.web.castra.api/get-weather-station-data
              result-cell error loading) weather-station-id years))
 
-#_(def load-minimal-all-crops
-  (mkremote 'de.zalf.berest.web.castra.api/get-minimal-all-crops minimal-all-crops error loading))
-
 (def load-static-state
   (mkremote 'de.zalf.berest.web.castra.api/get-static-state static-state error loading))
+(cell= (when logged-in? #_(and s/logged-in? (not s/static-state))
+         (load-static-state)))
 
-#_(defn load-crop-data
-  [result-cell crop-id]
-  ((mkremote 'de.zalf.berest.web.castra.api/get-crop-data
-             result-cell error loading) crop-id))
 (def load-crop-data (mkremote 'de.zalf.berest.web.castra.api/get-crop-data crop-state error loading))
 
 (def create-new-farm (mkremote 'de.zalf.berest.web.castra.api/create-new-farm state error loading))
@@ -203,6 +199,7 @@
 
 (def create-new-crop (mkremote 'de.zalf.berest.web.castra.api/create-new-crop static-state error loading))
 (def copy-crop (mkremote 'de.zalf.berest.web.castra.api/copy-crop static-state error loading))
+(def delete-crop (mkremote 'de.zalf.berest.web.castra.api/delete-crop static-state error loading))
 
 #_(def update-is-main-contact? (mkremote 'de.zalf.berest.web.castra.api/update-is-main-contact? state error loading))
 

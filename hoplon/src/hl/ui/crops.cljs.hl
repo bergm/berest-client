@@ -1,6 +1,7 @@
 (ns ui.crops
   (:require [de.zalf.berest.client.hoplon.util :as util]
             [de.zalf.berest.client.hoplon.state :as s]
+            [de.zalf.berest.client.hoplon.helper :as h]
             [ui.elements :as uie]
             [ui.charts :as charts]
             [ui.components :as uic]
@@ -61,6 +62,9 @@
                           :lang/en "Name"}
            :th-crop-symbol {:lang/de "Symbol"
                             :lang/en "Symbol"}
+
+           :delete-user-crop-button {:lang/de "FA.löschen"
+                                     :lang/en "Delete crop"}
 
            :show-data {:lang/de "Daten anzeigen"
                        :lang/en "Show data"}
@@ -128,7 +132,7 @@
                                           (if name
                                             (let [lc-name (.toLowerCase name)]
                                               (if (> fc-count 1)
-                                                (> (.search lc-name lc-filter-criterium) -1)
+                                                (> (.search lc-name (h/quote-regex lc-filter-criterium)) -1)
                                                 (= (.charAt lc-name 0) fc-first-char)))
                                             true))
                                         s/minimal-all-crops)
@@ -194,9 +198,10 @@
                 (th :style "width:7%" (text "~(vocab :th-crop-number s/lang)"))
                 (th :style "width:7%" (text "~(vocab :th-crop-cultivation-type s/lang)"))
                 (th :style "width:16%" (text "~(vocab :th-crop-usage s/lang)"))
-                (th :style "width:33%" (text "~(vocab :th-crop-name s/lang)"))
-                (th :style "width:18%" (text "~(vocab :th-crop-symbol s/lang)"))
+                (th :style "width:28%" (text "~(vocab :th-crop-name s/lang)"))
+                (th :style "width:13%" (text "~(vocab :th-crop-symbol s/lang)"))
                 (th :style "width:5%" (text "~(vocab :th-user-crop? s/lang)"))
+                (th :style "width:10%; text-align:right" "")
                 (th
                   :style "width:10%; text-align:right"
                   (button
@@ -270,7 +275,14 @@
                       (span :class (cell= {:glyphicon (= crop-type :user)
                                            :glyphicon-ok (= crop-type :user)})))
                     (td
-                      :style "text-align:right"
+                      :style "text-align:right; vertical-align: middle"
+                      (uic/safe-delete-button
+                        :toggle (cell= (or (= crop-type :user) s/admin-logged-in?))
+                        :small-button? true
+                        :action! #(s/delete-crop @db-id)
+                        :value (cell= (vocab :delete-user-crop-button s/lang))))
+                    (td
+                      :style "text-align:right; vertical-align: middle"
                       (button
                         :class "btn btn-warning btn-sm btn-block"
                         :click #(let [temp-crop-name (str @name " (Kopie)")]
@@ -300,7 +312,8 @@
                 _ (with-timeout 0 (js/Highcharts.Chart. (clj->js (charts/crop-curves-chart-config chart-id))))
                 _ (cell= (charts/set-crop-curve-data chart-id s/processed-crop-data))
 
-                edit? (cell= (or s/user-crop? s/admin-logged-in?))
+                user-crop? (= (:crop-type s/crop-state) :user)
+                edit? (cell= (or user-crop? s/admin-logged-in?))
                 no-edit? (cell= (not edit?))
                 ]
 
