@@ -687,18 +687,6 @@
              :action! #(s/delete-db-entity @db-id)
              :value (cell= (str year " " (vocab :delete-plot-annual-button-label s/lang))))))
 
-       #_(button
-         :style "float:right"
-         :class "btn btn-danger"
-         :click #(s/delete-db-entity @db-id)
-         (text "~(vocab :delete-plot-annual-button-label s/lang)"))
-
-       #_(button
-         :style "float:right"
-         :class "btn btn-info"
-         :click #(swap! edit? not)
-         (text "~(vocab :edit-plot-annual-button-label s/lang)"))
-
        (bs/form-group
          (bs/control-label :col [:sm label-cols] :for year-id (text "~(vocab :year-label s/lang)"))
          (div
@@ -714,7 +702,7 @@
              :max 2100
              :placeholder (cell= (vocab :year-placeholder s/lang))
              :value year
-             :on-change #(year! (js/parseFloat (val-id year-id))))
+             :on-change #(year! (js/parseInt (val-id year-id))))
            ))
 
        (let [visible? (cell false)]

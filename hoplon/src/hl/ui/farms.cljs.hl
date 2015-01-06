@@ -433,7 +433,7 @@
                           sse :plot/sse
                           bwb :plot/bwb
                           irrigation-well :plot/irrigation-well} selected-plot]
-                        (let [[annual-years-id] (repeatedly gensym)
+                        (let [[annual-years-id new-annual-year-id] (repeatedly gensym)
 
                               plot-details-visible? (cell false)]
 
@@ -522,11 +522,11 @@
 
                                     current-year (.getFullYear (js/Date.))
 
-                                    selected-annual-year (cell= (let [annual-years-set (into #{} annual-years)]
-                                                                  (or (if-let [param-year (some-> (:year s/route-params) js/parseInt)]
-                                                                        (annual-years-set param-year))
-                                                                      (annual-years-set current-year)
-                                                                      (last annual-years))))
+                                    annual-years-set (cell= (into #{} annual-years))
+                                    selected-annual-year (cell= (or (if-let [param-year (some-> (:year s/route-params) js/parseInt)]
+                                                                      (annual-years-set param-year))
+                                                                    (annual-years-set current-year)
+                                                                    (last annual-years)))
                                     #__ #_(cell= (println "selected-annual-year: " (pr-str selected-annual-year)
                                                       "param-year: " (pr-str (some-> (:year s/route-params) js/parseInt))))
                                     _ (cell= (when (not= selected-annual-year (some-> (:year s/route-params) js/parseInt))
@@ -562,14 +562,35 @@
                                                       :selected (cell= (= year selected-annual-year))
                                                       (text "~{year}")))))
 
-                                        (div
-                                          :col [:xs 2]
-                                          :class "col-xs-offset-8"
+                                        (let [new-year (cell (inc (cstc/year (cstc/now))))
+                                              _ (cell= (when annual-years
+                                                         (reset! ~(cell new-year) (inc (last annual-years)))))]
+                                          [(div
+                                             :col [:xs 1]
+                                             :class "col-xs-offset-7"
 
-                                          (button
-                                            :class "btn btn-warning btn-sm btn-block"
-                                            :click #(s/create-new-plot-annual @plot-id)
-                                            (text "~(vocab :new-plot-annual-button s/lang)"))))
+                                             (input
+                                               :id new-annual-year-id
+                                               :class "form-control"
+                                               :type "number"
+                                               :step 1
+                                               :min 1961
+                                               :max 2100
+                                               :placeholder (cell= (vocab :year-placeholder s/lang))
+                                               :value new-year
+                                               :on-change #(let [new-annual-year (js/parseInt (val-id new-annual-year-id))]
+                                                            (reset! new-year (if (@annual-years-set new-annual-year)
+                                                                               (inc (last @annual-years))
+                                                                               new-annual-year)))))
+
+                                           (div
+                                             :col [:xs 2]
+                                             ;:class "col-xs-offset-8"
+
+                                             (button
+                                               :class "btn btn-warning btn-sm btn-block"
+                                               :click #(s/create-new-plot-annual @plot-id @new-year)
+                                               (text "~(vocab :new-plot-annual-button s/lang) ~{new-year}")))]))
 
                                       (cell-let
                                         [{ann-db-id :db/id
@@ -589,7 +610,7 @@
 
                                                    :db-id ann-db-id
 
-                                                   :year year :year! #(s/update-db-entity @ann-db-id :plot.annual/year %)
+                                                   :year year :year! #(s/update-db-entity @ann-db-id :plot.annual/year % :value-type :int)
 
                                                    :abs-day-of-initial-soil-moisture-measurement abs-day-of-initial-soil-moisture-measurement
                                                    :abs-day-of-initial-soil-moisture-measurement! #(s/update-db-entity @ann-db-id :plot.annual/abs-day-of-initial-soil-moisture-measurement %
