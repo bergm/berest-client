@@ -82,6 +82,11 @@
            :annual-years-label {:lang/de "des Jahres"
                                 :lang/en "of year"}
 
+           :copy-selected-years-data?-label {:lang/de "Kopie von"
+                                             :lang/en "Copy of"}
+           :new-year-placeholder {:lang/de "Neues Jahr"
+                                  :lang/en "New year"}
+
            :name-label {:lang/de "Name"
                         :lang/en "Name"}
            :name-placeholder {:lang/de "Name der Fruchtart"
@@ -433,7 +438,9 @@
                           sse :plot/sse
                           bwb :plot/bwb
                           irrigation-well :plot/irrigation-well} selected-plot]
-                        (let [[annual-years-id new-annual-year-id] (repeatedly gensym)
+                        (let [[annual-years-id
+                               new-annual-year-id
+                               copy-previous-years-data-id] (repeatedly gensym)
 
                               plot-details-visible? (cell false)]
 
@@ -523,7 +530,7 @@
                                     current-year (.getFullYear (js/Date.))
 
                                     annual-years-set (cell= (into #{} annual-years))
-                                    selected-annual-year (cell= (or (if-let [param-year (some-> (:year s/route-params) js/parseInt)]
+                                    selected-annual-year (cell= (or (when-let [param-year (some-> (:year s/route-params) js/parseInt)]
                                                                       (annual-years-set param-year))
                                                                     (annual-years-set current-year)
                                                                     (last annual-years)))
@@ -562,12 +569,29 @@
                                                       :selected (cell= (= year selected-annual-year))
                                                       (text "~{year}")))))
 
-                                        (let [new-year (cell (inc (cstc/year (cstc/now))))
+                                        (let [copy-data? (cell false)
+                                              new-year (cell (inc (cstc/year (cstc/now))))
                                               _ (cell= (when annual-years
                                                          (reset! ~(cell new-year) (inc (last annual-years)))))]
                                           [(div
+                                             :col [:xs 2]
+                                             :class "col-xs-offset-6"
+                                             :style "text-align: right"
+
+                                             (label
+                                               :class "form-control checkbox-inline"
+                                               :style "width: initial; border: initial; box-shadow: initial; -webkit-box-shadow: initial"
+                                               (input
+                                                 :id copy-previous-years-data-id
+                                                 :type "checkbox"
+                                                 :value copy-data?
+                                                 :on-change #(reset! copy-data? (val-id copy-previous-years-data-id)))
+                                               (text "~(vocab :copy-selected-years-data?-label s/lang) ~{selected-annual-year}?")))
+
+                                           (div
                                              :col [:xs 1]
-                                             :class "col-xs-offset-7"
+                                             :style "padding-right: 5px"
+                                             ;:class "col-xs-offset-7"
 
                                              (input
                                                :id new-annual-year-id
@@ -576,7 +600,7 @@
                                                :step 1
                                                :min 1961
                                                :max 2100
-                                               :placeholder (cell= (vocab :year-placeholder s/lang))
+                                               :placeholder (cell= (vocab :new-year-placeholder s/lang))
                                                :value new-year
                                                :on-change #(let [new-annual-year (js/parseInt (val-id new-annual-year-id))]
                                                             (reset! new-year (if (@annual-years-set new-annual-year)
@@ -584,12 +608,13 @@
                                                                                new-annual-year)))))
 
                                            (div
-                                             :col [:xs 2]
+                                             :col [:xs 1]
+                                             :style "padding-left: 5px"
                                              ;:class "col-xs-offset-8"
 
                                              (button
                                                :class "btn btn-warning btn-sm btn-block"
-                                               :click #(s/create-new-plot-annual @plot-id @new-year)
+                                               :click #(s/create-new-plot-annual @plot-id @new-year @copy-data? @selected-annual-year)
                                                (text "~(vocab :new-plot-annual-button s/lang) ~{new-year}")))]))
 
                                       (cell-let
