@@ -153,7 +153,7 @@
 (def login! (mkremote 'de.zalf.berest.web.castra.api/login state error loading))
 (def logout! (mkremote 'de.zalf.berest.web.castra.api/logout state error loading))
 (def get-state (mkremote 'de.zalf.berest.web.castra.api/get-berest-state state error loading))
-(def get-full-selected-crops (mkremote 'de.zalf.berest.web.castra.api/get-state-with-full-selected-crops state error loading))
+#_(def get-full-selected-crops (mkremote 'de.zalf.berest.web.castra.api/get-state-with-full-selected-crops state error loading))
 (def calculate-csv (mkremote 'de.zalf.berest.web.castra.api/calculate-csv csv-result calc-error calculating))
 (def simulate-csv (mkremote 'de.zalf.berest.web.castra.api/simulate-csv csv-result calc-error calculating))
 
@@ -161,65 +161,61 @@
   [result-cell plot-id until-abs-day year]
   ((mkremote 'de.zalf.berest.web.castra.api/calculate-from-db result-cell error loading) plot-id until-abs-day year))
 
-(defn load-weather-station-data
-  [result-cell weather-station-id years]
-  ((mkremote 'de.zalf.berest.web.castra.api/get-weather-station-data
-             result-cell error loading) weather-station-id years))
-
 (def load-static-state
   (mkremote 'de.zalf.berest.web.castra.api/get-static-state static-state error loading))
 (cell= (when logged-in? #_(and s/logged-in? (not s/static-state))
          (load-static-state)))
 
-(def load-crop-data (mkremote 'de.zalf.berest.web.castra.api/get-crop-data crop-state error loading))
-
-(def create-new-farm (mkremote 'de.zalf.berest.web.castra.api/create-new-farm state error loading))
+;plot
 (def create-new-plot (mkremote 'de.zalf.berest.web.castra.api/create-new-plot state error loading))
 (def create-new-plot-annual (mkremote 'de.zalf.berest.web.castra.api/create-new-plot-annual state error loading))
-(def create-new-local-user-weather-station (mkremote 'de.zalf.berest.web.castra.api/create-new-local-user-weather-station state error loading))
 
+;user
 (def create-new-user (mkremote 'de.zalf.berest.web.castra.api/create-new-user state error loading))
 (def set-new-password (mkremote 'de.zalf.berest.web.castra.api/set-new-password pwd-update-success? error loading))
 (def update-user-roles (mkremote 'de.zalf.berest.web.castra.api/update-user-roles state error loading))
+
+;weather-data
+(def load-weather-station-data (mkremote 'de.zalf.berest.web.castra.api/get-weather-station-data weather-station-data error loading))
+(def create-new-local-user-weather-station (mkremote 'de.zalf.berest.web.castra.api/create-new-local-user-weather-station state error loading))
 (def add-user-weather-stations (mkremote 'de.zalf.berest.web.castra.api/add-user-weather-stations state error loading))
 (def remove-user-weather-stations (mkremote 'de.zalf.berest.web.castra.api/remove-user-weather-stations state error loading))
+(def import-weather-data (mkremote 'de.zalf.berest.web.castra.api/import-weather-data crop-state error loading))
+(def create-new-weather-data (mkremote 'de.zalf.berest.web.castra.api/create-new-weather-data weather-station-data error loading))
 
+;farms
+(def create-new-farm (mkremote 'de.zalf.berest.web.castra.api/create-new-farm state error loading))
 (def create-new-farm-address (mkremote 'de.zalf.berest.web.castra.api/create-new-farm-address state error loading))
 (def create-new-farm-contact (mkremote 'de.zalf.berest.web.castra.api/create-new-farm-contact state error loading))
 
+;soils
 (def create-new-soil-data-layer (mkremote 'de.zalf.berest.web.castra.api/create-new-soil-data-layer state error loading))
 (def set-substrate-group-fcs-and-pwps (mkremote 'de.zalf.berest.web.castra.api/set-substrate-group-fcs-and-pwps state error loading))
-
 (def create-new-soil-moisture (mkremote 'de.zalf.berest.web.castra.api/create-new-soil-moisture state error loading))
 (def create-new-donation (mkremote 'de.zalf.berest.web.castra.api/create-new-donation state error loading))
 (def create-new-crop-instance (mkremote 'de.zalf.berest.web.castra.api/create-new-crop-instance state error loading))
 (def create-new-dc-assertion (mkremote 'de.zalf.berest.web.castra.api/create-new-dc-assertion state error loading))
-(def create-new-weather-data (mkremote 'de.zalf.berest.web.castra.api/create-new-weather-data state error loading))
-(def create-new-com-con (mkremote 'de.zalf.berest.web.castra.api/create-new-com-con state error loading))
 
+;crops
 (def create-new-crop (mkremote 'de.zalf.berest.web.castra.api/create-new-crop static-state error loading))
 (def copy-crop (mkremote 'de.zalf.berest.web.castra.api/copy-crop static-state error loading))
 (def delete-crop (mkremote 'de.zalf.berest.web.castra.api/delete-crop static-state error loading))
+(def load-crop-data (mkremote 'de.zalf.berest.web.castra.api/get-crop-data crop-state error loading))
+(def update-crop-db-entity (mkremote 'de.zalf.berest.web.castra.api/update-crop-db-entity crop-state error loading))
+(def delete-crop-db-entity (mkremote 'de.zalf.berest.web.castra.api/delete-crop-db-entity crop-state error loading))
+(def create-new-crop-kv-pair (mkremote 'de.zalf.berest.web.castra.api/create-new-crop-kv-pair crop-state error loading))
 
-#_(def update-is-main-contact? (mkremote 'de.zalf.berest.web.castra.api/update-is-main-contact? state error loading))
-
+;common
 (def update-db-entity (mkremote 'de.zalf.berest.web.castra.api/update-db-entity state error loading))
 (def retract-db-value (mkremote 'de.zalf.berest.web.castra.api/retract-db-value state error loading))
 (def delete-db-entity (mkremote 'de.zalf.berest.web.castra.api/delete-db-entity state error loading))
 (def delete-db-entities (mkremote 'de.zalf.berest.web.castra.api/delete-db-entity state error loading))
 
-(def update-crop-db-entity (mkremote 'de.zalf.berest.web.castra.api/update-crop-db-entity crop-state error loading))
-(def delete-crop-db-entity (mkremote 'de.zalf.berest.web.castra.api/delete-crop-db-entity crop-state error loading))
-(def create-new-crop-kv-pair (mkremote 'de.zalf.berest.web.castra.api/create-new-crop-kv-pair crop-state error loading))
-
-;TODO: can't update weather-stations easily as they're actually shared most of the time, do this later properly
-#_(def update-weather-station (mkremote 'de.zalf.berest.web.castra.api/update-weather-station state error loading))
+(def create-new-com-con (mkremote 'de.zalf.berest.web.castra.api/create-new-com-con state error loading))
 
 
-(defn init-after-login []
-  #_(when-not @minimal-all-crops (load-minimal-all-crops))
-  #_(get-state)
-  #_(js/setInterval #(if @logged-in? (get-state)) 100))
+
+
 
 
 

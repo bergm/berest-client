@@ -21,8 +21,9 @@
 
            :weather-data-fieldset-label {:lang/de "Wetterdaten"
                                          :lang/en "Weather data"}
-           #_:weather-data-label #_{:lang/de "Datensätze"
-                                :lang/en "Datasets"}
+
+           :weather-data-import-fieldset-label {:lang/de "Datenimport"
+                                                :lang/en "Data import"}
 
            :name-label {:lang/de "Name"
                         :lang/en "Name"}
@@ -56,12 +57,58 @@
                           :lang/en "Weather data"}
            :chart-subheader {:lang/de "Quelle: DWD Station"
                              :lang/en "Source: DWD station"}
+
+           :day {:lang/de "Tag"
+                  :lang/en "Day"}
+           :month {:lang/de "Monat"
+                  :lang/en "Month"}
+           :year {:lang/de "Jahr"
+                  :lang/en "Year"}
+           :date {:lang/de "Datum"
+                  :lang/en "Date"}
            :evap {:lang/de "Verdunstung"
                   :lang/en "Evaporation"}
            :precip {:lang/de "Niederschlag"
                     :lang/en "Precipitation"}
            :tavg {:lang/de "mittl. Temperatur"
-                  :lang/en "avg. Temperature"}}
+                  :lang/en "Avg. temperature"}
+           :globrad {:lang/de "Globalstrahlung"
+                     :lang/en "Global radiation"}
+
+           :tab {:lang/de "Tabulator (\\t)"
+                     :lang/en "Tabulator (\\t)"}
+           :space {:lang/de "Leerzeichen ( )"
+                     :lang/en "Spaces ( )"}
+           :comma {:lang/de "Komma (,)"
+                     :lang/en "Comma (,)"}
+           :semicolon {:lang/de "Semikolon (;)"
+                        :lang/en "Semicolon (;)"}
+
+           :separator-select-label {:lang/de "Trennzeichen"
+                                    :lang/en "Separator"}
+
+           :element-order-label {:lang/de "Reihenfolge"
+                                 :lang/en "Order"}
+
+           :import-area-label {:lang/de "Import-Daten"
+                               :lang/en "Import data"}
+           :import-area-placeholder {:lang/de ""
+                                     :lang/en ""}
+
+           :ignore-header-lines-label {:lang/de "Zu ignorierende Kopfzeilen"
+                                       :lang/en "Ignore header lines"}
+           :ignore-header-lines-placeholder {:lang/de "Anzahl Zeilen"
+                                            :lang/en "# lines"}
+
+           :import-button-label {:lang/de "Importieren"
+                                 :lang/en "Import"}
+
+           :date-format-label {:lang/de "Datum-Format"
+                               :lang/en "Date format"}
+           :date-format-separator-placeholder {:lang/de "Trennzeichen"
+                                               :lang/en "Separator"}
+
+           }
           [element (or lang :lang/de)] "UNKNOWN element"))
 
 
@@ -168,7 +215,18 @@
                {lat  :geo-coord/latitude
                 long :geo-coord/longitude} :weather-station/geo-coord} selected-weather-station]
 
-             (let [[name-input lat-input long-input chart-id years-id] (repeatedly gensym)
+             (let [[name-input
+                    lat-input
+                    long-input
+                    chart-id
+                    years-id
+                    separator-select-id
+                    element-order-id
+                    ignore-header-lines-id
+                    import-area-id
+                    sep-1-id sep-2-id]
+                   (repeatedly gensym)
+
                    edit? (cell= s/admin-logged-in?) #_(cell true)
                    no-edit? (cell= (not edit?))
 
@@ -176,13 +234,11 @@
                                        :lat  nil
                                        :long nil})
 
-                   weather-station-data (cell nil)
-
-                   loaded-data-ws-id (cell= (:weather-station-id weather-station-data))
+                   loaded-data-ws-id (cell= (:weather-station-id s/weather-station-data))
                    ;_ (cell= (println "loaded-data-ws-id: " (pr-str loaded-data-ws-id)))
 
                    weather-data (cell= (when (= id loaded-data-ws-id)
-                                             (:data weather-station-data)))
+                                             (:data s/weather-station-data)))
                    ;_ (cell= (println "weather-data: " (pr-str weather-station-data)))
 
                    available-years-set (cell= (into #{} years))
@@ -200,7 +256,7 @@
                    ;_ (cell= (println "selected-years-set*: " (pr-str selected-years-set*)))
 
                    _ (cell= (when (and id selected-weather-station selected-years-set* (seq selected-years-set*))
-                                  (s/load-weather-station-data ~(cell weather-station-data) id (seq selected-years-set*))))
+                                  (s/load-weather-station-data id (seq selected-years-set*))))
 
                    chart-config {:chart {:renderTo chart-id
                                          ;:defaultSeriesType "spline"
@@ -381,6 +437,206 @@
                      :id chart-id
                      :toggle :toggle (cell= (not (nil? (seq selected-years-set*))))
                      :col [:xs 12])
+
+                   (let [visible? (cell false)
+                         elem-1 (cell :date)
+                         elem-2 (cell :precip)
+                         elem-3 (cell :evap)
+                         elem-4 (cell nil)
+                         elem-5 (cell nil)
+                         elem-6 (cell nil)
+                         elem-7 (cell nil)
+                         df-1 (cell "dd")
+                         df-2 (cell "MM")
+                         df-3 (cell "yyyy")
+                         df-sep (cell ".")
+                         df (cell= (str df-1 df-sep df-2 df-sep df-3))
+                         df-ex {"dd" "14"
+                                "MM" "09"
+                                "yyyy" "2014"}
+                         df-example (cell= (str (df-ex df-1) df-sep (df-ex df-2) df-sep (df-ex df-3)))
+                         ;_ (cell= (println "df: " (pr-str df) " df-example: " (pr-str df-example)))
+                         separator (cell "\t")
+                         no-of-header-lines-to-ignore (cell 1)]
+                     (fieldset
+                       :toggle local?
+
+                       (uic/hover-activate-wrapper
+                         :action! #(swap! visible? not)
+                         (legend
+                           (text "~(vocab :weather-data-import-fieldset-label s/lang) ~(when-not visible? \" ...\")")))
+
+                       (bs/form-group
+                         :toggle visible?
+                         (bs/control-label :col [:xs 2] :for separator-select-id (text "~(vocab :separator-select-label s/lang)"))
+                         (div
+                           :col [:xs 2]
+                           (select
+                             :id separator-select-id
+                             :class "form-control"
+                             :change #(reset! separator (val-id separator-select-id))
+                             (option :value "\t" :selected (cell= (= separator "\t")) (text "~(vocab :tab s/lang)"))
+                             (option :value " " :selected (cell= (= separator " " )) (text "~(vocab :space s/lang)"))
+                             (option :value "," :selected (cell= (= separator ",")) (text "~(vocab :comma s/lang)"))
+                             (option :value ";" :selected (cell= (= separator ";")) (text "~(vocab :semicolon s/lang)")))))
+
+                       (bs/form-group
+                         :toggle visible?
+                         (bs/control-label :col [:sm 2] :for ignore-header-lines-id (text "~(vocab :ignore-header-lines-label s/lang)"))
+                         (div
+                           :col [:xs 1]
+                           (input
+                             :id ignore-header-lines-id
+                             :class "form-control"
+                             :type "number"
+                             :step 1
+                             :min 0
+                             :placeholder (cell= (vocab :ignore-header-lines-placeholder s/lang))
+                             :value no-of-header-lines-to-ignore
+                             :on-change #(reset! no-of-header-lines-to-ignore (js/parseInt (val-id ignore-header-lines-id))))))
+
+                       (let [create-elem-select (fn [def-elem c size]
+                                                  (let [id (gensym)]
+                                                    (div
+                                                      :col [:xs size]
+                                                      (select
+                                                        :id id
+                                                        :class "form-control"
+                                                        :change #(reset! c (val-id id))
+                                                        (option :value "dd"
+                                                                :selected (= def-elem :day)
+                                                                (text "~(vocab :day s/lang)"))
+                                                        (option :value "MM"
+                                                                :selected (= def-elem :month)
+                                                                (text "~(vocab :month s/lang)"))
+                                                        (option :value "yyyy"
+                                                                :selected (= def-elem :year)
+                                                                (text "~(vocab :year s/lang)"))))))
+                             create-sep-select (fn [def-elem c size]
+                                             (let [id (gensym)]
+                                               (div
+                                                 :col [:xs size]
+                                                 (select
+                                                   :id id
+                                                   :class "form-control"
+                                                   :change #(reset! c (val-id id))
+                                                   (option :value ""
+                                                           :selected (= def-elem :none)
+                                                           "")
+                                                   (option :value "."
+                                                           :selected (= def-elem :dot)
+                                                           ".")
+                                                   (option :value ","
+                                                           :selected (= def-elem :comma)
+                                                           ",")
+                                                   (option :value "/"
+                                                           :selected (= def-elem :slash)
+                                                           "/")
+                                                   (option :value "\\"
+                                                           :selected (= def-elem :backslash)
+                                                           "\\")))))]
+                         (bs/form-group
+                           :toggle visible?
+                           (bs/control-label :col [:xs 2] (text "~(vocab :date-format-label s/lang)"))
+
+                           (create-elem-select :day df-1 1)
+                           (create-sep-select :dot df-sep 1)
+                           (create-elem-select :month df-2 1)
+                           (div
+                             :col [:xs 1]
+                             (p
+                               :class "form-control-static"
+                               :style "text-align: center; font-weight: bold"
+                               (text "~{df-sep}")))
+                           (create-elem-select :year df-3 1)
+                           (div
+                             :col [:xs 1]
+                             (p
+                               :class "form-control-static"
+                               :style "text-align: center;"
+                               (span :class "glyphicon glyphicon-arrow-right")))
+                           (div
+                             :col [:xs 1]
+                             (p
+                               :class "form-control-static"
+                               :style "text-align: center; font-weight: bold"
+                               (text "~{df-example}")))))
+
+                       (let [create-elem-select (fn [def-elem c size]
+                                                  (let [id (gensym)]
+                                                    (div
+                                                      :col [:xs size]
+
+                                                      (select
+                                                        :id id
+                                                        :class "form-control"
+                                                        :change #(let [v (val-id id)]
+                                                                  (reset! c (when-not (= v "")
+                                                                              (keyword v))))
+                                                        (option :value "" :selected (nil? def-elem) "")
+                                                        (option :value "date"
+                                                                :selected (= def-elem :date)
+                                                                (text "~(vocab :date s/lang) [dd.mm.yyyy]"))
+                                                        (option :value "day"
+                                                                :selected (= def-elem :day)
+                                                                (text "~(vocab :day s/lang)"))
+                                                        (option :value "month"
+                                                                :selected (= def-elem :month)
+                                                                (text "~(vocab :month s/lang)"))
+                                                        (option :value "year"
+                                                                :selected (= def-elem :year)
+                                                                (text "~(vocab :year s/lang)"))
+                                                        (option :value "precip"
+                                                                :selected (= def-elem :precip)
+                                                                (text "~(vocab :precip s/lang) [mm]"))
+                                                        (option :value "evap"
+                                                                :selected (= def-elem :evap)
+                                                                (text "~(vocab :evap s/lang) [mm]"))
+                                                        (option :value "tavg"
+                                                                :selected (= def-elem :tavg)
+                                                                (text "~(vocab :tavg s/lang) [°C]"))
+                                                        (option :value "globrad"
+                                                                :selected (= def-elem :globrad)
+                                                                (text "~(vocab :globrad s/lang) [J/cm2]"))))))]
+                         (bs/form-group
+                           :toggle visible?
+                           (bs/control-label :col [:xs 2] (text "~(vocab :element-order-label s/lang)"))
+                           (create-elem-select :date elem-1 2)
+                           (create-elem-select :precip elem-2 2)
+                           (create-elem-select :evap elem-3 2)
+                           (create-elem-select nil elem-4 1)
+                           (create-elem-select nil elem-5 1)
+                           (create-elem-select nil elem-6 1)
+                           (create-elem-select nil elem-7 1)))
+
+                       (bs/form-group
+                         :toggle visible?
+                         (bs/control-label :col [:sm 2] :for import-area-id (text "~(vocab :import-area-label s/lang)"))
+                         (div
+                           :col [:xs 10]
+                           (textarea
+                             :id import-area-id
+                             :class "form-control"
+                             :rows "20" ;:cols "150"
+                             :placeholder (cell= (vocab :import-area-placeholder s/lang))
+                             :value "")))
+
+                       (bs/form-group
+                         :toggle visible?
+                         (div
+                           :col [:xs 2]
+                           :class "col-xs-offset-2"
+                           (button
+                             :class "btn btn-warning btn-lg"
+                             :click #(s/import-weather-data @id
+                                                            (seq @selected-years-set*)
+                                                            (val-id import-area-id)
+                                                            :separator @separator
+                                                            :date-format @df
+                                                            :ignore-lines @no-of-header-lines-to-ignore
+                                                            :element-order [@elem-1 @elem-2 @elem-3 @elem-4
+                                                                            @elem-5 @elem-6 @elem-7])
+                             (text "~(vocab :import-button-label s/lang)"))))))
 
                    (let [visible? (cell false)]
                         (fieldset
