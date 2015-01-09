@@ -180,7 +180,7 @@
 (def create-new-local-user-weather-station (mkremote 'de.zalf.berest.web.castra.api/create-new-local-user-weather-station state error loading))
 (def add-user-weather-stations (mkremote 'de.zalf.berest.web.castra.api/add-user-weather-stations state error loading))
 (def remove-user-weather-stations (mkremote 'de.zalf.berest.web.castra.api/remove-user-weather-stations state error loading))
-(def import-weather-data (mkremote 'de.zalf.berest.web.castra.api/import-weather-data crop-state error loading))
+(def import-weather-data (mkremote 'de.zalf.berest.web.castra.api/import-weather-data state error loading))
 (def create-new-weather-data (mkremote 'de.zalf.berest.web.castra.api/create-new-weather-data weather-station-data error loading))
 
 ;farms

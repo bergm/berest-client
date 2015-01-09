@@ -108,6 +108,9 @@
            :date-format-separator-placeholder {:lang/de "Trennzeichen"
                                                :lang/en "Separator"}
 
+           :reload-weather-data-label {:lang/de "Neu laden"
+                                       :lang/en "Reload"}
+
            }
           [element (or lang :lang/de)] "UNKNOWN element"))
 
@@ -124,6 +127,8 @@
         many-weather-stations? (cell= (> weather-stations-count 1))
         _ (cell= (when (= weather-stations-count 1)
                    (s/set-route-params :weather-station-id (-> s/user-weather-stations first :weather-station/id))))
+
+        ;reload-count (cell 0)
         ]
        (div
          :id "weather-stations-pane"
@@ -221,13 +226,11 @@
                     chart-id
                     years-id
                     separator-select-id
-                    element-order-id
                     ignore-header-lines-id
-                    import-area-id
-                    sep-1-id sep-2-id]
+                    import-area-id]
                    (repeatedly gensym)
 
-                   edit? (cell= s/admin-logged-in?) #_(cell true)
+                   edit? (cell= (or local? s/admin-logged-in?))
                    no-edit? (cell= (not edit?))
 
                    station-data (cell {:name nil
@@ -255,8 +258,13 @@
                                                              #{(first (sort years))})))))
                    ;_ (cell= (println "selected-years-set*: " (pr-str selected-years-set*)))
 
-                   _ (cell= (when (and id selected-weather-station selected-years-set* (seq selected-years-set*))
-                                  (s/load-weather-station-data id (seq selected-years-set*))))
+                   #__ #_(cell= (when years
+                              (swap! ~(cell reload-count) inc)))
+
+                   ;_ (cell= (println "years: " (pr-str years) " reload-count: " reload-count))
+
+                   _ (cell= (when (and id selected-weather-station selected-years-set* (seq selected-years-set*) #_reload-count)
+                              (s/load-weather-station-data id (seq selected-years-set*))))
 
                    chart-config {:chart {:renderTo chart-id
                                          ;:defaultSeriesType "spline"
@@ -431,7 +439,16 @@
                                    :selected (cell= (if selected-years-set*
                                                       (= (selected-years-set* year) year)
                                                       false))
-                                   (text "~{year}"))))))
+                                   (text "~{year}")))))
+
+                     #_(div
+                       :col [:xs 2]
+                       :class "col-xs-offset-5"
+                       (button
+                         :style "float:right"
+                         :class "btn btn-warning btn-sm"
+                         :click #(#_swap! #_recalc-count* #_inc)
+                         (text "~(vocab :reload-weather-data-label s/lang)"))))
 
                    (div
                      :id chart-id
@@ -629,7 +646,7 @@
                            (button
                              :class "btn btn-warning btn-lg"
                              :click #(s/import-weather-data @id
-                                                            (seq @selected-years-set*)
+                                                            #_(seq @selected-years-set*)
                                                             (val-id import-area-id)
                                                             :separator @separator
                                                             :date-format @df
