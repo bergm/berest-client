@@ -81,11 +81,16 @@
                      :lang/en "Spaces ( )"}
            :comma {:lang/de "Komma (,)"
                      :lang/en "Comma (,)"}
+           :dot {:lang/de "Punkt (.)"
+                   :lang/en "Dot (.)"}
            :semicolon {:lang/de "Semikolon (;)"
                         :lang/en "Semicolon (;)"}
 
            :separator-select-label {:lang/de "Trennzeichen"
                                     :lang/en "Separator"}
+
+           :decimal-separator-select-label {:lang/de "Dezimal-Trennzeichen"
+                                    :lang/en "Decimal separator"}
 
            :element-order-label {:lang/de "Reihenfolge"
                                  :lang/en "Order"}
@@ -226,6 +231,7 @@
                     chart-id
                     years-id
                     separator-select-id
+                    decimal-separator-select-id
                     ignore-header-lines-id
                     import-area-id]
                    (repeatedly gensym)
@@ -474,6 +480,7 @@
                          df-example (cell= (str (df-ex df-1) df-sep (df-ex df-2) df-sep (df-ex df-3)))
                          ;_ (cell= (println "df: " (pr-str df) " df-example: " (pr-str df-example)))
                          separator (cell "\t")
+                         decimal-separator (cell :dot)
                          no-of-header-lines-to-ignore (cell 1)]
                      (fieldset
                        :toggle local?
@@ -496,6 +503,18 @@
                              (option :value " " :selected (cell= (= separator " " )) (text "~(vocab :space s/lang)"))
                              (option :value "," :selected (cell= (= separator ",")) (text "~(vocab :comma s/lang)"))
                              (option :value ";" :selected (cell= (= separator ";")) (text "~(vocab :semicolon s/lang)")))))
+
+                       (bs/form-group
+                         :toggle visible?
+                         (bs/control-label :col [:xs 2] :for decimal-separator-select-id (text "~(vocab :separator-select-label s/lang)"))
+                         (div
+                           :col [:xs 2]
+                           (select
+                             :id decimal-separator-select-id
+                             :class "form-control"
+                             :change #(reset! decimal-separator (keyword (val-id decimal-separator-select-id)))
+                             (option :value "comma" :selected (cell= (= decimal-separator :comma)) (text "~(vocab :comma s/lang)"))
+                             (option :value "dot" :selected (cell= (= decimal-separator :dot )) (text "~(vocab :dot s/lang)")))))
 
                        (bs/form-group
                          :toggle visible?
@@ -649,6 +668,7 @@
                                                             #_(seq @selected-years-set*)
                                                             (val-id import-area-id)
                                                             :separator @separator
+                                                            :decimal-separator @decimal-separator
                                                             :date-format @df
                                                             :ignore-lines @no-of-header-lines-to-ignore
                                                             :element-order [@elem-1 @elem-2 @elem-3 @elem-4
