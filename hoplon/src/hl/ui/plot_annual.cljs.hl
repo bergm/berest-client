@@ -21,6 +21,11 @@
            :year-placeholder {:lang/de "Jahr der Schlagnutzung"
                               :lang/en "Year of plot use"}
 
+           :description-label {:lang/de "Beschreibung"
+                               :lang/en "Description"}
+           :description-placeholder {:lang/de "Beschreibung/Notiz"
+                                     :lang/en "Description/notes"}
+
            :abs-day-of-initial-soil-moisture-measurement-label {:lang/de "Tag der Bodenfeuchtemessung"
                                                                 :lang/en "Day of soil moisture measurement"}
            :abs-day-of-initial-soil-moisture-measurement-placeholder {:lang/de "Tag"
@@ -261,6 +266,11 @@
 
             db-id
 
+            id
+
+            description
+            description!
+
             year
             year!
 
@@ -320,6 +330,7 @@
                                                initial-dc-assertions-available?))
 
         [plot-annual-form-name
+         description-id
          year-id
          abs-day-of-initial-soil-moisture-measurement-id
          initial-soil-moistures-id
@@ -686,6 +697,20 @@
              :small-button? true
              :action! #(s/delete-db-entity @db-id)
              :value (cell= (str year " " (vocab :delete-plot-annual-button-label s/lang))))))
+
+       (bs/form-group
+         (bs/control-label :col [:sm label-cols] :for description-id (text "~(vocab :description-label s/lang)"))
+         (div
+           :col [:xs value-cols]
+           (p :toggle no-edit? :class "form-control-static" (text "~{description}"))
+           (input
+             :id description-id
+             :toggle edit?
+             :class "form-control"
+             :type "text"
+             :placeholder (cell= (vocab :description-placeholder s/lang))
+             :value description
+             :on-change #(description! (val-id description-id)))))
 
        (bs/form-group
          (bs/control-label :col [:sm label-cols] :for year-id (text "~(vocab :year-label s/lang)"))

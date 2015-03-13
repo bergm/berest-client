@@ -518,32 +518,26 @@
 
                                     ;_ (cell= (print "annuals: " (pr-str annuals)))
 
-                                    annual-years (cell= (->> annuals
-                                                             (map :plot.annual/year ,,,)
-                                                             sort))
-                                    ;_ (cell= (print "annual-years: " (pr-str annual-years)))
+                                    sorted-annuals (cell= (sort-by :plot.annual/year annuals))
+                                    ;_ (cell= (println "sorted-annuals: " (pr-str sorted-annuals)))
 
                                     annual-plot-details-visible?* (cell true)
-                                    annual-plot-details-visible? (cell= (and (seq annual-years)
+                                    annual-plot-details-visible? (cell= (and (seq sorted-annuals)
                                                                              annual-plot-details-visible?*))
 
                                     current-year (.getFullYear (js/Date.))
 
-                                    annual-years-set (cell= (into #{} annual-years))
-                                    selected-annual-year (cell= (or (when-let [param-year (some-> (:year s/route-params) js/parseInt)]
-                                                                      (annual-years-set param-year))
-                                                                    (annual-years-set current-year)
-                                                                    (last annual-years)))
-                                    #__ #_(cell= (println "selected-annual-year: " (pr-str selected-annual-year)
-                                                      "param-year: " (pr-str (some-> (:year s/route-params) js/parseInt))))
-                                    _ (cell= (when (not= selected-annual-year (some-> (:year s/route-params) js/parseInt))
-                                               (s/set-route-params :year selected-annual-year)))
+                                    selected-annual-id (cell= (:plot.annual/id (or (when-let [param-id (some-> (:plot-annual-id s/route-params) UUID.)]
+                                                                                     (first (filter #(= param-id (:plot.annual/id %)) sorted-annuals)))
+                                                                                   (first (filter #(= current-year (:plot.annual/year %)) sorted-annuals))
+                                                                                   (last sorted-annuals))))
+                                    #__ #_(cell= (println "selected-annual-id: " (pr-str selected-annual-id)
+                                                      "param-id: " (:plot-annual-id s/route-params)))
+                                    _ (cell= (when (not= selected-annual-id (UUID. (:plot-annual-id s/route-params)))
+                                               (s/set-route-params :plot-annual-id selected-annual-id)))
 
-                                    selected-annual (cell= (first (filter #(= selected-annual-year (:plot.annual/year %)) annuals)))
-                                    #__ #_(cell= (when (and selected-plot selected-annual)
-                                                   farm-weather-data
-                                                   (swap! ~(cell recalc-count) inc)))
-                                    #__ #_(cell= (println "selected-annual: " (pr-str selected-annual)))
+                                    selected-annual (cell= (first (filter #(= selected-annual-id (:plot.annual/id %)) annuals)))
+                                    ;_ (cell= (println "selected-annual: " (pr-str selected-annual)))
                                     ]
 
                                    [(uic/hover-toggle-panel
@@ -562,16 +556,16 @@
                                           (select
                                             :id annual-years-id
                                             :class "form-control"
-                                            :change #(s/set-route-params :year (js/parseInt (val-id annual-years-id)))
+                                            :change #(s/set-route-params :plot-annual-id (val-id annual-years-id))
                                             (loop-tpl
-                                              :bindings [year annual-years]
-                                              (option :value year
-                                                      :selected (cell= (= year selected-annual-year))
-                                                      (text "~{year}")))))
+                                              :bindings [annual sorted-annuals]
+                                              (option :value (cell= (str (:plot.annual/id annual)))
+                                                      :selected (cell= (= (:plot.annual/id annual) selected-annual-id))
+                                                      (text "~(:plot.annual/year annual) ~(:plot.annual/description annual)")))))
 
                                         (let [copy-data? (cell false)
-                                              new-year (cell (inc (cstc/year (cstc/now))))
-                                              _ (cell= (when annual-years
+                                              new-year (cell (cstc/year (cstc/now)))
+                                              #__ #_(cell= (when annual-years
                                                          (reset! ~(cell new-year) (inc (last annual-years)))))]
                                           [(div
                                              :col [:xs 2]
@@ -586,7 +580,7 @@
                                                  :type "checkbox"
                                                  :value copy-data?
                                                  :on-change #(reset! copy-data? (val-id copy-previous-years-data-id)))
-                                               (text "~(vocab :copy-selected-years-data?-label s/lang) ~{selected-annual-year}?")))
+                                               (text "~(vocab :copy-selected-years-data?-label s/lang) ~(:plot.annual/year selected-annual)?")))
 
                                            (div
                                              :col [:xs 1]
@@ -602,10 +596,7 @@
                                                :max 2100
                                                :placeholder (cell= (vocab :new-year-placeholder s/lang))
                                                :value new-year
-                                               :on-change #(let [new-annual-year (js/parseInt (val-id new-annual-year-id))]
-                                                            (reset! new-year (if (@annual-years-set new-annual-year)
-                                                                               (inc (last @annual-years))
-                                                                               new-annual-year)))))
+                                               :on-change #(reset! new-year (js/parseInt (val-id new-annual-year-id)))))
 
                                            (div
                                              :col [:xs 1]
@@ -614,11 +605,13 @@
 
                                              (button
                                                :class "btn btn-warning btn-sm btn-block"
-                                               :click #(s/create-new-plot-annual @plot-id @new-year @copy-data? @selected-annual-year)
+                                               :click #(s/create-new-plot-annual @plot-id @new-year @copy-data? @selected-annual-id)
                                                (text "~(vocab :new-plot-annual-button s/lang) ~{new-year}")))]))
 
                                       (cell-let
                                         [{ann-db-id :db/id
+                                          ann-id :plot.annual/id
+                                          ann-description :plot.annual/description
                                           year :plot.annual/year
                                           abs-day-of-initial-soil-moisture-measurement :plot.annual/abs-day-of-initial-soil-moisture-measurement
                                           initial-soil-moistures :plot.annual/initial-soil-moistures
@@ -634,6 +627,10 @@
                                           :fields {:plot-id plot-id
 
                                                    :db-id ann-db-id
+
+                                                   :id ann-id
+
+                                                   :description ann-description :description! #(s/update-db-entity @ann-db-id :plot.annual/description %)
 
                                                    :year year :year! #(s/update-db-entity @ann-db-id :plot.annual/year % :value-type :int)
 
