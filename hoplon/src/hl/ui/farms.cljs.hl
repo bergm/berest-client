@@ -533,28 +533,22 @@
                                     reset-onadf #(reset! once-new-annual-desc-filter nil)
                                     ;_ (cell= (println "once-new-annual-desc-filter: " once-new-annual-desc-filter))
 
-                                    selected-annual-id
-                                    (cell= (:plot.annual/id (or (when once-new-annual-desc-filter
-                                                                  #_(println "111111")
-                                                                  (with-timeout 5000 (reset-onadf))
-                                                                  (first (filter #(when-let [desc (:plot.annual/description %)]
-                                                                                   (> (.search desc (h/quote-regex once-new-annual-desc-filter))
-                                                                                      -1))
-                                                                                 sorted-annuals)))
-                                                                (when-let [param-id (some-> (:plot-annual-id s/route-params) UUID.)]
-                                                                  #_(println "222222")
-                                                                  (first (filter #(= param-id (:plot.annual/id %)) sorted-annuals)))
-                                                                (first (filter #(= current-year (:plot.annual/year %)) sorted-annuals))
-                                                                (last sorted-annuals))))
-                                    #__ #_(cell= (println "selected-annual-id: " (pr-str selected-annual-id)
-                                                    " param-id: " (:plot-annual-id s/route-params)))
-
-                                    _ (cell= (when (and #_(not once-new-annual-desc-filter)
-                                                     (not= selected-annual-id (UUID. (:plot-annual-id s/route-params))))
-                                                   (s/set-route-params :plot-annual-id selected-annual-id)))
-
-                                    selected-annual (cell= (first (filter #(= selected-annual-id (:plot.annual/id %)) annuals)))
+                                    selected-annual
+                                    (cell= (or (when once-new-annual-desc-filter
+                                                 (with-timeout 5000 (reset-onadf))
+                                                 (first (filter #(when-let [desc (:plot.annual/description %)]
+                                                                  (> (.search desc (h/quote-regex once-new-annual-desc-filter))
+                                                                     -1))
+                                                                sorted-annuals)))
+                                               (when-let [param-id (some-> (:plot-annual-id s/route-params) UUID.)]
+                                                 (first (filter #(= param-id (:plot.annual/id %)) sorted-annuals)))
+                                               (first (filter #(= current-year (:plot.annual/year %)) sorted-annuals))
+                                               (last sorted-annuals)))
                                     ;_ (cell= (println "selected-annual: " (pr-str selected-annual)))
+
+                                    _ (cell= (when-let [sel-ann-id (:plot.annual/id selected-annual)]
+                                               (not= sel-ann-id (UUID. (:plot-annual-id s/route-params)))
+                                               (s/set-route-params :plot-annual-id sel-ann-id)))
                                     ]
 
                                    [(uic/hover-toggle-panel
@@ -577,10 +571,8 @@
                                             (loop-tpl
                                               :bindings [annual sorted-annuals]
                                               (option :value (cell= (str (:plot.annual/id annual)))
-                                                      :selected (cell= (do
-                                                                         #_(println "selected plot-annual-id: " (pr-str (:plot.annual/id annual))
-                                                                                  " selected-annual-id: " selected-annual-id)
-                                                                         (= (:plot.annual/id annual) selected-annual-id)))
+                                                      :selected (cell= (when (and annual selected-annual)
+                                                                         (= (:plot.annual/id annual) (:plot.annual/id selected-annual))))
                                                       (text "~(:plot.annual/year annual) ~(:plot.annual/description annual)")))))
 
                                         (let [copy-data? (cell false)
@@ -626,11 +618,13 @@
                                              (button
                                                :class "btn btn-warning btn-sm btn-block"
                                                :click #(do
-                                                        (s/create-new-plot-annual @plot-id @new-year @copy-data? @selected-annual-id)
-                                                        (s/set-route-params :plot-annual-id nil)
-                                                        (reset! once-new-annual-desc-filter (if @copy-data?
-                                                                                              (str "(Kopie von " (:plot.annual/year selected-annual) ")")
-                                                                                              (str "(Neues Jahr " @new-year ")"))))
+                                                        (s/create-new-plot-annual @plot-id @new-year @copy-data?
+                                                                                  (:plot.annual/id @selected-annual))
+                                                        #_(s/set-route-params :plot-annual-id nil)
+                                                        (reset! once-new-annual-desc-filter
+                                                                (if @copy-data?
+                                                                  (str "(Kopie von " (:plot.annual/year @selected-annual) ")")
+                                                                  (str "(Neues Jahr " @new-year ")"))))
                                                (text "~(vocab :new-plot-annual-button s/lang) ~{new-year}")))]))
 
                                       (cell-let
