@@ -32,7 +32,7 @@
 (defc edn-result nil)
 #_(cell= (println "edn-result: " edn-result))
 
-#_(s/login! "zalf" "fLAz")
+(s/login! "zalf" "fLAz")
 #_(s/login! "günther" "günther")
 
 (cell= (print (:trace s/error)))

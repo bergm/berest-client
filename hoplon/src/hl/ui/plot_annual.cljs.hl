@@ -364,15 +364,15 @@
         ;_ (cell= (println "calc-result: " (pr-str calc-result)))
 
         ;only calc plot if chart is visible
-        _ (cell= (when (and plot-id calc-until-abs-day* year calculation-data-complete? recalc-count** toggle)
+        _ (cell= (when (and plot-id calc-until-abs-day* id calculation-data-complete? recalc-count** toggle)
                    ;just to have the dependency
                    weather-data
                    donations
 
                    #_(println "plot-id: " (pr-str plot-id) " calc-until-abs-day*: " (pr-str calc-until-abs-day*)
-                            " year: " (pr-str year) " calculation-data-complete?: " (pr-str calculation-data-complete?)
+                            " plot-annual-id: " (pr-str id) " year: " (pr-str year) " calculation-data-complete?: " (pr-str calculation-data-complete?)
                             " recalc-count**: " (pr-str recalc-count**) " toggle: " (pr-str toggle))
-                   (with-timeout 0 (s/calculate-from-db ~(cell calc-result*) plot-id calc-until-abs-day* year))))
+                   (with-timeout 0 (s/calculate-from-db ~(cell calc-result*) plot-id id calc-until-abs-day*))))
 
         soil-moistures (cell= (mapv (fn [{:keys [abs-day soil-moistures
                                                  qu-target aet7pet aet pet] :as all}]
