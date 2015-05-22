@@ -16,7 +16,7 @@
  :dependencies '[#_[tailrecursion/boot.task   "2.2.3"]
                  [tailrecursion/boot.task   "2.2.4"]
                  #_[tailrecursion/hoplon      "5.10.14"]
-                 [tailrecursion/hoplon      "5.10.24"]
+                 [tailrecursion/hoplon      "5.10.25"]
                  [tailrecursion/boot.notify "2.0.2"]
                  [tailrecursion/boot.ring   "0.2.1"]
                  #_[org.clojure/clojurescript "0.0-2202"]
@@ -53,7 +53,7 @@
                  #_[org.clojure/tools.namespace "0.2.4"]
                  #_[clojurewerkz/propertied "1.1.0"]
                  ]
- :out-path     "../../berest-service/castra/resources/public"
+ :out-path     "../../berest-hoplon-website/website" #_"../../berest-service/castra/resources/public"
  :src-paths    #{"src/hl"
                  "src/cljs"
                  "src/apogee"

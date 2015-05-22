@@ -4,8 +4,27 @@
   (:require [clojure.set :as set]
             [clojure.string :as str]
             [tailrecursion.javelin :as j :refer [cell]]
-            [tailrecursion.castra  :as c :refer [mkremote]]
+            [tailrecursion.castra  :as c #_:refer #_[mkremote]]
             [tailrecursion.hoplon :as h]))
+
+(defn jq-cred-ajax [async? url data headers done fail always]
+  (.. js/jQuery
+      (ajax (clj->js {"async"       async?
+                      "contentType" "application/json"
+                      "data"        data
+                      "dataType"    "text"
+                      "headers"     headers
+                      "processData" false
+                      "xhrFields"   {"withCredentials" true}
+                      "type"        "POST"
+                      "url"         url}))
+      (done (fn [_ _ x] (done (aget x "responseText"))))
+      (fail (fn [x _ _] (fail (aget x "responseText"))))
+      (always (fn [_ _] (always)))))
+
+(defn mkremote [& args]
+  #_"http://localhost:3000/" #_"http://env-2096201.jelastic.dogado.eu/"
+  (apply c/mkremote (flatten [args "http://env-2096201.jelastic.dogado.eu/" jq-cred-ajax])))
 
 (enable-console-print!)
 
@@ -149,6 +168,8 @@
 
 
 (def clear-error!   #(reset! error nil))
+
+
 
 (def login! (mkremote 'de.zalf.berest.web.castra.api/login state error loading))
 (def logout! (mkremote 'de.zalf.berest.web.castra.api/logout state error loading))
