@@ -392,117 +392,6 @@
      (dissoc attrs :fields :opts) kids)))
 
 (defelem
-  create-weather-data-inputs
-  [{{:keys [row-no row-action!
-            date date!
-            tavg tavg!
-            globrad globrad!
-            precip precip!
-            evap evap!
-            prog? prog?!]} :fields
-    opts :opts
-    :as attrs} kids]
-
-  (let [[date-id tavg-id tavg-checked-id globrad-id globrad-checked-id precip-id evap-id prog?-id] (repeatedly gensym)]
-       ((div
-          :class "row"
-          (div
-            :col [:xs 2]
-            (input
-              :id date-id
-              :class "form-control"
-              :type "date"
-              :value (cell= (if date
-                              (cstf/unparse (cstf/formatters :date) (cstcoe/from-date date))
-                              (str (cstc/year (cstc/now)) "-01-01")))
-              :on-change #(date! (cstcoe/to-date (cstf/parse (cstf/formatters :date)
-                                                             (val-id date-id))))))
-
-          #_(div
-            :col [:xs 2]
-            (div
-              :class "input-group"
-              (input
-                :id tavg-id
-                :class "form-control"
-                :type "number"
-                :placeholder (cell= (vocab :tavg-placeholder s/lang))
-                :step 0.1
-                :min -70
-                :max 70
-                :value tavg
-                :on-change #(tavg! (js/parseFloat (val-id tavg-id))))
-              (span :class "input-group-addon" "°C"))
-            (div
-              :class "input-group"
-              (input
-                :id globrad-id
-                :class "form-control"
-                :type "number"
-                :placeholder (cell= (vocab :globrad-placeholder s/lang))
-                :step 0.1
-                ;:min -70
-                ;:max 70
-                :value globrad
-                :on-change #(globrad! (js/parseFloat (val-id globrad-id))))
-              (span :class "input-group-addon" "J/cm²")))
-
-          (div
-            :col [:xs 2]
-            (div
-              :class "input-group"
-              (input
-                :id evap-id
-                :class "form-control"
-                :type "number"
-                :placeholder (cell= (vocab :evap-placeholder s/lang))
-                :step 0.1
-                :min 0
-                :value evap
-                :on-change #(evap! (js/parseFloat (val-id evap-id))))
-              (span :class "input-group-addon" "mm")))
-
-          (div
-            :col [:xs 2]
-            (div
-              :class "input-group"
-              (input
-                :id precip-id
-                :class "form-control"
-                :type "number"
-                :placeholder (cell= (vocab :precip-placeholder s/lang))
-                :step 0.1
-                :min 0
-                :value precip
-                :on-change #(precip! (js/parseFloat (val-id precip-id))))
-              (span :class "input-group-addon" "mm")))
-
-          (div
-            :col [:xs 2]
-            (label
-              :class "checkbox-inline"
-              (input
-                :id prog?-id
-                :type "checkbox"
-                :value prog?
-                :on-change #(prog?! (val-id prog?-id)))
-              (text "~(vocab :prog?-label s/lang)")))
-
-          (div
-            :col [:xs 1]
-            (button
-              :class (cell= {:btn true
-                             :btn-sm true
-                             :btn-danger (not (nil? row-no))
-                             :btn-warning (nil? row-no)})
-              :on-click #(row-action! (some-> row-no deref))
-              (span :class (cell= {:glyphicon true
-                                   :glyphicon-trash (not (nil? row-no))
-                                   :glyphicon-plus (nil? row-no)})))))
-        (dissoc attrs :fields :opts) kids)))
-
-
-(defelem
   create-dc-assertion-inputs
   [{{:keys [row-no row-action!
             dc->names
@@ -570,9 +459,135 @@
                                 :glyphicon-plus (nil? row-no)})))))
      (dissoc attrs :fields :opts) kids)))
 
+(defelem
+  create-weather-data-inputs
+  [{{:keys [row-no row-action!
+            date date!
+            tavg tavg!
+            globrad globrad!
+            precip precip!
+            evap evap!
+            prog? prog?!
+            prog-date prog-date!]} :fields
+    opts :opts
+    :as attrs} kids]
+
+  (let [[date-id tavg-id tavg-checked-id globrad-id globrad-checked-id precip-id evap-id prog?-id prog-date-id] (repeatedly gensym)]
+    ((div
+       :class "row"
+       (div
+         :col [:xs 2]
+         (input
+           :id date-id
+           :class "form-control"
+           :type "date"
+           :value (cell= (if date
+                           (cstf/unparse (cstf/formatters :date) (cstcoe/from-date date))
+                           (str (cstc/year (cstc/now)) "-01-01")))
+           :on-change #(date! (cstcoe/to-date (cstf/parse (cstf/formatters :date)
+                                                          (val-id date-id))))))
+
+       #_(div
+         :col [:xs 2]
+         (div
+           :class "input-group"
+           (input
+             :id tavg-id
+             :class "form-control"
+             :type "number"
+             :placeholder (cell= (vocab :tavg-placeholder s/lang))
+             :step 0.1
+             :min -70
+             :max 70
+             :value tavg
+             :on-change #(tavg! (js/parseFloat (val-id tavg-id))))
+           (span :class "input-group-addon" "°C"))
+         (div
+           :class "input-group"
+           (input
+             :id globrad-id
+             :class "form-control"
+             :type "number"
+             :placeholder (cell= (vocab :globrad-placeholder s/lang))
+             :step 0.1
+             ;:min -70
+             ;:max 70
+             :value globrad
+             :on-change #(globrad! (js/parseFloat (val-id globrad-id))))
+           (span :class "input-group-addon" "J/cm²")))
+
+       (div
+         :col [:xs 2]
+         (div
+           :class "input-group"
+           (input
+             :id evap-id
+             :class "form-control"
+             :type "number"
+             :placeholder (cell= (vocab :evap-placeholder s/lang))
+             :step 0.1
+             :min 0
+             :value evap
+             :on-change #(evap! (js/parseFloat (val-id evap-id))))
+           (span :class "input-group-addon" "mm")))
+
+       (div
+         :col [:xs 2]
+         (div
+           :class "input-group"
+           (input
+             :id precip-id
+             :class "form-control"
+             :type "number"
+             :placeholder (cell= (vocab :precip-placeholder s/lang))
+             :step 0.1
+             :min 0
+             :value precip
+             :on-change #(precip! (js/parseFloat (val-id precip-id))))
+           (span :class "input-group-addon" "mm")))
+
+       (div
+         :col [:xs 1]
+         :toggle (:prognosis-visible? opts)
+         (label
+           :class "checkbox-inline"
+           (input
+             :id prog?-id
+             :type "checkbox"
+             :value prog?
+             :on-change #(prog?! (val-id prog?-id)))
+           (text "~(vocab :prog?-label s/lang)")))
+
+       (div
+         :col [:xs 2]
+         :toggle (cell= (and prog? (:prognosis-visible? opts)))
+         (input
+           :id prog-date-id
+           :class "form-control"
+           :type "date"
+           :value (cell= (if prog-date
+                           (cstf/unparse (cstf/formatters :date) (cstcoe/from-date prog-date))
+                           (str (cstc/year (cstc/now)) "-01-01")))
+           :on-change #(prog-date! (cstcoe/to-date (cstf/parse (cstf/formatters :date)
+                                                               (val-id prog-date-id))))))
+
+       (div
+         :col [:xs 1]
+         (button
+           :class (cell= {:btn true
+                          :btn-sm true
+                          :btn-danger (not (nil? row-no))
+                          :btn-warning (nil? row-no)})
+           :on-click #(row-action! (some-> row-no deref))
+           (span :class (cell= {:glyphicon true
+                                :glyphicon-trash (not (nil? row-no))
+                                :glyphicon-plus (nil? row-no)})))))
+      (dissoc attrs :fields :opts) kids)))
 
 (defelem weather-data-form-group
-         [{:keys [visible? weather-data
+         [{:keys [visible?
+                  prognosis-visible? default-prognosis-issue-date
+                  weather-data
                   id-attr id]
            :as attrs} kids]
 
@@ -585,8 +600,10 @@
                  evap* (cell nil)
                  precip* (cell nil)
                  prog?* (cell false)
+                 prog-issue-date* (cell nil)
+                 prog-issue-date (cell= (or prog-issue-date* default-prognosis-issue-date))
                  #__ #_(cell= (println "date*: " date* " tavg*: " tavg* " globrad*: " globrad*
-                                   " evap*: " evap* " precip*: " precip* " prog?*: " prog?*))]
+                                   " evap*: " evap* " precip*: " precip* " prog?*: " prog?* " prog-issue-date: " prog-issue-date))]
                 (div
                   :col [:xs 10]
 
@@ -609,25 +626,30 @@
                                :precip precip :precip! #(s/update-db-entity @db-id :weather-data/precipitation % :value-type :double)
                                :prog? (cell= (not (nil? prog-date)))
                                :prog! #(if %
-                                        (s/update-db-entity @db-id :weather-data/prognosis-date date)
-                                        (s/retract-db-value @db-id :weather-data/prognosis-date date))}))
+                                        (s/update-db-entity @db-id :weather-data/prognosis-date default-prognosis-issue-date)
+                                        (s/retract-db-value @db-id :weather-data/prognosis-date prog-date))
+                               :prog-date prog-date :prog-date! #(s/update-db-entity @db-id :weather-data/prognosis-date (cstcoe/to-date %))}
+                      :opts {:prognosis-visible? prognosis-visible?}))
                   (create-weather-data-inputs
                     :fields {:row-action! #(when (and @date* (or @precip* @evap* (and @tavg* @globrad*)))
-                                                 (s/create-new-weather-data id-attr @id @date* @tavg* @globrad*
-                                                                            @evap* @precip* (when @prog?* @date*))
-                                                 (reset! date* (cstcoe/to-date (cstc/now)))
-                                                 (reset! evap* nil)
-                                                 (reset! tavg* nil)
-                                                 (reset! globrad* nil)
-                                                 (reset! precip* nil)
-                                                 (reset! prog?* false))
+                                            (s/create-new-weather-data id-attr @id @date* @tavg* @globrad*
+                                                                       @evap* @precip* (when @prog?* @prog-issue-date))
+                                            (reset! date* (cstcoe/to-date (cstc/now)))
+                                            (reset! evap* nil)
+                                            (reset! tavg* nil)
+                                            (reset! globrad* nil)
+                                            (reset! precip* nil)
+                                            (reset! prog?* false)
+                                            (reset! prog-issue-date* nil))
                              :date date* :date! #(reset! date* %)
                              :tavg tavg* :tavg! #(reset! tavg* %)
                              :globrad globrad* :globrad! #(reset! globrad* %)
                              :evap evap* :evap! #(reset! evap* %)
                              :precip precip* :precip! #(reset! precip* %)
-                             :prog? prog?* :prog?! #(reset! prog?* %)}))))
-          (dissoc attrs :visible? :weather-data :id-attr :id) kids))
+                             :prog? prog?* :prog?! #(reset! prog?* %)
+                             :prog-date prog-issue-date :prog-date! #(reset! prog-issue-date* %)}
+                    :opts {:prognosis-visible? prognosis-visible?}))))
+          (dissoc attrs :visible? :prognosis-visible? :default-prognosis-issue-date :weather-data :id-attr :id) kids))
 
 (defelem
   create-crop-dc-to-dev-state-name-inputs

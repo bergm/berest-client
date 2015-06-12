@@ -5,7 +5,9 @@
             [ui.user :as user]
             [ui.elements :as uie]
             [bootstrap-util :as bs]
-            #_[cljs-time.coerce :as cstcoe]))
+            [cljs-time.core :as cstc]
+            [cljs-time.format :as cstf]
+            [cljs-time.coerce :as cstcoe]))
 
 
 (defn vocab
@@ -63,6 +65,10 @@
            :chart-subheader {:lang/de "Quelle: DWD Station"
                              :lang/en "Source: DWD station"}
 
+           :set-climate-data-import-time-button {:lang/de "Klimadaten-Import-Zeit setzen"
+                                                 :lang/en "Set climate-data import time"}
+           :bulk-import-climate-data-button {:lang/de "DWD Klimadaten importieren"
+                                             :lang/en "Import DWD climate data"}
            }
           [element (or lang :lang/de)] "UNKNOWN element"))
 
@@ -91,12 +97,20 @@
          new-user-id (cell "")
          new-user-pwd (cell "")
 
-         [users-id
-          new-user-id-field-id
-          new-user-pwd-field-id
-          user-query-id] (repeatedly gensym)
+        new-hour (cell 11)
+        new-min (cell 0)
 
-         ]
+        new-import-from (cell (cstf/unparse (cstf/formatters :date) (cstc/now)))
+        new-import-to (cell (cstf/unparse (cstf/formatters :date) (cstc/now)))
+
+        [users-id
+         new-user-id-field-id
+         new-user-pwd-field-id
+         user-query-id
+         hour-id min-id
+         import-from-id import-to-id] (repeatedly gensym)
+
+        ]
 
     (div
       :id "admin-pane"
@@ -231,4 +245,84 @@
                      :opts {:edit? true
                             :label-cols 2
                             :value-cols 3})
-                   ))))))))
+                   ))))
+
+        (hr)
+
+        (div
+          (bs/form
+            :opts [:inline]
+
+            (bs/form-group
+              :col [:xs 2]
+              (div
+                ;:col [:xs 1]
+                :class "input-group"
+                (input
+                  :id hour-id
+                  :class "form-control"
+                  :type "number"
+                  :step 1
+                  :min 1
+                  :max 24
+                  :value new-hour
+                  :on-change #(reset! new-hour (js/parseInt (val-id hour-id))))
+                (span :class "input-group-addon" "h")))
+
+            (bs/form-group
+              :col [:xs 2]
+              (div
+                ;:col [:xs 1]
+                :class "input-group"
+                (input
+                  :id min-id
+                  :class "form-control"
+                  :type "number"
+                  :step 1
+                  :min 0
+                  :max 59
+                  :value new-min
+                  :on-change #(reset! new-min (js/parseInt (val-id min-id))))
+                (span :class "input-group-addon" "min")))
+
+            (button
+              ;:col [:xs 3]
+              :class "btn btn-warning"
+              :click #(s/set-climate-data-import-time @new-hour @new-min)
+              (text "~(vocab :set-climate-data-import-time-button s/lang)"))))
+
+        (hr)
+
+        (div
+          (bs/form
+            :opts [:inline]
+
+            (bs/form-group
+              :col [:xs 2]
+              (div
+                :class "input-group"
+                (span :class "input-group-addon" "from")
+                (input
+                  :id import-from-id
+                  :class "form-control"
+                  :type "date"
+                  :value new-import-from
+                  :on-change #(reset! new-import-from (val-id import-from-id)))))
+
+            (bs/form-group
+              :col [:xs 2]
+              (div
+                :class "input-group"
+                (span :class "input-group-addon" "to")
+                (input
+                  :id import-to-id
+                  :class "form-control"
+                  :type "date"
+                  :value new-import-to
+                  :on-change #(reset! new-import-to (val-id import-to-id)))))
+
+            (button
+              ;:col [:xs 3]
+              :class "btn btn-warning"
+              :click #(s/bulk-import-dwd-data-into-datomic @new-import-from @new-import-to)
+              (text "~(vocab :bulk-import-climate-data-button s/lang)"))))))))

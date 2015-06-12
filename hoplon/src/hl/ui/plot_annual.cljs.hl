@@ -354,6 +354,15 @@
                                        (util/dmy-date->doy 31 12 year))))
         ;_ (cell= (println "calc-until-abs-day*: " (pr-str calc-until-abs-day*)))
 
+        calc-until-date (cell= (if (and calc-until-abs-day* year)
+                                 (util/doy->cljs-time-date calc-until-abs-day* year)
+                                 (cstc/date-time (or year (cstc/year (cstc/now))) 12 31)))
+
+        calc-until-date-iso-ymd (cell= (cstf/unparse (cstf/formatters :date) calc-until-date))
+
+        #__ #_(cell (println "calc-until-date: " (pr-str calc-until-date)
+                         "calc-until-date-iso-ymd: " (pr-str calc-until-date-iso-ymd)))
+
         recalc-count* (cell 0)
         recalc-count** (cell= (+ recalc-count* recalc-count))
         ;_ (cell= (println "recalc-count**: " recalc-count**))
@@ -1313,6 +1322,8 @@
 
               (uie/weather-data-form-group
                 :visible? visible?
+                :prognosis-visible? true
+                :default-prognosis-issue-date (cell= (cstcoe/to-date calc-until-date))
                 :weather-data weather-data
                 :id-attr :plot/id
                 :id plot-id)))
@@ -1330,10 +1341,7 @@
                :id calc-until-id
                :class "form-control"
                :type "date"
-               :value (cell= (if (and calc-until-abs-day* year)
-                               (->> (util/doy->cljs-time-date calc-until-abs-day* year)
-                                    (cstf/unparse (cstf/formatters :date),,,))
-                               (str (or year (cstc/year (cstc/now))) "-12-31")))
+               :value calc-until-date-iso-ymd
                :on-change #(reset! calc-until-abs-day (util/cljs-time-date->doy (cstf/parse (cstf/formatters :date)
                                                                                             (val-id calc-until-id))))))
 

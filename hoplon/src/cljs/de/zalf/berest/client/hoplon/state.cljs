@@ -22,9 +22,16 @@
       (fail (fn [x _ _] (fail (aget x "responseText"))))
       (always (fn [_ _] (always)))))
 
+(def server-url (condp = (-> js/window .-location .-hostname)
+                  "" "http://localhost:3000/"
+                  "localhost" "http://localhost:3000/"
+                  "http://irrigama-web.elasticbeanstalk.com/"))
+#_(println "server-url: " server-url)
+
 (defn mkremote [& args]
-  #_"http://localhost:3000/" #_"http://env-2096201.jelastic.dogado.eu/"
-  (apply c/mkremote (flatten [args "http://env-2096201.jelastic.dogado.eu/" jq-cred-ajax])))
+  (apply c/mkremote (flatten [args server-url jq-cred-ajax]))
+  #_(apply c/mkremote (flatten [args "http://localhost:3000/" jq-cred-ajax]))
+  #_(apply c/mkremote (flatten [args "http://irrigama-web.elasticbeanstalk.com/" jq-cred-ajax])))
 
 (enable-console-print!)
 
@@ -33,6 +40,8 @@
 #_(cell= (println "state: \n" (pr-str state)))
 
 (defc pwd-update-success? nil)
+(defc climate-data-import-time-update-success? nil)
+(defc climate-data-import-success? nil)
 
 ;cell holding static app state, which will hardly change
 (defc static-state nil)
@@ -202,7 +211,7 @@
 (def add-user-weather-stations (mkremote 'de.zalf.berest.web.castra.api/add-user-weather-stations state error loading))
 (def remove-user-weather-stations (mkremote 'de.zalf.berest.web.castra.api/remove-user-weather-stations state error loading))
 (def import-weather-data (mkremote 'de.zalf.berest.web.castra.api/import-weather-data state error loading))
-(def create-new-weather-data (mkremote 'de.zalf.berest.web.castra.api/create-new-weather-data weather-station-data error loading))
+(def create-new-weather-data (mkremote 'de.zalf.berest.web.castra.api/create-new-weather-data state error loading))
 
 ;farms
 (def create-new-farm (mkremote 'de.zalf.berest.web.castra.api/create-new-farm state error loading))
@@ -234,8 +243,16 @@
 
 (def create-new-com-con (mkremote 'de.zalf.berest.web.castra.api/create-new-com-con state error loading))
 
+;admin
+(def set-climate-data-import-time
+  (mkremote 'de.zalf.berest.web.castra.api/set-climate-data-import-time
+            climate-data-import-time-update-success?
+            error loading))
 
-
+(def bulk-import-dwd-data-into-datomic
+  (mkremote 'de.zalf.berest.web.castra.api/bulk-import-dwd-data-into-datomic
+            climate-data-import-success?
+            error loading))
 
 
 
