@@ -38,6 +38,24 @@
                           :lang/en "Settings"}
            :nav-bersim {:lang/de "IRRIGAMA.SIM"
                         :lang/en "BERSIM"}
+
+           :farm {:lang/de "Betrieb:"
+                  :lang/en "Farm:"}
+
+           :plot {:lang/de "Schlag:"
+                  :lang/en "Plot:"}
+
+           :plot-annual {:lang/de "Jahr:"
+                         :lang/en "Year:"}
+
+           :weather-station {:lang/de "Wetterstation:"
+                             :lang/en "Weather-station:"}
+
+           :weather-year {:lang/de "Jahr(e):"
+                          :lang/en "Year(s):"}
+
+           :crop {:lang/de "Fruchtart:"
+                  :lang/en "Crop:"}
            }
           [element (or lang :lang/de)] "UNKNOWN element"))
 
@@ -61,88 +79,155 @@
 (defn top-nav-bar
   [page-name-label]
   (nav
-    :class "navbar navbar-default"
+    :class "navbar navbar-default navbar-fixed-top"
     :role "navigation"
     (div
-      :class "navbar-header"
-      (button
-        :type "button"
-        :class "navbar-toggle"
-        :data-toggle "collapse"
-        :data-target ".navbar-collapse"
-        (span :class "sr-only" "Toggle navigation")
-        (span :class "icon-bar")
-        (span :class "icon-bar")
-        (span :class "icon-bar"))
-      (span
-        :class "navbar-brand"
-        :style "float: none"
-        (img
-          :style "clear: both; height:50px"
-          :src "irrigama-logo.png"
-          :alt "Irrigama-Logo")
-        (a
-          :class "navbar-brand"
-          :style "float:none"
-          :href "http://www.fbm-ev.de"
-          (img
-            :style "clear: both; height:50px"
-            :src "fbm-logo.png"
-            :alt "FBM-Logo"))
-        (a
+      :class "container-fluid"
+
+      (div
+        :class "navbar-header"
+        (button
+          :type "button"
+          :class "navbar-toggle"
+          :data-toggle "collapse"
+          :data-target ".navbar-collapse"
+          (span :class "sr-only" "Toggle navigation")
+          (span :class "icon-bar")
+          (span :class "icon-bar")
+          (span :class "icon-bar"))
+        (span
           :class "navbar-brand"
           :style "float: none"
-          :href "#/farms"
-          (span
-            :toggle s/show-content?
-            :style "vertical-align: middle; font-size:24px; font-weight:bold" "IRRIGAMA.WEB"))))
-    (div
-      :class "collapse navbar-collapse"
-      (ul
-        :toggle s/logged-in?
-        :class "nav navbar-nav"
-        (li
-          :class (cell= {:active (= s/route "#/farms")})
+          (img
+            :style "clear: both; height:50px"
+            :src "irrigama-logo.png"
+            :alt "Irrigama-Logo")
           (a
-            :href (cell= (str "#/farms?" s/route-params-str))
-            (cell= (vocab :nav-farms s/lang))))
-        (li
-          :class (cell= {:active (= s/route "#/weather")})
+            :class "navbar-brand"
+            :style "float:none"
+            :href "http://www.fbm-ev.de"
+            (img
+              :style "clear: both; height:50px"
+              :src "fbm-logo.png"
+              :alt "FBM-Logo"))
           (a
-            :href (cell= (str "#/weather?" s/route-params-str))
-            (cell= (vocab :nav-weather s/lang))))
-        (li
-          :class (cell= {:active (= s/route "#/crops")})
-          (a
-            :href (cell= (str "#/crops?" s/route-params-str))
-            (cell= (vocab :nav-crops s/lang))))
-        (li
-          :class (cell= {:active (= s/route "#/settings")})
-          (a
-            :href (cell= (str "#/settings?" s/route-params-str))
-            (cell= (vocab :nav-settings s/lang))))
-        (li
-          :toggle s/admin-logged-in?
-          :class (cell= {:active (= s/route "#/admin")})
-          (a
-            :href (cell= (str "#/admin?" s/route-params-str))
-            (cell= (vocab :nav-admin s/lang)))))
-      (div
-        :toggle s/logged-in?
-        :class "navbar-right"
-        (p
-          :class "navbar-text"
-          :style "margin-top: 0px; margin-bottom: 0px;"
+            :class "navbar-brand"
+            :style "float: none"
+            :href "#/farms"
+            (span
+              :toggle s/show-content?
+              :style "vertical-align: middle; font-size:24px; font-weight:bold" "IRRIGAMA.WEB"))))
 
-          (text "~(vocab :signed-in-as s/lang)")
-          (strong (text "~(:user/full-name s/user) "))
-          (button
-            :class "btn btn-default navbar-btn"
-            :on-click #(do
-                        (s/logout!)
-                        (reset! s/static-state nil)
-                        (s/clear-route+params))
-            "Logout"))))))
+      (div
+        :class "collapse navbar-collapse"
+        (ul
+          :toggle s/logged-in?
+          :class "nav navbar-nav"
+          (li
+            :class (cell= {:active (= s/route "#/farms")})
+            (a
+              :href (cell= (str "#/farms?" s/route-params-str))
+              (cell= (vocab :nav-farms s/lang))))
+          (li
+            :class (cell= {:active (= s/route "#/weather")})
+            (a
+              :href (cell= (str "#/weather?" s/route-params-str))
+              (cell= (vocab :nav-weather s/lang))))
+          (li
+            :class (cell= {:active (= s/route "#/crops")})
+            (a
+              :href (cell= (str "#/crops?" s/route-params-str))
+              (cell= (vocab :nav-crops s/lang))))
+          (li
+            :class (cell= {:active (= s/route "#/settings")})
+            (a
+              :href (cell= (str "#/settings?" s/route-params-str))
+              (cell= (vocab :nav-settings s/lang))))
+          (li
+            :toggle s/admin-logged-in?
+            :class (cell= {:active (= s/route "#/admin")})
+            (a
+              :href (cell= (str "#/admin?" s/route-params-str))
+              (cell= (vocab :nav-admin s/lang)))))
+        (div
+          :toggle s/logged-in?
+          :class "navbar-right"
+          (p
+            :class "navbar-text"
+            :style "margin-top: 0px; margin-bottom: 0px;"
+
+            (text "~(vocab :signed-in-as s/lang)")
+            (strong (text "~(:user/full-name s/user) "))
+            (button
+              :class "btn btn-default navbar-btn"
+              :on-click #(do
+                          (s/logout!)
+                          (reset! s/static-state nil)
+                          (s/clear-route+params))
+              "Logout"))))
+      (div
+        :class "row"
+        :toggle s/logged-in?
+        :style "background-color: #e7e7e7; margin-bottom: 0px;"
+
+        (div
+          :toggle (cell= (= s/route "#/farms"))
+          :style "padding: 8px 15px"
+
+          (span
+            :toggle (cell= (:farm s/breadcrumbs))
+            :click #(some-> "farm-details-panel" by-id .scrollIntoView)
+            (text "~(vocab :farm s/lang) ~(:farm s/breadcrumbs) "))
+
+          (span
+            :toggle (cell= (:plot s/breadcrumbs))
+            :class "glyphicon glyphicon-arrow-right")
+
+          (span
+            :toggle (cell= (:plot s/breadcrumbs))
+            :click #(some-> "plot-details-panel" by-id .scrollIntoView)
+            (text " ~(vocab :plot s/lang) ~(:plot s/breadcrumbs) "))
+
+          (span
+            :toggle (cell= (:plot-annual s/breadcrumbs))
+            :class "glyphicon glyphicon-arrow-right")
+
+          (span
+            :toggle (cell= (:plot-annual s/breadcrumbs))
+            :click #(some-> "plot-section-table" by-id .scrollIntoView)
+            (text " ~(vocab :plot-annual s/lang) ~(:plot-annual s/breadcrumbs)")))
+
+
+
+        (div
+          :toggle (cell= (= s/route "#/weather"))
+          :style "padding: 8px 15px"
+
+          (span
+            :toggle (cell= (:weather-station s/breadcrumbs))
+            :click #(some-> "weather-data-chart" by-id .scrollIntoView)
+            (text "~(vocab :weather-station s/lang) ~(:weather-station s/breadcrumbs) "))
+
+          (span
+            :toggle (cell= (:weather-year s/breadcrumbs))
+            :class "glyphicon glyphicon-arrow-right")
+
+          (span
+            :toggle (cell= (:weather-year s/breadcrumbs))
+            (text " ~(vocab :weather-year s/lang) ~(:weather-year s/breadcrumbs) ")))
+
+
+
+        (div
+          :toggle (cell= (= s/route "#/crops"))
+          :style "padding: 8px 15px"
+
+          (span
+            :toggle (cell= (:crop s/breadcrumbs))
+            :click #(some-> "crop-chart" by-id .scrollIntoView)
+            (text "~(vocab :crop s/lang) ~(:crop s/breadcrumbs) ")))
+
+        ))))
 
 (defn login-pane
   []

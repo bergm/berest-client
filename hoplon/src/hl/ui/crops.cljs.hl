@@ -142,6 +142,15 @@
         selected-crop (cell= (when-let [cid (:crop-id s/route-params)]
                                (first (filter #(= (:crop/id %) cid) s/minimal-all-crops))))
         ;_ (cell= (println "selected-crop: " (pr-str selected-crop)))
+
+        _ (cell= (if selected-crop
+                   (s/set-breadcrumb :crop (str (:crop/number selected-crop) "/"
+                                                (:crop/cultivation-type selected-crop) "/"
+                                                (:crop/usage selected-crop) " | "
+                                                (:crop/symbol selected-crop) " | "
+                                                (:crop/name selected-crop)))
+                   (s/set-breadcrumb :crop nil)))
+
         _ (cell= (when filtered-crops
                    (s/set-route-params :crop-id nil)))
 
@@ -151,7 +160,9 @@
 
         new-crop-no (cell 0)
 
-        [chart-id] (repeatedly gensym)]
+        [#_chart-id] (repeatedly gensym)
+
+        ]
 
     (div
       :id "crops-pane"
@@ -234,7 +245,7 @@
                       :class (cell= {:warning (and hover? (not selected?))
                                      :success selected?})
                       :click #(do
-                               (some-> chart-id by-id .scrollIntoView)
+                               (some-> "crop-chart" #_chart-id by-id .scrollIntoView)
                                (s/set-route-params :weather-station-id @id))
                       (span :class "glyphicon glyphicon-arrow-down"))
                     (td
@@ -309,8 +320,8 @@
                  number-id cultivation-type-id usage-id
                  crop-effectivity-quotient-id] (repeatedly gensym)
 
-                _ (with-timeout 0 (js/Highcharts.Chart. (clj->js (charts/crop-curves-chart-config chart-id))))
-                _ (cell= (charts/set-crop-curve-data chart-id s/processed-crop-data))
+                _ (with-timeout 0 (js/Highcharts.Chart. (clj->js (charts/crop-curves-chart-config "crop-chart" #_chart-id))))
+                _ (cell= (charts/set-crop-curve-data "crop-chart" #_chart-id s/processed-crop-data))
 
                 user-crop? (= (:crop-type s/crop-state) :user)
                 edit? (cell= (or user-crop? s/admin-logged-in?))
@@ -401,7 +412,7 @@
                 :class "row"
 
                 (div
-                  :id chart-id
+                  :id "crop-chart" #_chart-id
                   :col [:xs 12]))
 
               (let [visible? (cell false)]

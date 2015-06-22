@@ -7,7 +7,8 @@
             [cljs-time.core :as cstc]
             [cljs-time.format :as cstf]
             [cljs-time.coerce :as cstcoe]
-            [clojure.set :as set]))
+            [clojure.set :as set]
+            [clojure.string :as str]))
 
 (defn vocab
   "translatable vocabulary for this page"
@@ -126,6 +127,11 @@
                                           (first (filter #(= (:weather-station/id %) wsid) s/user-weather-stations))))
         ;_ (cell= (println "selected-weather-station: " (pr-str selected-weather-station)))
 
+        _ (cell= (if selected-weather-station
+                   (s/set-breadcrumb :weather-station (or (:weather-station/name selected-weather-station)
+                                                          (:weather-station/id selected-weather-station)))
+                   (s/set-breadcrumb :weather-station nil)))
+
         new-weather-station-no (cell 0)
 
         weather-stations-count (cell= (count s/user-weather-stations))
@@ -228,7 +234,7 @@
              (let [[name-input
                     lat-input
                     long-input
-                    chart-id
+                    #_chart-id
                     years-id
                     separator-select-id
                     decimal-separator-select-id
@@ -264,6 +270,10 @@
                                                              #{(first (sort years))})))))
                    ;_ (cell= (println "selected-years-set*: " (pr-str selected-years-set*)))
 
+                   _ (cell= (if selected-years-set*
+                              (s/set-breadcrumb :weather-year (str/join ", " selected-years-set*))
+                              (s/set-breadcrumb :weather-year nil)))
+
                    #__ #_(cell= (when years
                               (swap! ~(cell reload-count) inc)))
 
@@ -272,7 +282,7 @@
                    _ (cell= (when (and id selected-weather-station selected-years-set* (seq selected-years-set*) #_reload-count)
                               (s/load-weather-station-data id (seq selected-years-set*))))
 
-                   chart-config {:chart {:renderTo chart-id
+                   chart-config {:chart {:renderTo "weather-data-chart" #_chart-id
                                          ;:defaultSeriesType "spline"
                                          :zoomType "x"
                                          #_:spacingTop #_50}
@@ -356,7 +366,7 @@
                                          flatten))
 
                    set-series-data (fn [series-index data]
-                                       (some-> chart-id
+                                       (some-> "weather-data-chart" #_chart-id
                                                by-id
                                                js/jQuery
                                                .highcharts
@@ -457,7 +467,7 @@
                          (text "~(vocab :reload-weather-data-label s/lang)"))))
 
                    (div
-                     :id chart-id
+                     :id "weather-data-chart" #_chart-id
                      :toggle :toggle (cell= (not (nil? (seq selected-years-set*))))
                      :col [:xs 12])
 

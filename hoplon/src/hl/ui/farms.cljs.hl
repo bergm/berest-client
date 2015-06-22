@@ -176,13 +176,26 @@
                                  (fs (UUID. fid)))))
         ;_ (cell= (println "selected-farm: " (pr-str selected-farm)))
 
+        _ (cell= (if selected-farm
+                   (s/set-breadcrumb :farm (:farm/name selected-farm))
+                   (do
+                     (s/set-breadcrumb :farm nil)
+                     (s/set-breadcrumb :plot nil)
+                     (s/set-breadcrumb :plot-annual nil))))
+
         plots-count (cell= (count (:plots selected-farm)))
         _ (cell= (when (= plots-count 1)
                    (s/set-route-params :plot-id (:plot/id (second (first (:plots selected-farm)))))))
 
         selected-plot (cell= (when-let [pid (:plot-id s/route-params)]
                                (when-let [ps (:plots selected-farm)]
-                                 (ps (UUID. pid)))))]
+                                 (ps (UUID. pid)))))
+
+        _ (cell= (if selected-plot
+                   (s/set-breadcrumb :plot (:plot/name selected-plot))
+                   (do
+                     (s/set-breadcrumb :plot nil)
+                     (s/set-breadcrumb :plot-annual nil))))]
 
     (div
       :id "farms-pane"
@@ -301,6 +314,7 @@
                         :toggle-cell farm-details-visible?
 
                         (h3
+                          :id "farm-details-panel"
                           :class "panel-title"
                           (text "~(vocab :farm-data-label s/lang) ~(when farm-name farm-name) ~(when-not farm-details-visible? \" ...\")"))
 
@@ -449,6 +463,7 @@
                                 :toggle-cell plot-details-visible?
 
                                 (h3
+                                  :id "plot-details-panel"
                                   :class "panel-title"
                                   (text "~(vocab :plot-data-label s/lang) ~(when plot-name plot-name) ~(when-not plot-details-visible? \" ...\")"))
 
@@ -545,6 +560,11 @@
                                                (first (filter #(= current-year (:plot.annual/year %)) sorted-annuals))
                                                (last sorted-annuals)))
                                     ;_ (cell= (println "selected-annual: " (pr-str selected-annual)))
+
+                                    _ (cell= (if selected-annual
+                                               (s/set-breadcrumb :plot-annual (or (:plot.annual/description selected-annual)
+                                                                                  (str (:plot.annual/year selected-annual))))
+                                               (s/set-breadcrumb :plot-annual nil)))
 
                                     _ (cell= (when-let [sel-ann-id (:plot.annual/id selected-annual)]
                                                (not= sel-ann-id (UUID. (:plot-annual-id s/route-params)))

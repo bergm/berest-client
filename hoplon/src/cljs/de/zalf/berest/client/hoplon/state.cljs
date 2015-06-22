@@ -22,10 +22,11 @@
       (fail (fn [x _ _] (fail (aget x "responseText"))))
       (always (fn [_ _] (always)))))
 
-(def server-url (condp = (-> js/window .-location .-hostname)
+(def server-url #_(condp = (-> js/window .-location .-hostname)
                   "" "http://localhost:3000/"
                   "localhost" "http://localhost:3000/"
-                  "http://irrigama-web.elasticbeanstalk.com/"))
+                  "http://irrigama-web.elasticbeanstalk.com/")
+  "http://irrigama-web.elasticbeanstalk.com/")
 #_(println "server-url: " server-url)
 
 (defn mkremote [& args]
@@ -66,6 +67,18 @@
 (defc= processed-crop-data (:processed crop-state))
 (defc= raw-crop-data (:raw crop-state))
 #_(defc= user-crop? (= (:crop-type crop-state) :user))
+
+(defc breadcrumbs {:farm nil
+                   :plot nil
+                   :plot-annual nil
+                   :weather-station nil
+                   :weather-year nil
+                   :crop nil})
+#_(cell= (println "breadcrumbs: " (pr-str breadcrumbs)))
+
+(defn set-breadcrumb
+  [key value]
+  (swap! breadcrumbs assoc key value))
 
 ;derived state
 
