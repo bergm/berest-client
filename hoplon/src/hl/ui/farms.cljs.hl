@@ -28,7 +28,7 @@
            :th-farm-state {:lang/de "Zustand"
                            :lang/en "State"}
 
-           :th-plot-name {:lang/de "Schlagsname"
+           :th-plot-name {:lang/de "Schlagname"
                           :lang/en "Plot name"}
 
            :th-plot-jump {:lang/de ""

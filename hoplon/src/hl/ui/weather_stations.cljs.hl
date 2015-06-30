@@ -15,10 +15,16 @@
   [element lang]
   (get-in {:new-local-weather-station-button {:lang/de "Neue lokale WS"
                                               :lang/en "New local ws"}
+           :new-global-weather-station-button {:lang/de "Neue globale WS"
+                                              :lang/en "New global ws"}
            :delete-local-weather-station-button {:lang/de "L.WS löschen"
                                         :lang/en "Delete l.ws"}
+           :delete-weather-station-button {:lang/de "WS löschen"
+                                           :lang/en "Delete ws"}
            :new-weather-station-value {:lang/de "Neue lokale Wetterstation"
                                         :lang/en "New local weather-station"}
+           :new-global-station-value {:lang/de "Neue globale Wetterstation"
+                                       :lang/en "New global weather-station"}
 
            :weather-data-fieldset-label {:lang/de "Wetterdaten"
                                          :lang/en "Weather data"}
@@ -166,8 +172,15 @@
                        :class "btn btn-warning btn-sm btn-block"
                        :click #(let [temp-weather-station-name (str (vocab :new-weather-station-value @s/lang) " "
                                                                     (swap! new-weather-station-no inc))]
-                                (s/create-new-local-user-weather-station temp-weather-station-name))
-                       (text "~(vocab :new-local-weather-station-button s/lang)")))
+                                (s/create-new-local-user-weather-station temp-weather-station-name true))
+                       (text "~(vocab :new-local-weather-station-button s/lang)"))
+                     (button
+                       :toggle s/admin-logged-in?
+                       :class "btn btn-warning btn-sm btn-block"
+                       :click #(let [temp-weather-station-name (str (vocab :new-global-station-value @s/lang) " "
+                                                                    (swap! new-weather-station-no inc))]
+                                (s/create-new-local-user-weather-station temp-weather-station-name false))
+                       (text "~(vocab :new-global-weather-station-button s/lang)")))
                    #_(th (text "~(vocab :th-farm-state s/lang)"))))
 
                (tbody
@@ -211,11 +224,12 @@
                        (td
                          :style "text-align:right; vertical-align: middle"
                          (uic/safe-delete-button
-                           :toggle (and (not (nil? local?))
-                                        local?)
+                           :toggle (cell= (or (and (not (nil? local?))
+                                                   local?)
+                                              s/admin-logged-in?))
                            :small-button? true
                            :action! #(s/delete-db-entity @db-id)
-                           :value (cell= (vocab :delete-local-weather-station-button s/lang)))))))))))
+                           :value (cell= (vocab :delete-weather-station-button s/lang)))))))))))
 
          (bs/form
            :toggle (cell= (not (nil? selected-weather-station)))
@@ -493,7 +507,7 @@
                          decimal-separator (cell :dot)
                          no-of-header-lines-to-ignore (cell 1)]
                      (fieldset
-                       :toggle local?
+                       :toggle (cell= (or local? s/admin-logged-in?))
 
                        (uic/hover-activate-wrapper
                          :action! #(swap! visible? not)
@@ -516,7 +530,7 @@
 
                        (bs/form-group
                          :toggle visible?
-                         (bs/control-label :col [:xs 2] :for decimal-separator-select-id (text "~(vocab :separator-select-label s/lang)"))
+                         (bs/control-label :col [:xs 2] :for decimal-separator-select-id (text "~(vocab :decimal-separator-select-label s/lang)"))
                          (div
                            :col [:xs 2]
                            (select
@@ -687,7 +701,7 @@
 
                    (let [visible? (cell false)]
                         (fieldset
-                          :toggle (cell= (and selected-weather-station many-weather-stations? local?))
+                          :toggle (cell= (or local? s/admin-logged-in?) #_(and selected-weather-station many-weather-stations? local?))
 
                           (uic/hover-activate-wrapper
                             :action! #(swap! visible? not)
@@ -696,7 +710,7 @@
 
                           (uie/weather-data-form-group
                             :visible? visible?
-                            :weather-data (cell= (when (and local? (seq selected-years-set*))
+                            :weather-data (cell= (when (and (or local? s/admin-logged-in?) (seq selected-years-set*))
                                                        (apply concat (map second weather-data))))
                             :id-attr :weather-station/id
                             :id id)))]))))))
