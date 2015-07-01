@@ -701,7 +701,7 @@
 
                    (let [visible? (cell false)]
                         (fieldset
-                          :toggle (cell= (or local? s/admin-logged-in?) #_(and selected-weather-station many-weather-stations? local?))
+                          ;:toggle (cell= (or local? s/admin-logged-in?) #_(and selected-weather-station many-weather-stations? local?))
 
                           (uic/hover-activate-wrapper
                             :action! #(swap! visible? not)
@@ -710,7 +710,8 @@
 
                           (uie/weather-data-form-group
                             :visible? visible?
-                            :weather-data (cell= (when (and (or local? s/admin-logged-in?) (seq selected-years-set*))
+                            :edit? edit?
+                            :weather-data (cell= (when (and #_(or local? s/admin-logged-in?) (seq selected-years-set*))
                                                        (apply concat (map second weather-data))))
                             :id-attr :weather-station/id
                             :id id)))]))))))
