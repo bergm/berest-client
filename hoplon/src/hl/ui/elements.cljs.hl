@@ -484,7 +484,10 @@
                                (str (cstc/year (cstc/now)) "-01-01")))]
          (div
            :col [:xs 2]
-           (p :toggle no-edit? :class "form-control-static" (text "~(if (nil? row-no) (vocab :date-placeholder s/lang) date-str)"))
+           (p
+             :toggle no-edit?
+             :class "form-control-static"
+             (text "~(if (nil? row-no) (vocab :date-placeholder s/lang) date-str)"))
            (input
              :id date-id
              :toggle edit?
@@ -527,7 +530,10 @@
          :col [:xs 2]
          (div
            :class "input-group"
-           (p :toggle no-edit? :class "form-control-static" (text "~(if (nil? row-no) (vocab :evap-placeholder s/lang) evap)"))
+           (p
+             :toggle no-edit?
+             :class "form-control-static"
+             (text "~(if (nil? row-no) (vocab :evap-placeholder s/lang) evap)"))
            (input
              :id evap-id
              :toggle edit?
@@ -539,7 +545,7 @@
              :value evap
              :on-change #(evap! (js/parseFloat (val-id evap-id))))
            (span
-             :toggle (cell= (not (nil? row-no)))
+             :toggle (cell= (or edit? (not (nil? row-no))))
              :class "input-group-addon" "mm")))
 
        (div
@@ -558,7 +564,7 @@
              :value precip
              :on-change #(precip! (js/parseFloat (val-id precip-id))))
            (span
-             :toggle (cell= (not (nil? row-no)))
+             :toggle (cell= (or edit? (not (nil? row-no))))
              :class "input-group-addon" "mm")))
 
        (div
@@ -604,7 +610,7 @@
 
 (defelem weather-data-form-group
          [{:keys [visible?
-                  edit?
+                  edit
                   prognosis-visible? default-prognosis-issue-date
                   weather-data
                   id-attr id]
@@ -613,7 +619,9 @@
          ((bs/form-group
            :toggle visible?
            (bs/control-label :col [:xs 2] (text "~(vocab :weather-data-label s/lang)"))
-           (let [date* (cell (cstcoe/to-date (cstc/now)))
+           (let [edit? edit
+
+                 date* (cell (cstcoe/to-date (cstc/now)))
                  tavg* (cell nil)
                  globrad* (cell nil)
                  evap* (cell nil)

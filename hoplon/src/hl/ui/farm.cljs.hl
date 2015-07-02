@@ -352,6 +352,7 @@
 
              (uie/weather-data-form-group
                :visible? visible?
+               :edit true
                :weather-data weather-data
                :id-attr :farm/id
                :id id)))

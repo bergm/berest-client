@@ -1322,6 +1322,7 @@
 
               (uie/weather-data-form-group
                 :visible? visible?
+                :edit true
                 :prognosis-visible? true
                 :default-prognosis-issue-date (cell= (cstcoe/to-date calc-until-date))
                 :weather-data weather-data

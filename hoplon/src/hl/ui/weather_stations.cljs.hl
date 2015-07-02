@@ -710,7 +710,7 @@
 
                           (uie/weather-data-form-group
                             :visible? visible?
-                            :edit? edit?
+                            :edit edit?
                             :weather-data (cell= (when (and #_(or local? s/admin-logged-in?) (seq selected-years-set*))
                                                        (apply concat (map second weather-data))))
                             :id-attr :weather-station/id
