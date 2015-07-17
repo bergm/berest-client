@@ -130,6 +130,7 @@
    kids]
   (let [edit? (cell (if (cell? edit?) @edit? edit?))
         no-edit? (cell= (not edit?))
+        drip-irrigation? (cell= (= type :technology.type/drip))
         [cycle-days-id
          outlet-height-id
          sprinkle-loss-factor-id
@@ -191,28 +192,30 @@
                    :placeholder (cell= (vocab :outlet-height-placeholder s/lang))
                    :value outlet-height
                    :on-change #(outlet-height! (js/parseInt (val-id outlet-height-id))))
-                 (span :class "input-group-addon" "cm"))
-               ))
+                 (span :class "input-group-addon" "cm"))))
 
            (bs/form-group
              (bs/control-label :col [:sm (+ 1 label-cols)] :for sprinkle-loss-factor-id (text "~(vocab :sprinkle-loss-factor-label s/lang)"))
              (div
                :col [:xs value-cols]
-               (p :toggle no-edit? :class "form-control-static" (text "~{sprinkle-loss-factor}"))
-               (input
-                 :id sprinkle-loss-factor-id
-                 :disabled (cell= (= type :technology.type/drip))
-                 :toggle edit?
-                 :class "form-control"
-                 :type "number"
-                 :step 0.01
-                 :min 0
-                 :max 1
-                 :placeholder (cell= (vocab :sprinkle-loss-factor-placeholder s/lang))
-                 :value sprinkle-loss-factor
-                 :on-change #(sprinkle-loss-factor! (js/parseInt (val-id sprinkle-loss-factor-id))))
-
-               ))
+               (div
+                 :class "input-group"
+                 (p :toggle no-edit? :class "form-control-static" (text "~{sprinkle-loss-factor}"))
+                 (input
+                   :id sprinkle-loss-factor-id
+                   :disabled drip-irrigation?
+                   :toggle edit?
+                   :class "form-control"
+                   :type "number"
+                   :step 1
+                   :min 0
+                   :max 100
+                   :placeholder (cell= (vocab :sprinkle-loss-factor-placeholder s/lang))
+                   :value (cell= (if drip-irrigation?
+                                   0
+                                   (* (or sprinkle-loss-factor 0.2) 100)))
+                   :on-change #(sprinkle-loss-factor! (/ (js/parseInt (val-id sprinkle-loss-factor-id)) 100.0)))
+                 (span :class "input-group-addon" "%"))))
 
            (bs/form-group
              (bs/control-label :col [:sm (+ 1 label-cols)] :for cycle-days-id (text "~(vocab :cycle-days-label s/lang)"))
