@@ -4,11 +4,13 @@
   (:refer-hoplon :exclude [address])
   (:require [javelin.core :refer :all]
             [hoplon.core :refer :all]
-    [de.zalf.berest.client.hoplon.util :as util]
-    [de.zalf.berest.client.hoplon.state :as s]
-    [ui.elements :as uie]
-    [bootstrap-util :as bs]
-            #_[cljs-time.coerce :as cstcoe]))
+
+            [de.zalf.berest.client.hoplon.util :as util]
+            [de.zalf.berest.client.hoplon.state :as s]
+            [ui.elements :as uie]
+            [bootstrap-util :as bsu]
+            [hoplon.twitter.bootstrap :as bs]
+    #_[cljs-time.coerce :as cstcoe]))
 
 
 (defn vocab
@@ -133,14 +135,13 @@
          state-id state-short-id
          country-id country-short-id] (repeatedly gensym)
         ]
-       ((bs/form
-          :opts [:horizontal]
+       ((bs/form-horizontal
           :name address-form-name
 
           (bs/form-group
-            (bs/control-label :col [:sm label-cols] :for description-id (text "~(vocab :description-label s/lang)"))
+            (bs/control-label :col {:sm label-cols} :for description-id (text "~(vocab :description-label s/lang)"))
             (div
-              :col [:xs value-cols]
+              :col {:xs value-cols}
               (p :toggle no-edit? :class "form-control-static" (text "~{description}"))
               (input
                 :id description-id
@@ -152,9 +153,9 @@
                 :on-change #(description! @%))))
 
           (bs/form-group
-            (bs/control-label :col [:sm label-cols] :for street-id (text "~(vocab :street-label s/lang)"))
+            (bs/control-label :col {:sm label-cols} :for street-id (text "~(vocab :street-label s/lang)"))
             (div
-              :col [:xs value-cols]
+              :col {:xs value-cols}
               (p :toggle no-edit? :class "form-control-static" (text "~{street}"))
               (input
                 :id street-id
@@ -166,9 +167,9 @@
                 :on-change #(street! @%))))
 
           (bs/form-group
-            (bs/control-label :col [:sm label-cols] :for postal-code-id (text "~(vocab :postal-code-label s/lang)"))
+            (bs/control-label :col {:sm label-cols} :for postal-code-id (text "~(vocab :postal-code-label s/lang)"))
             (div
-              :col [:xs value-cols]
+              :col {:xs value-cols}
               (p :toggle no-edit? :class "form-control-static" (text "~{postal-code}"))
               (input
                 :id postal-code-id
@@ -183,9 +184,9 @@
                 :on-change #(postal-code! @%))))
 
           (bs/form-group
-            (bs/control-label :col [:sm label-cols] :for city-id (text "~(vocab :city-label s/lang)"))
+            (bs/control-label :col {:sm label-cols} :for city-id (text "~(vocab :city-label s/lang)"))
             (div
-              :col [:xs value-cols]
+              :col {:xs value-cols}
               (p :toggle no-edit? :class "form-control-static" (text "~{city}"))
               (input
                 :id city-id
@@ -197,9 +198,9 @@
                 :on-change #(city! @%))))
 
           (bs/form-group
-            (bs/control-label :col [:sm label-cols] :for city-part-id (text "~(vocab :city-part-label s/lang)"))
+            (bs/control-label :col {:sm label-cols} :for city-part-id (text "~(vocab :city-part-label s/lang)"))
             (div
-              :col [:xs value-cols]
+              :col {:xs value-cols}
               (p :toggle no-edit? :class "form-control-static" (text "~{city-part}"))
               (input
                 :id city-part-id
@@ -211,9 +212,9 @@
                 :on-change #(city-part! @%))))
 
           (bs/form-group
-            (bs/control-label :col [:sm label-cols] :for municipality-id (text "~(vocab :municipality-label s/lang)"))
+            (bs/control-label :col {:sm label-cols} :for municipality-id (text "~(vocab :municipality-label s/lang)"))
             (div
-              :col [:xs value-cols]
+              :col {:xs value-cols}
               (p :toggle no-edit? :class "form-control-static" (text "~{municipality}"))
               (input
                 :id municipality-id
@@ -225,9 +226,9 @@
                 :on-change #(municipality! @%))))
 
           (bs/form-group
-            (bs/control-label :col [:sm label-cols] :for municipality-short-id (text "~(vocab :municipality-short-label s/lang)"))
+            (bs/control-label :col {:sm label-cols} :for municipality-short-id (text "~(vocab :municipality-short-label s/lang)"))
             (div
-              :col [:xs value-cols]
+              :col {:xs value-cols}
               (p :toggle no-edit? :class "form-control-static" (text "~{municipality-short}"))
               (input
                 :id municipality-short-id
@@ -239,9 +240,9 @@
                 :on-change #(municipality-short! @%))))
 
           (bs/form-group
-            (bs/control-label :col [:sm label-cols] :for state-id (text "~(vocab :state-label s/lang)"))
+            (bs/control-label :col {:sm label-cols} :for state-id (text "~(vocab :state-label s/lang)"))
             (div
-              :col [:xs value-cols]
+              :col {:xs value-cols}
               (p :toggle no-edit? :class "form-control-static" (text "~{state}"))
               (input
                 :id state-id
@@ -253,9 +254,9 @@
                 :on-change #(state! @%))))
 
           (bs/form-group
-            (bs/control-label :col [:sm label-cols] :for state-short-id (text "~(vocab :state-short-label s/lang)"))
+            (bs/control-label :col {:sm label-cols} :for state-short-id (text "~(vocab :state-short-label s/lang)"))
             (div
-              :col [:xs value-cols]
+              :col {:xs value-cols}
               (p :toggle no-edit? :class "form-control-static" (text "~{state-short}"))
               (input
                 :id state-short-id
@@ -267,9 +268,9 @@
                 :on-change #(state-short! @%))))
 
           (bs/form-group
-            (bs/control-label :col [:sm label-cols] :for country-id (text "~(vocab :country-label s/lang)"))
+            (bs/control-label :col {:sm label-cols} :for country-id (text "~(vocab :country-label s/lang)"))
             (div
-              :col [:xs value-cols]
+              :col {:xs value-cols}
               (p :toggle no-edit? :class "form-control-static" (text "~{country}"))
               (input
                 :id country-id
@@ -281,9 +282,9 @@
                 :on-change #(country! @%))))
 
           (bs/form-group
-            (bs/control-label :col [:sm label-cols] :for country-short-id (text "~(vocab :country-short-label s/lang)"))
+            (bs/control-label :col {:sm label-cols} :for country-short-id (text "~(vocab :country-short-label s/lang)"))
             (div
-              :col [:xs value-cols]
+              :col {:xs value-cols}
               (p :toggle no-edit? :class "form-control-static" (text "~{country}"))
               (input
                 :id country-short-id

@@ -2,7 +2,8 @@
   (:require [de.zalf.berest.client.hoplon.util :as util]
             [ui.elements :as uie]
             [ui.addresses :as addr]
-            [bootstrap-util :as bs]
+            [bootstrap-util :as bsu]
+            [hoplon.twitter.bootstrap :as bs]
             [cljs-time.core :as cstc]
             [cljs-time.format :as cstf]
             [cljs-time.coerce :as cstcoe]
@@ -141,8 +142,7 @@
          step-size-id
          technology-form-name] (repeatedly gensym)]
     ((div
-       (bs/form
-         :opts [:horizontal]
+       (bs/form-horizontal
          :name technology-form-name
 
          #_(button
@@ -160,7 +160,7 @@
              (bs/control-label :col [:sm (+ 1 label-cols)] :for type-id
                                (text "~(vocab :type-label s/lang)"))
              (div
-               :col [:xs 2]
+               :col {:xs 2}
                (select
                  :id type-id
                  :class "form-control"
@@ -177,7 +177,7 @@
            (bs/form-group
              (bs/control-label :col [:sm (+ 1 label-cols)] :for outlet-height-id (text "~(vocab :outlet-height-label s/lang)"))
              (div
-               :col [:xs value-cols]
+               :col {:xs value-cols}
                (p :toggle no-edit? :class "form-control-static" (text "~{outlet-height}"))
                (div
                  :class "input-group"
@@ -197,7 +197,7 @@
            (bs/form-group
              (bs/control-label :col [:sm (+ 1 label-cols)] :for sprinkle-loss-factor-id (text "~(vocab :sprinkle-loss-factor-label s/lang)"))
              (div
-               :col [:xs value-cols]
+               :col {:xs value-cols}
                (div
                  :class "input-group"
                  (p :toggle no-edit? :class "form-control-static" (text "~{sprinkle-loss-factor}"))
@@ -220,7 +220,7 @@
            (bs/form-group
              (bs/control-label :col [:sm (+ 1 label-cols)] :for cycle-days-id (text "~(vocab :cycle-days-label s/lang)"))
              (div
-               :col [:xs value-cols]
+               :col {:xs value-cols}
                (p :toggle no-edit? :class "form-control-static" (text "~{cycle-days}"))
                (div
                  :class "input-group"
@@ -247,7 +247,7 @@
            (bs/form-group
              (bs/control-label :col [:sm (+ 1 label-cols)] :for donation-min-id (text "~(vocab :donation-min-label s/lang)"))
              (div
-               :col [:xs value-cols]
+               :col {:xs value-cols}
                (p :toggle no-edit? :class "form-control-static" (text "~{donation-min}"))
                (div
                  :class "input-group"
@@ -268,7 +268,7 @@
            (bs/form-group
              (bs/control-label :col [:sm (+ 1 label-cols)] :for donation-opt-id (text "~(vocab :donation-opt-label s/lang)"))
              (div
-               :col [:xs value-cols]
+               :col {:xs value-cols}
                (p :toggle no-edit? :class "form-control-static" (text "~{donation-opt}"))
                (div
                  :class "input-group"
@@ -289,7 +289,7 @@
            (bs/form-group
              (bs/control-label :col [:sm (+ 1 label-cols)] :for donation-max-id (text "~(vocab :donation-max-label s/lang)"))
              (div
-               :col [:xs value-cols]
+               :col {:xs value-cols}
                (p :toggle no-edit? :class "form-control-static" (text "~{donation-max}"))
                (div
                  :class "input-group"
@@ -310,7 +310,7 @@
            (bs/form-group
              (bs/control-label :col [:sm (+ 1 label-cols)] :for step-size-id (text "~(vocab :step-size-label s/lang)"))
              (div
-               :col [:xs value-cols]
+               :col {:xs value-cols}
                (p :toggle no-edit? :class "form-control-static" (text "~{step-size}"))
                (div
                  :class "input-group"

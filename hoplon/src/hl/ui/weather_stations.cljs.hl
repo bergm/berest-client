@@ -3,7 +3,8 @@
             [de.zalf.berest.client.hoplon.state :as s]
             [ui.elements :as uie]
             [ui.components :as uic]
-            [bootstrap-util :as bs]
+            [bootstrap-util :as bsu]
+            [hoplon.twitter.bootstrap :as bs]
             [cljs-time.core :as cstc]
             [cljs-time.format :as cstf]
             [cljs-time.coerce :as cstcoe]
@@ -155,7 +156,7 @@
            :class "row"
 
            (div
-             :col [:xs 12]
+             :col {:xs 12}
 
              (table
                :class "table"
@@ -231,9 +232,8 @@
                            :action! #(s/delete-db-entity @db-id)
                            :value (cell= (vocab :delete-weather-station-button s/lang)))))))))))
 
-         (bs/form
+         (bs/form-horizontal
            :toggle (cell= (not (nil? selected-weather-station)))
-           :opts [:horizontal]
            :name "weather-station-form"
 
            (cell-let
@@ -406,9 +406,9 @@
                    ]
 
                   [(bs/form-group
-                     (bs/control-label :col [:sm 2] :for name-input (text "~(vocab :name-label s/lang)"))
+                     (bs/control-label :col {:sm 2} :for name-input (text "~(vocab :name-label s/lang)"))
                      (div
-                       :col [:xs 3]
+                       :col {:xs 3}
                        (p :toggle no-edit? :class "form-control-static" (text "~(or name id)"))
                        (input
                          :id name-input
@@ -420,9 +420,9 @@
                          :on-change #(s/update-db-entity @db-id :weather-station/name @%))))
 
                    #_(bs/form-group
-                     (bs/control-label :col [:sm 2] :for lat-input (text "~(vocab :lat-label s/lang)"))
+                     (bs/control-label :col {:sm 2} :for lat-input (text "~(vocab :lat-label s/lang)"))
                      (div
-                       :col [:xs 3]
+                       :col {:xs 3}
                        (p :toggle no-edit? :class "form-control-static" (text "~{lat}"))
                        (input
                          :id lat-input
@@ -434,9 +434,9 @@
                          :on-change #(swap! station-data assoc :lat @%))))
 
                    #_(bs/form-group
-                     (bs/control-label :col [:sm 2] :for long-input (text "~(vocab :long-label s/lang)"))
+                     (bs/control-label :col {:sm 2} :for long-input (text "~(vocab :long-label s/lang)"))
                      (div
-                       :col [:xs 3]
+                       :col {:xs 3}
                        (p :toggle no-edit? :class "form-control-static" (text "~{long}"))
                        (input
                          :id long-input
@@ -452,9 +452,9 @@
                      :id "weather-data-curves"
                      :toggle (cell= (not (nil? (seq selected-years-set*))))
 
-                     (bs/control-label :col [:xs 2] :for years-id (text "~(vocab :chart-year s/lang)"))
+                     (bs/control-label :col {:xs 2} :for years-id (text "~(vocab :chart-year s/lang)"))
                      (div
-                       :col [:xs 3]
+                       :col {:xs 3}
                        (select
                          :id years-id
                          :class "form-control"
@@ -472,7 +472,7 @@
                                    (text "~{year}")))))
 
                      #_(div
-                       :col [:xs 2]
+                       :col {:xs 2}
                        :class "col-xs-offset-5"
                        (button
                          :style "float:right"
@@ -483,7 +483,7 @@
                    (div
                      :id "weather-data-chart" #_chart-id
                      :toggle :toggle (cell= (not (nil? (seq selected-years-set*))))
-                     :col [:xs 12])
+                     :col {:xs 12})
 
                    (let [visible? (cell false)
                          elem-1 (cell :date)
@@ -517,9 +517,9 @@
 
                        (bs/form-group
                          :toggle visible?
-                         (bs/control-label :col [:xs 2] :for separator-select-id (text "~(vocab :separator-select-label s/lang)"))
+                         (bs/control-label :col {:xs 2} :for separator-select-id (text "~(vocab :separator-select-label s/lang)"))
                          (div
-                           :col [:xs 2]
+                           :col {:xs 2}
                            (select
                              :id separator-select-id
                              :class "form-control"
@@ -531,9 +531,9 @@
 
                        (bs/form-group
                          :toggle visible?
-                         (bs/control-label :col [:xs 2] :for decimal-separator-select-id (text "~(vocab :decimal-separator-select-label s/lang)"))
+                         (bs/control-label :col {:xs 2} :for decimal-separator-select-id (text "~(vocab :decimal-separator-select-label s/lang)"))
                          (div
-                           :col [:xs 2]
+                           :col {:xs 2}
                            (select
                              :id decimal-separator-select-id
                              :class "form-control"
@@ -543,9 +543,9 @@
 
                        (bs/form-group
                          :toggle visible?
-                         (bs/control-label :col [:sm 2] :for ignore-header-lines-id (text "~(vocab :ignore-header-lines-label s/lang)"))
+                         (bs/control-label :col {:sm 2} :for ignore-header-lines-id (text "~(vocab :ignore-header-lines-label s/lang)"))
                          (div
-                           :col [:xs 1]
+                           :col {:xs 1}
                            (input
                              :id ignore-header-lines-id
                              :class "form-control"
@@ -559,7 +559,7 @@
                        (let [create-elem-select (fn [def-elem c size]
                                                   (let [id (gensym)]
                                                     (div
-                                                      :col [:xs size]
+                                                      :col {:xs size}
                                                       (select
                                                         :id id
                                                         :class "form-control"
@@ -576,7 +576,7 @@
                              create-sep-select (fn [def-elem c size]
                                              (let [id (gensym)]
                                                (div
-                                                 :col [:xs size]
+                                                 :col {:xs size}
                                                  (select
                                                    :id id
                                                    :class "form-control"
@@ -598,26 +598,26 @@
                                                            "\\")))))]
                          (bs/form-group
                            :toggle visible?
-                           (bs/control-label :col [:xs 2] (text "~(vocab :date-format-label s/lang)"))
+                           (bs/control-label :col {:xs 2} (text "~(vocab :date-format-label s/lang)"))
 
                            (create-elem-select :day df-1 1)
                            (create-sep-select :dot df-sep 1)
                            (create-elem-select :month df-2 1)
                            (div
-                             :col [:xs 1]
+                             :col {:xs 1}
                              (p
                                :class "form-control-static"
                                :style "text-align: center; font-weight: bold"
                                (text "~{df-sep}")))
                            (create-elem-select :year df-3 1)
                            (div
-                             :col [:xs 1]
+                             :col {:xs 1}
                              (p
                                :class "form-control-static"
                                :style "text-align: center;"
                                (span :class "glyphicon glyphicon-arrow-right")))
                            (div
-                             :col [:xs 1]
+                             :col {:xs 1}
                              (p
                                :class "form-control-static"
                                :style "text-align: center; font-weight: bold"
@@ -626,7 +626,7 @@
                        (let [create-elem-select (fn [def-elem c size]
                                                   (let [id (gensym)]
                                                     (div
-                                                      :col [:xs size]
+                                                      :col {:xs size}
 
                                                       (select
                                                         :id id
@@ -660,7 +660,7 @@
                                                                 (text "~(vocab :globrad s/lang) [J/cm2]"))))))]
                          (bs/form-group
                            :toggle visible?
-                           (bs/control-label :col [:xs 2] (text "~(vocab :element-order-label s/lang)"))
+                           (bs/control-label :col {:xs 2} (text "~(vocab :element-order-label s/lang)"))
                            (create-elem-select :date elem-1 2)
                            (create-elem-select :precip elem-2 2)
                            (create-elem-select :evap elem-3 2)
@@ -671,9 +671,9 @@
 
                        (bs/form-group
                          :toggle visible?
-                         (bs/control-label :col [:sm 2] :for import-area-id (text "~(vocab :import-area-label s/lang)"))
+                         (bs/control-label :col {:sm 2} :for import-area-id (text "~(vocab :import-area-label s/lang)"))
                          (div
-                           :col [:xs 10]
+                           :col {:xs 10}
                            (textarea
                              :id import-area-id
                              :class "form-control"
@@ -685,7 +685,7 @@
                        (bs/form-group
                          :toggle visible?
                          (div
-                           :col [:xs 2]
+                           :col {:xs 2}
                            :class "col-xs-offset-2"
                            (button
                              :class "btn btn-warning btn-lg"

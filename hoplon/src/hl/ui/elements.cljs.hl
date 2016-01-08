@@ -4,7 +4,8 @@
     [cljs-time.core :as cstc]
     [cljs-time.format :as cstf]
     [cljs-time.coerce :as cstcoe]
-    [bootstrap-util :as bs]
+    [bootstrap-util :as bsu]
+    [hoplon.twitter.bootstrap :as bs]
     [de.zalf.berest.client.hoplon.util :as util]
     [de.zalf.berest.client.hoplon.state :as s]))
 
@@ -209,7 +210,7 @@
     ((div
        :class "row"
        (div
-         :col [:xs 4]
+         :col {:xs 4}
          (div
            :class "input-group"
            (input
@@ -225,7 +226,7 @@
            (span :class "input-group-addon" "cm")))
 
        (div
-         :col [:xs 3]
+         :col {:xs 3}
          (select
            :id value-id
            :class "form-control"
@@ -238,7 +239,7 @@
                      (text "~{name}")))))
 
        (div
-         :col [:xs 4]
+         :col {:xs 4}
          (button
            :class (cell= {:btn true
                           :btn-sm true
@@ -266,7 +267,7 @@
     ((div
        :class "row"
        (div
-         :col [:xs 4]
+         :col {:xs 4}
          (div
            :class "input-group"
            (input
@@ -282,7 +283,7 @@
            (span :class "input-group-addon" "cm")))
 
        (div
-         :col [:xs 4]
+         :col {:xs 4}
          (div
            :class "input-group"
            (input
@@ -297,7 +298,7 @@
            (span :class "input-group-addon" (text "~{unit}"))))
 
        (div
-         :col [:xs 4]
+         :col {:xs 4}
          (button
            :class (cell= {:btn true
                           :btn-sm true
@@ -327,7 +328,7 @@
     ((div
        :class "row"
        (div
-         :col [:xs 4]
+         :col {:xs 4}
          (div
            :class "input-group"
            (span :class "input-group-addon" "von")
@@ -344,7 +345,7 @@
                                                                                @%))))))
 
        (div
-         :col [:xs 4]
+         :col {:xs 4}
          (div
            :class "input-group"
            (span :class "input-group-addon" "bis")
@@ -361,7 +362,7 @@
                                                                              @%))))))
 
        (div
-         :col [:xs 3]
+         :col {:xs 3}
          (div
            :class "input-group"
            (input
@@ -376,7 +377,7 @@
            (span :class "input-group-addon" "mm")))
 
        (div
-         :col [:xs 1]
+         :col {:xs 1}
          (button
            :class (cell= {:btn true
                           :btn-sm true
@@ -405,7 +406,7 @@
        :class "row"
 
        (div
-         :col [:xs 4]
+         :col {:xs 4}
          (input
            :id abs-day-id
            :class "form-control"
@@ -419,7 +420,7 @@
                                                                        @%)))))
 
        (div
-         :col [:xs 3]
+         :col {:xs 3}
          (input
            :id dc-id
            :class "form-control"
@@ -432,7 +433,7 @@
            :on-change #(dc! (js/parseInt @%))))
 
        (div
-         :col [:xs 4]
+         :col {:xs 4}
          (select
            :id dc-select-id
            :class "form-control"
@@ -446,7 +447,7 @@
                      (text "~{dc*} | ~{name}")))))
 
        (div
-         :col [:xs 1]
+         :col {:xs 1}
          (button
            :class (cell= {:btn true
                           :btn-sm true
@@ -480,7 +481,7 @@
                                (cstf/unparse (cstf/formatters :date) (cstcoe/from-date date))
                                (str (cstc/year (cstc/now)) "-01-01")))]
          (div
-           :col [:xs 2]
+           :col {:xs 2}
            (p
              :toggle no-edit?
              :class "form-control-static"
@@ -495,7 +496,7 @@
                                                             @%))))))
 
        #_(div
-         :col [:xs 2]
+         :col {:xs 2}
          (div
            :class "input-group"
            (input
@@ -524,7 +525,7 @@
            (span :class "input-group-addon" "J/cm²")))
 
        (div
-         :col [:xs 2]
+         :col {:xs 2}
          (div
            :class "input-group"
            (p
@@ -546,7 +547,7 @@
              :class "input-group-addon" "mm")))
 
        (div
-         :col [:xs 2]
+         :col {:xs 2}
          (div
            :class "input-group"
            (p :toggle no-edit? :class "form-control-static" (text "~(if (nil? row-no) (vocab :precip-placeholder s/lang) precip)"))
@@ -565,7 +566,7 @@
              :class "input-group-addon" "mm")))
 
        (div
-         :col [:xs 1]
+         :col {:xs 1}
          :toggle prog-visible?
          (label
            :class "checkbox-inline"
@@ -580,7 +581,7 @@
                                     (cstf/unparse (cstf/formatters :date) (cstcoe/from-date prog-date))
                                     (str (cstc/year (cstc/now)) "-01-01")))]
          (div
-           :col [:xs 2]
+           :col {:xs 2}
            :toggle (cell= (and prog? prog-visible?))
            (p :toggle no-edit? :class "form-control-static" (text "~{prog-date-str}"))
            (input
@@ -592,7 +593,7 @@
                                                                  @%))))))
 
        (div
-         :col [:xs 1]
+         :col {:xs 1}
          :toggle edit?
          (button
            :class (cell= {:btn true
@@ -615,7 +616,7 @@
 
          ((bs/form-group
            :toggle visible?
-           (bs/control-label :col [:xs 2] (text "~(vocab :weather-data-label s/lang)"))
+           (bs/control-label :col {:xs 2} (text "~(vocab :weather-data-label s/lang)"))
            (let [edit? edit
 
                  date* (cell (cstcoe/to-date (cstc/now)))
@@ -629,7 +630,7 @@
                  #__ #_(cell= (println "date*: " date* " tavg*: " tavg* " globrad*: " globrad*
                                    " evap*: " evap* " precip*: " precip* " prog?*: " prog?* " prog-issue-date: " prog-issue-date))]
                 (div
-                  :col [:xs 10]
+                  :col {:xs 10}
 
                   (loop-tpl
                     :bindings [[row-no {db-id :db/id
@@ -690,7 +691,7 @@
        :class "row"
 
        (div
-         :col [:xs 2]
+         :col {:xs 2}
          (div
            :class "input-group"
            (input
@@ -706,7 +707,7 @@
            (span :class "input-group-addon" "")))
 
        (div
-         :col [:xs 3]
+         :col {:xs 3}
          (div
            :class "input-group"
            (input
@@ -719,7 +720,7 @@
            (span :class "input-group-addon" "")))
 
        (div
-         :col [:xs 2]
+         :col {:xs 2}
          (button
            :class (cell= {:btn true
                           :btn-sm true
@@ -746,7 +747,7 @@
        :class "row"
 
        (div
-         :col [:xs 2]
+         :col {:xs 2}
          (div
            :class "input-group"
            (input
@@ -762,7 +763,7 @@
            (span :class "input-group-addon" "")))
 
        (div
-         :col [:xs 2]
+         :col {:xs 2}
          (div
            :class "input-group"
            (input
@@ -778,7 +779,7 @@
            (span :class "input-group-addon" "")))
 
        (div
-         :col [:xs 2]
+         :col {:xs 2}
          (button
            :class (cell= {:btn true
                           :btn-sm true
@@ -806,7 +807,7 @@
        :class "row"
 
        (div
-         :col [:xs 2]
+         :col {:xs 2}
          (div
            :class "input-group"
            (input
@@ -822,7 +823,7 @@
            (span :class "input-group-addon" "d")))
 
        (div
-         :col [:xs 2]
+         :col {:xs 2}
          (div
            :class "input-group"
            (input
@@ -838,7 +839,7 @@
            (span :class "input-group-addon" "%")))
 
        (div
-         :col [:xs 2]
+         :col {:xs 2}
          (button
            :class (cell= {:btn true
                           :btn-sm true
@@ -865,7 +866,7 @@
        :class "row"
 
        (div
-         :col [:xs 2]
+         :col {:xs 2}
          (div
            :class "input-group"
            (input
@@ -881,7 +882,7 @@
            (span :class "input-group-addon" "d")))
 
        (div
-         :col [:xs 2]
+         :col {:xs 2}
          (div
            :class "input-group"
            (input
@@ -897,7 +898,7 @@
            (span :class "input-group-addon" "%")))
 
        (div
-         :col [:xs 2]
+         :col {:xs 2}
          (button
            :class (cell= {:btn true
                           :btn-sm true
@@ -924,7 +925,7 @@
        :class "row"
 
        (div
-         :col [:xs 2]
+         :col {:xs 2}
          (div
            :class "input-group"
            (input
@@ -940,7 +941,7 @@
            (span :class "input-group-addon" "d")))
 
        (div
-         :col [:xs 2]
+         :col {:xs 2}
          (div
            :class "input-group"
            (input
@@ -956,7 +957,7 @@
            (span :class "input-group-addon" "cm")))
 
        (div
-         :col [:xs 2]
+         :col {:xs 2}
          (button
            :class (cell= {:btn true
                           :btn-sm true
@@ -983,7 +984,7 @@
        :class "row"
 
        (div
-         :col [:xs 2]
+         :col {:xs 2}
          (div
            :class "input-group"
            (input
@@ -999,7 +1000,7 @@
            (span :class "input-group-addon" "d")))
 
        (div
-         :col [:xs 2]
+         :col {:xs 2}
          (div
            :class "input-group"
            (input
@@ -1015,7 +1016,7 @@
            (span :class "input-group-addon" "")))
 
        (div
-         :col [:xs 2]
+         :col {:xs 2}
          (button
            :class (cell= {:btn true
                           :btn-sm true
@@ -1043,7 +1044,7 @@
        :class "row"
 
        (div
-         :col [:xs 4]
+         :col {:xs 4}
          (input
            :id id-id
            :class "form-control"
@@ -1053,7 +1054,7 @@
            :on-change #(id! @%)))
 
        (div
-         :col [:xs 3]
+         :col {:xs 3}
          (input
            :id desc-id
            :class "form-control"
@@ -1063,7 +1064,7 @@
            :on-change #(desc! @%)))
 
        (div
-         :col [:xs 3]
+         :col {:xs 3}
          (select
            :id type-id
            :class "form-control"
@@ -1092,7 +1093,7 @@
                    (text "~(vocab :com-con-uri-label s/lang)"))))
 
        (div
-         :col [:xs 2]
+         :col {:xs 2}
          (button
            :class (cell= {:btn true
                           :btn-sm true

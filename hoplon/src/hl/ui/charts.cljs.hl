@@ -9,7 +9,8 @@
             [de.zalf.berest.client.hoplon.state :as s]
             [ui.elements :as uie]
             [ui.components :as uic]
-            [bootstrap-util :as bs]
+            [bootstrap-util :as bsu]
+            [hoplon.twitter.bootstrap :as bs]
             #_[cljs-time.coerce :as cstcoe]))
 
 (defn vocab

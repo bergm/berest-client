@@ -10,7 +10,8 @@
             [ui.components :as uic]
             [ui.technology :as technology]
             [ui.addresses :as addr]
-            [bootstrap-util :as bs]
+            [bootstrap-util :as bsu]
+            [hoplon.twitter.bootstrap :as bs]
             [cljs-time.core :as cstc]
             [cljs-time.format :as cstf]
             [cljs-time.coerce :as cstcoe]
@@ -699,13 +700,12 @@
         #__ #_(cell= (when (and s/logged-in? (or (s/has-user-role :consultant) (s/has-user-role :admin)))
                    (charts/set-crop-curve-data crop-curves-chart-id crop-data)))
         ]
-       ((bs/form
-       :opts [:horizontal]
+       ((bs/form-horizontal
        :name plot-annual-form-name
 
        (bs/form-group
          (div
-           :col [:xs 2]
+           :col {:xs 2}
            :class "col-xs-offset-10"
            (uic/safe-delete-button
              :small-button? true
@@ -713,9 +713,9 @@
              :value (cell= (str year " " (vocab :delete-plot-annual-button-label s/lang))))))
 
        (bs/form-group
-         (bs/control-label :col [:sm label-cols] :for description-id (text "~(vocab :description-label s/lang)"))
+         (bs/control-label :col {:sm label-cols} :for description-id (text "~(vocab :description-label s/lang)"))
          (div
-           :col [:xs value-cols]
+           :col {:xs value-cols}
            (p :toggle no-edit? :class "form-control-static" (text "~{description}"))
            (input
              :id description-id
@@ -727,9 +727,9 @@
              :on-change #(description! @%))))
 
        (bs/form-group
-         (bs/control-label :col [:sm label-cols] :for year-id (text "~(vocab :year-label s/lang)"))
+         (bs/control-label :col {:sm label-cols} :for year-id (text "~(vocab :year-label s/lang)"))
          (div
-           :col [:xs value-cols]
+           :col {:xs value-cols}
            (p :toggle no-edit? :class "form-control-static" (text "~{year}"))
            (input
              :id year-id
@@ -753,10 +753,10 @@
 
               (bs/form-group
                 :toggle visible?
-                (bs/control-label :col [:sm label-cols] :for abs-day-of-initial-soil-moisture-measurement-id
+                (bs/control-label :col {:sm label-cols} :for abs-day-of-initial-soil-moisture-measurement-id
                                   (text "~(vocab :abs-day-of-initial-soil-moisture-measurement-label s/lang)"))
                 (div
-                  :col [:xs value-cols]
+                  :col {:xs value-cols}
                   (p :toggle no-edit? :class "form-control-static" (text "~{abs-day-of-initial-soil-moisture-measurement-id}"))
                   (input
                     :id abs-day-of-initial-soil-moisture-measurement-id
@@ -773,10 +773,10 @@
 
               (bs/form-group
                 :toggle (cell= (and edit? visible?))        ;we don't have to show this for read-only mode
-                (bs/control-label :col [:sm label-cols] :for initial-sm-unit-id
+                (bs/control-label :col {:sm label-cols} :for initial-sm-unit-id
                                   (text "~(vocab :initial-sm-unit-label s/lang)"))
                 (div
-                  :col [:xs 2]
+                  :col {:xs 2}
                   (select
                     :disabled "disabled"
                     :id initial-sm-unit-id
@@ -797,7 +797,7 @@
 
               (bs/form-group
                 :toggle visible?
-                (bs/control-label :col [:sm label-cols] :for initial-soil-moistures-id
+                (bs/control-label :col {:sm label-cols} :for initial-soil-moistures-id
                                   (text "~(vocab :initial-soil-moistures-label s/lang)"))
                 (let [depth* (cell nil)
                       sm* (cell nil)
@@ -832,14 +832,14 @@
                 :toggle visible?
                 :class "row"
                 (div
-                  :col [:xs 11]
+                  :col {:xs 11}
                   :class "col-xs-offset-1"
                   (hr)))
 
               (let [visible*? (cell false)]
                 (fieldset
                   :toggle visible?
-                  :col [:xs 11]
+                  :col {:xs 11}
                   :class "col-xs-offset-1"
                   (uic/hover-activate-wrapper
                     :action! #(swap! visible*? not)
@@ -849,10 +849,10 @@
                     :toggle visible*?
                     :class "row"
 
-                    (div :col [:xs 1])
+                    (div :col {:xs 1})
 
                     (div
-                      ;:col [:xs 1]
+                      ;:col {:xs 1}
                       :style "float:right"
                       ;:class "col-xs-offset-11"
                       (button
@@ -864,7 +864,7 @@
                     :toggle visible*?
                     :class "row"
                     (div
-                      :col [:xs 11]
+                      :col {:xs 11}
                       :class "col-xs-offset-1"
                       (hr)))
 
@@ -880,14 +880,14 @@
 
                       (div
                         :toggle visible*?
-                        :col [:xs 12]
+                        :col {:xs 12}
 
                         (bs/form-group
                           :toggle visible*?
-                          (bs/control-label :col [:sm label-cols] :for abs-day-of-measurement-id
+                          (bs/control-label :col {:sm label-cols} :for abs-day-of-measurement-id
                                             (text "~(vocab :abs-day-of-measurement-label s/lang)"))
                           (div
-                            :col [:xs value-cols]
+                            :col {:xs value-cols}
                             (p :toggle no-edit? :class "form-control-static" (text "~{abs-day-of-measurement}"))
                             (input
                               :id abs-day-of-measurement-id
@@ -903,11 +903,11 @@
                                                               :value-type :int)))
 
                           (div
-                            :col [:xs 1]
+                            :col {:xs 1}
                             :class (str "col-xs-offset-" (- 12 2 label-cols value-cols))
                             (div
                               :style "float:right"
-                              ;:col [:xs 1]
+                              ;:col {:xs 1}
                               ;:class (str "col-xs-offset-" (- 12 1 label-cols value-cols))
                               (uic/safe-delete-button
                                 :action! #(s/delete-db-entity @sm-db-id)
@@ -915,10 +915,10 @@
 
                         (bs/form-group
                           :toggle visible*?
-                          (bs/control-label :col [:sm label-cols] :for initial-sm-unit-id
+                          (bs/control-label :col {:sm label-cols} :for initial-sm-unit-id
                                             (text "~(vocab :sm-unit-label s/lang)"))
                           (div
-                            :col [:xs 2]
+                            :col {:xs 2}
                             (select
                               :disabled "disabled"
                               :id sm-unit-id
@@ -939,7 +939,7 @@
 
                         (bs/form-group
                           :toggle visible*?
-                          (bs/control-label :col [:sm label-cols] :for sm-values-id
+                          (bs/control-label :col {:sm label-cols} :for sm-values-id
                                             (text "~(vocab :sm-values-label s/lang)"))
                           (let [depth* (cell nil)
                                 sm* (cell nil)
@@ -978,7 +978,7 @@
 
               (bs/form-group
                 :toggle visible?
-                (bs/control-label :col [:sm label-cols] :for technology-select-id (text "~(vocab :technology-select-label s/lang)"))
+                (bs/control-label :col {:sm label-cols} :for technology-select-id (text "~(vocab :technology-select-label s/lang)"))
                 (div
                   :col [:xs (min (+ value-cols 2) (- 12 label-cols))]
                   (p :toggle no-edit? :class "form-control-static" "???Schlauchtrommel???" #_(text "~{}"))
@@ -1006,7 +1006,7 @@
 
                 (div
                   :toggle visible?
-                  :col [:xs 12]
+                  :col {:xs 12}
                   (technology/technology
                     :class "row"
                     :style "margin-top: 20px"
@@ -1041,10 +1041,10 @@
                 :action! #(swap! visible? not)
                 (legend
                   :style "padding-left:0px"
-                  :col [:xs 8]
+                  :col {:xs 8}
                   (text "~(vocab :crop-instances-fieldset-label s/lang) ~(when-not visible? \" ...\")")))
               (span
-                :col [:xs 3]
+                :col {:xs 3}
                 (select
                 :toggle visible?
                 :id new-crop-instance-id
@@ -1062,7 +1062,7 @@
                           (text "~{number}/~{cult-type}/~{usage} | ~{symbol} | ~{name}")))))
               (button
                 :toggle visible?
-                :col [:xs 1]
+                :col {:xs 1}
                 :class "btn btn-sm btn-warning"
                 :click #(when @%
                          (s/create-new-crop-instance @db-id @%))
@@ -1091,15 +1091,15 @@
 
                   (fieldset
                     :toggle visible?
-                    :col [:xs 11]
+                    :col {:xs 11}
                     :class "col-xs-offset-1"
                     ;:style "font-size: 18px; margin-left: 5%; width:95%"
                     (legend
                       :style "padding-left:0px; padding-bottom:4px"
-                      :col [:xs 10]
+                      :col {:xs 10}
                       (text "~{ci-name}"))
                     (uic/safe-delete-button
-                      :col [:xs 2]
+                      :col {:xs 2}
                       :small-button? true
                       :action! #(s/delete-db-entity @ci-db-id)
                       :value (cell= (vocab :delete-ci-button-label s/lang)))
@@ -1107,7 +1107,7 @@
                     (bs/form-group
                       (bs/control-label :col [:sm (+ 1 label-cols)] :for ci-name-id (text "~(vocab :ci-name-label s/lang)"))
                       (div
-                        :col [:xs value-cols]
+                        :col {:xs value-cols}
                         (p :toggle no-edit? :class "form-control-static" (text "~{ci-name}"))
                         (input
                           :id ci-name-id
@@ -1171,7 +1171,7 @@
                          [(bs/form-group
                             (bs/control-label :col [:sm (+ 1 label-cols)] :for avg-irr-need-id (text "~(vocab :avg-irr-need-label s/lang)"))
                             (div
-                              :col [:xs 2]
+                              :col {:xs 2}
                               (p :toggle no-edit? :class "form-control-static" (text "~{avg-irrigation-need}"))
                               (div
                                 :class "input-group"
@@ -1197,7 +1197,7 @@
                           (bs/form-group
                             (bs/control-label :col [:sm (+ 1 label-cols)] :for avg-yield-per-ha-id (text "~(vocab :avg-yield-per-ha-label s/lang)"))
                             (div
-                              :col [:xs 2]
+                              :col {:xs 2}
                               (p :toggle no-edit? :class "form-control-static" (text "~{avg-yield-per-ha}"))
                               (div
                                 :class "input-group"
@@ -1224,7 +1224,7 @@
                           (bs/form-group
                             (bs/control-label :col [:sm (+ 1 label-cols)] :for avg-yield-per-ha-id (text "~(vocab :avg-yield-per-mm-label s/lang)"))
                             (div
-                              :col [:xs 2]
+                              :col {:xs 2}
                               (p :toggle no-edit? :class "form-control-static" (text "~{avg-yield-per-mm}"))
                               (div
                                 :class "input-group"
@@ -1247,7 +1247,7 @@
                                 (span :class "input-group-addon" "kg/mm")))
 
                             (div
-                              :col [:xs 2]
+                              :col {:xs 2}
                               (label
                                 :class "checkbox-inline"
                                 (input
@@ -1260,7 +1260,7 @@
                     (bs/form-group
                       (bs/control-label :col [:sm (+ 1 label-cols)] :for avg-profit-per-dt-id (text "~(vocab :avg-profit-per-dt-label s/lang)"))
                       (div
-                        :col [:xs 2]
+                        :col {:xs 2}
                         (p :toggle no-edit? :class "form-control-static" (text "~{avg-profit-per-dt}"))
                         (div
                           :class "input-group"
@@ -1281,7 +1281,7 @@
 
                   #_(div
                     :toggle visible?
-                    :col [:xs 1]
+                    :col {:xs 1}
                     (uic/safe-delete-button
                       :action! #(s/delete-db-entity @ci-db-id)
                       :value (cell= (vocab :delete-ci-button-label s/lang))))))))
@@ -1295,7 +1295,7 @@
 
               (bs/form-group
                 :toggle visible?
-                (bs/control-label :col [:sm label-cols] (text "~(vocab :donations-label s/lang)"))
+                (bs/control-label :col {:sm label-cols} (text "~(vocab :donations-label s/lang)"))
                 (let [abs-start-day* (cell nil)
                       abs-end-day* (cell nil)
                       amount* (cell nil)]
@@ -1348,9 +1348,9 @@
 
          (bs/form-group
 
-           (bs/control-label :col [:sm label-cols] (text "~(vocab :chart-until-abs-day-label s/lang)"))
+           (bs/control-label :col {:sm label-cols} (text "~(vocab :chart-until-abs-day-label s/lang)"))
            (div
-             :col [:xs 2]
+             :col {:xs 2}
              (input
                :id calc-until-id
                :class "form-control"
@@ -1360,7 +1360,7 @@
                                                                                             @%)))))
 
            (div
-             :col [:xs 2]
+             :col {:xs 2}
              :class (str "col-xs-offset-" (- 12 label-cols 2 2))
              (button
                :style "float:right"
@@ -1370,18 +1370,18 @@
 
        (div
          :id chart-id
-         :col [:xs 12])
+         :col {:xs 12})
 
        (let [rec-text (cell= (:text recommendation))
              donation (cell= (:donation recommendation))
              action (cell= (:action recommendation))
              donation* (cell nil)]
             (bs/form-group
-              (bs/control-label :col [:sm label-cols] (text "~(vocab :recommendation-label s/lang)"))
+              (bs/control-label :col {:sm label-cols} (text "~(vocab :recommendation-label s/lang)"))
 
               (div
                 :toggle (cell= (= action :irrigate))
-                :col [:xs 2]
+                :col {:xs 2}
                 (div
                   :class "input-group"
                   (input
@@ -1397,31 +1397,31 @@
 
               (div
                 :toggle (cell= (= action :irrigate))
-                :col [:xs 2]
+                :col {:xs 2}
                 (button
                   :class "btn btn-warning"
                   :click #(s/create-new-donation @db-id @calc-until-abs-day* @calc-until-abs-day* (or @donation* @donation))
                   (text "~(vocab :add-recommended-donation s/lang)")))
 
               (div
-                :col [:xs 6]
+                :col {:xs 6}
                 (p :class "form-control-static" (strong (text "~(when rec-text (rec-text s/lang))"))))))
 
        (cell-let [{:keys [sum-irrigation-water sum-irrigation-costs sum-profit sum-revenues]} economic-values]
                  (bs/form-group
-                   (bs/control-label :col [:sm label-cols] (text "~(vocab :economic-values-label s/lang)"))
+                   (bs/control-label :col {:sm label-cols} (text "~(vocab :economic-values-label s/lang)"))
 
                    (div
-                     :col [:xs 2]
+                     :col {:xs 2}
                      (p :class "form-control-static" (strong (text "~(vocab :sum-irrigation-water-label s/lang): ~(util/round sum-irrigation-water :digits 0) mm"))))
                    (div
-                     :col [:xs 2]
+                     :col {:xs 2}
                      (p :class "form-control-static" (strong (text "~(vocab :irrigation-costs-label s/lang): ~(util/round sum-irrigation-costs :digits 0) €"))))
                    (div
-                     :col [:xs 2]
+                     :col {:xs 2}
                      (p :class "form-control-static" (strong (text "~(vocab :revenues-label s/lang): ~(util/round sum-revenues :digits 0) €"))))
                    (div
-                     :col [:xs 2]
+                     :col {:xs 2}
                      (p
                        :class "form-control-static"
                        (strong (text "~(vocab :profit-label s/lang): "))
@@ -1452,7 +1452,7 @@
 
            (div
              :toggle visible?
-             :col [:xs 5]
+             :col {:xs 5}
 
              (select
                :id crop-id-select-id
@@ -1468,6 +1468,6 @@
            (div
              :toggle visible?
              :id crop-curves-chart-id
-             :col [:xs 12])))
+             :col {:xs 12})))
 
        ) (dissoc attrs :fields :opts) kids)))

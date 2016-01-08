@@ -5,7 +5,8 @@
             [ui.components :as uic]
             [ui.addresses :as addr]
             [ui.contacts :as contacts]
-            [bootstrap-util :as bs]))
+            [bootstrap-util :as bsu]
+            [hoplon.twitter.bootstrap :as bs]))
 
 (defn vocab
   "translatable vocabulary for this page"
@@ -110,14 +111,13 @@
         address-count (cell= (count addresses))
         [farm-form-name name-id notes-id irr-costs-id
          authorative-ws-id ws-id weather-data-id] (repeatedly gensym)]
-    ((bs/form
-       :opts [:horizontal]
+    ((bs/form-horizontal
        :name farm-form-name
 
        (bs/form-group
-         (bs/control-label :col [:sm label-cols] :for name-id (text "~(vocab :name-label s/lang)"))
+         (bs/control-label :col {:sm label-cols} :for name-id (text "~(vocab :name-label s/lang)"))
          (div
-           :col [:xs value-cols]
+           :col {:xs value-cols}
            (p :toggle no-edit? :class "form-control-static" (text "~{name}"))
            (input
              :id name-id
@@ -134,10 +134,10 @@
              :action! #(swap! visible? not)
              (legend
                :style "padding-left:0px"
-               :col [:xs 11]
+               :col {:xs 11}
                (text "~(vocab :address-fieldset-label s/lang) ~(when-not visible? \" ...\")")))
            (button
-             :col [:xs 1]
+             :col {:xs 1}
              :toggle visible?
              :class "btn btn-warning btn-sm"
              :click #(s/create-new-farm-address @id)
@@ -163,7 +163,7 @@
 
                (div
                  :toggle visible?
-                 :col [:xs 10]
+                 :col {:xs 10}
 
                  (addr/address
                    :fields {:description description :description! #(s/update-db-entity @db-id :address/description %)
@@ -185,7 +185,7 @@
 
                (div
                  :toggle visible?
-                 :col [:xs 2]
+                 :col {:xs 2}
 
                  (uic/safe-delete-button
                    :toggle edit?
@@ -199,10 +199,10 @@
              :action! #(swap! visible? not)
              (legend
                :style "padding-left:0px"
-               :col [:xs 11]
+               :col {:xs 11}
                (text "~(vocab :contacts-fieldset-label s/lang) ~(when-not visible? \" ...\")")))
            (button
-             :col [:xs 1]
+             :col {:xs 1}
              :toggle visible?
              :class "btn btn-warning btn-sm"
              :click #(s/create-new-farm-contact @id)
@@ -224,7 +224,7 @@
 
                (div
                  :toggle visible?
-                 :col [:xs 10]
+                 :col {:xs 10}
 
                  (contacts/contact
                    :fields {:db-id db-id
@@ -243,7 +243,7 @@
 
                (div
                  :toggle visible?
-                 :col [:xs 2]
+                 :col {:xs 2}
 
                  (uic/safe-delete-button
                    :toggle edit?
@@ -251,9 +251,9 @@
                    :value (cell= (vocab :delete-contact-button-label s/lang))))))))
 
        (bs/form-group
-         (bs/control-label :col [:sm label-cols] :for name-id (text "~(vocab :irr-costs-label s/lang)"))
+         (bs/control-label :col {:sm label-cols} :for name-id (text "~(vocab :irr-costs-label s/lang)"))
          (div
-           :col [:xs 2]
+           :col {:xs 2}
            (p :toggle no-edit? :class "form-control-static" (text "~{avg-irrigation-costs}"))
            (div
              :class "input-group"
@@ -271,9 +271,9 @@
              (span :class "input-group-addon" "€/mm"))))
 
        (bs/form-group
-         (bs/control-label :col [:sm label-cols] :for notes-id (text "~(vocab :notes-label s/lang)"))
+         (bs/control-label :col {:sm label-cols} :for notes-id (text "~(vocab :notes-label s/lang)"))
          (div
-           :col [:xs 7]
+           :col {:xs 7}
            (p :toggle no-edit? :class "form-control-static" (text "~{notes}"))
            (textarea
              :id notes-id
@@ -290,10 +290,10 @@
          (bs/form-group
            :class (cell= {:has-error (nil? authorative-weather-station)})
 
-           (bs/control-label :col [:sm label-cols] :for authorative-ws-id
+           (bs/control-label :col {:sm label-cols} :for authorative-ws-id
                              (text "~(vocab :authorative-weather-station-label s/lang)"))
            (div
-             :col [:xs value-cols]
+             :col {:xs value-cols}
              (p :toggle no-edit? :class "form-control-static"
                 (text "~(or (:weather-station/name authorative-weather-station)
                   (:weather-station/id authorative-weather-station))"))
@@ -317,10 +317,10 @@
          (bs/form-group
            ;:class (cell= {:has-error (nil? weather-station)})
 
-           (bs/control-label :col [:sm label-cols] :for ws-id
+           (bs/control-label :col {:sm label-cols} :for ws-id
                              (text "~(vocab :weather-station-label s/lang)"))
            (div
-             :col [:xs value-cols]
+             :col {:xs value-cols}
              (p :toggle no-edit? :class "form-control-static"
                 (text "~(or (:weather-station/name weather-station)
                   (:weather-station/id weather-station))"))

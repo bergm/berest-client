@@ -15,7 +15,8 @@
             [ui.farm :as farm]
             [ui.plot :as plot]
             [ui.plot-annual :as plot-annual]
-            [bootstrap-util :as bs]
+            [bootstrap-util :as bsu]
+            [hoplon.twitter.bootstrap :as bs]
             [de.zalf.berest.client.hoplon.helper :as h]))
 
 
@@ -207,13 +208,12 @@
       :id "farms-pane"
       :do-toggle (cell= (= s/route "#/farms"))
 
-      (bs/form
-        :opts [:horizontal]
+      (bs/form-horizontal
 
         (bs/form-group
           (div
             :class "col-xs-offset-1 form-control-static"
-            :col [:xs 11]
+            :col {:xs 11}
             (for [c (range 65 91)]
               (button
                 :type "button"
@@ -223,9 +223,9 @@
                 (char c)))))
 
         (bs/form-group
-          (bs/control-label :col [:xs 1] :for query-id (text "~(vocab :query-label s/lang)"))
+          (bs/control-label :col {:xs 1} :for query-id (text "~(vocab :query-label s/lang)"))
           (div
-            :col [:xs 11]
+            :col {:xs 11}
             (input
               :id query-id
               :class "form-control"
@@ -239,7 +239,7 @@
         :class "row"
 
         (div
-          :col [:xs 12]
+          :col {:xs 12}
 
           (table
             :class "table"
@@ -356,7 +356,7 @@
                         :toggle (cell= (not (nil? selected-farm)))
 
                         (div
-                          :col [:xs 12]
+                          :col {:xs 12}
 
                           (table
                             :id "plot-section-table"
@@ -589,7 +589,7 @@
                                         :class "row"
 
                                         (div
-                                          :col [:xs 2]
+                                          :col {:xs 2}
                                           (select
                                             :id annual-years-id
                                             :class "form-control"
@@ -606,7 +606,7 @@
                                               #__ #_(cell= (when annual-years
                                                          (reset! ~(cell new-year) (inc (last annual-years)))))]
                                           [(div
-                                             :col [:xs 2]
+                                             :col {:xs 2}
                                              :class "col-xs-offset-6"
                                              :style "text-align: right"
 
@@ -621,7 +621,7 @@
                                                (text "~(vocab :copy-selected-years-data?-label s/lang)?")))
 
                                            (div
-                                             :col [:xs 1]
+                                             :col {:xs 1}
                                              :style "padding-right: 5px"
                                              ;:class "col-xs-offset-7"
 
@@ -637,7 +637,7 @@
                                                :on-change #(reset! new-year (js/parseInt @%))))
 
                                            (div
-                                             :col [:xs 1]
+                                             :col {:xs 1}
                                              :style "padding-left: 5px"
                                              ;:class "col-xs-offset-8"
 

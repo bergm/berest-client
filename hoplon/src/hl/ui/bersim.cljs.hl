@@ -6,7 +6,8 @@
             [de.zalf.berest.client.hoplon.util :as util]
             [de.zalf.berest.client.hoplon.state :as s]
             [ui.elements :as uie]
-            [bootstrap-util :as bs]))
+            [bootstrap-util :as bsu]
+            [hoplon.twitter.bootstrap :as bs]))
 
 (defn vocab
   "translatable vocabulary for this page"
@@ -63,14 +64,13 @@
       :id "bersim-pane"
       :do-toggle (cell= (= s/route "#/bersim"))
 
-      (bs/form
-        :opts [:horizontal]
+      (bs/form-horizontal
         :name "test-data-form"
 
         (bs/form-group
-          (bs/control-label :col [:sm 2] :for "farm-id" "Betrieb")
+          (bs/control-label :col {:sm 2} :for "farm-id" "Betrieb")
           (div
-            :col [:xs 3]
+            :col {:xs 3}
             (select
               :id farm-id
               :class "form-control"
@@ -80,9 +80,9 @@
                         (uie/create-option fid (:farm/id @selected-farm) name)))))
 
         (bs/form-group
-          (bs/control-label :col [:sm 2] :for "plot" "Schlag")
+          (bs/control-label :col {:sm 2} :for "plot" "Schlag")
           (div
-            :col [:xs 3]
+            :col {:xs 3}
             (select
               :id plot-id
               :class "form-control"
@@ -94,9 +94,9 @@
 
 
         (bs/form-group
-          (bs/control-label :col [:sm 2] :for "until-day" "Rechnen bis Datum")
+          (bs/control-label :col {:sm 2} :for "until-day" "Rechnen bis Datum")
           (div
-            :col [:xs 2]
+            :col {:xs 2}
             (input
               :id until-date-id
               :class "form-control"
@@ -135,7 +135,7 @@
 
         (bs/form-group
           (bs/control-label
-            :col [:sm 4]
+            :col {:sm 4}
             :for "result"
             (input
               :class "btn btn-primary btn-lg"
@@ -154,7 +154,7 @@
               :href "https://dl.dropboxusercontent.com/u/29574974/Weberest/output-analysis.xlsx"
               "Analyse Excel-File herunterladen"))
           (div
-            :col [:xs 8]
+            :col {:xs 8}
             (textarea
               :id "result"
               :class "form-control"

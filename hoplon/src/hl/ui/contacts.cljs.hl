@@ -9,7 +9,8 @@
     [de.zalf.berest.client.hoplon.util :as util]
     [de.zalf.berest.client.hoplon.state :as s]
     [ui.elements :as uie]
-    [bootstrap-util :as bs]))
+    [bootstrap-util :as bsu]
+    [hoplon.twitter.bootstrap :as bs]))
 
 (defn vocab
       "translatable vocabulary for this page"
@@ -77,14 +78,13 @@
          notes-id] (repeatedly gensym)
         ;_ (cell= (println first-name " is-main-contact? " (pr-str is-main-contact?)))
         ]
-       ((bs/form
-          :opts [:horizontal]
+       ((bs/form-horizontal
           :name contacts-form-name
 
           (bs/form-group
-            (bs/control-label :col [:sm label-cols] :for title-id (text "~(vocab :title-label s/lang)"))
+            (bs/control-label :col {:sm label-cols} :for title-id (text "~(vocab :title-label s/lang)"))
             (div
-              :col [:xs value-cols]
+              :col {:xs value-cols}
               (p :toggle no-edit? :class "form-control-static" (text "~{title}"))
               (input
                 :id title-id
@@ -96,9 +96,9 @@
                 :on-change #(title! @%))))
 
           (bs/form-group
-            (bs/control-label :col [:sm label-cols] :for first-name-id (text "~(vocab :first-name-label s/lang)"))
+            (bs/control-label :col {:sm label-cols} :for first-name-id (text "~(vocab :first-name-label s/lang)"))
             (div
-              :col [:xs value-cols]
+              :col {:xs value-cols}
               (p :toggle no-edit? :class "form-control-static" (text "~{first-name}"))
               (input
                 :id first-name-id
@@ -110,9 +110,9 @@
                 :on-change #(first-name! @%))))
 
           (bs/form-group
-            (bs/control-label :col [:sm label-cols] :for last-name-id (text "~(vocab :last-name-label s/lang)"))
+            (bs/control-label :col {:sm label-cols} :for last-name-id (text "~(vocab :last-name-label s/lang)"))
             (div
-              :col [:xs value-cols]
+              :col {:xs value-cols}
               (p :toggle no-edit? :class "form-control-static" (text "~{last-name}"))
               (input
                 :id last-name-id
@@ -124,9 +124,9 @@
                 :on-change #(last-name! @%))))
 
           (bs/form-group
-            (bs/control-label :col [:sm label-cols] :for roles-id (text "~(vocab :roles-label s/lang)"))
+            (bs/control-label :col {:sm label-cols} :for roles-id (text "~(vocab :roles-label s/lang)"))
             (div
-              :col [:xs value-cols]
+              :col {:xs value-cols}
               (p :toggle no-edit? :class "form-control-static" (text "~{roles}"))
               (input
                 :id roles-id
@@ -138,9 +138,9 @@
                 :on-change #(roles! @%))))
 
           (bs/form-group
-            (bs/control-label :col [:sm label-cols] :for notes-id (text "~(vocab :notes-label s/lang)"))
+            (bs/control-label :col {:sm label-cols} :for notes-id (text "~(vocab :notes-label s/lang)"))
             (div
-              :col [:xs 7]
+              :col {:xs 7}
               (p :toggle no-edit? :class "form-control-static" (text "~{notes}"))
               (textarea
                 :id notes-id
@@ -152,7 +152,7 @@
                 :on-change #(notes! @%))))
 
           (bs/form-group
-            (bs/control-label :col [:sm label-cols] :for com-connections-id (text "~(vocab :com-con-id-label s/lang)"))
+            (bs/control-label :col {:sm label-cols} :for com-connections-id (text "~(vocab :com-con-id-label s/lang)"))
 
             (let [com-con-id* (cell nil)
                   com-con-desc* (cell nil)
@@ -187,9 +187,9 @@
                            :type com-con-type* :type! #(reset! com-con-type* %)}))))
 
           (bs/form-group
-            (bs/control-label :col [:sm label-cols] :for is-main-contact?-id (text "~(vocab :is-main-contact?-label s/lang)"))
+            (bs/control-label :col {:sm label-cols} :for is-main-contact?-id (text "~(vocab :is-main-contact?-label s/lang)"))
             (div
-              :col [:xs 1]
+              :col {:xs 1}
               (input
                 :id is-main-contact?-id
                 :type "checkbox"

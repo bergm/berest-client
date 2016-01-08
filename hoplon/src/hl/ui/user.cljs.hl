@@ -1,7 +1,8 @@
 (ns ui.user
   (:require [de.zalf.berest.client.hoplon.util :as util]
             [ui.elements :as uie]
-            [bootstrap-util :as bs]
+            [bootstrap-util :as bsu]
+            [hoplon.twitter.bootstrap :as bs]
             [de.zalf.berest.client.hoplon.state :as s]))
 
 (defn vocab
@@ -84,8 +85,7 @@
                        (timeout #(reset! ~(cell s/pwd-update-success?) nil) 5000)))
         ]
     ((div
-       (bs/form
-         :opts [:horizontal]
+       (bs/form-horizontal
          :name user-form-name
 
          (button
@@ -96,9 +96,9 @@
 
 
          (bs/form-group
-           (bs/control-label :col [:sm label-cols] :for full-name-id (text "~(vocab :full-name-label s/lang)"))
+           (bs/control-label :col {:sm label-cols} :for full-name-id (text "~(vocab :full-name-label s/lang)"))
            (div
-             :col [:xs value-cols]
+             :col {:xs value-cols}
              (p :toggle no-edit? :class "form-control-static" (text "~{full-name}"))
              (input
                :id full-name-id
@@ -111,9 +111,9 @@
 
          (bs/form-group
            :class (cell= {:has-error pwd-error})
-           (bs/control-label :col [:sm label-cols] :for pwd-id (text "~(vocab :pwd-label s/lang)"))
+           (bs/control-label :col {:sm label-cols} :for pwd-id (text "~(vocab :pwd-label s/lang)"))
            (div
-             :col [:xs value-cols]
+             :col {:xs value-cols}
              (p
                :toggle s/pwd-update-success?
                :class (cell= {:bg-success s/pwd-update-success?
@@ -139,9 +139,9 @@
                :on-change #(swap! pwds assoc 1 @%))))
 
          (bs/form-group
-           (bs/control-label :col [:sm 2] :for roles-id (text "~(vocab :roles-label s/lang)"))
+           (bs/control-label :col {:sm 2} :for roles-id (text "~(vocab :roles-label s/lang)"))
            (div
-             :col [:xs 3]
+             :col {:xs 3}
              (select
                :id roles-id
                :class "form-control"
@@ -169,7 +169,7 @@
                  (text "~(vocab :guest-role s/lang)")))))
 
          (bs/form-group
-           (bs/control-label :col [:sm label-cols] :for all-weather-stations-id
+           (bs/control-label :col {:sm label-cols} :for all-weather-stations-id
                              (text "~(vocab :available-weathers-station-label s/lang)"))
            (div
              :col [:xs (- 12 label-cols)]
@@ -181,7 +181,7 @@
                  (div
                    :class "row"
                    (div
-                     :col [:xs 4]
+                     :col {:xs 4}
 
                      (select
                        :toggle edit?
@@ -199,7 +199,7 @@
                            (text "~(or ws-name ws-id)")))))
 
                    (div
-                   :col [:xs 2]
+                   :col {:xs 2}
 
                    (button
                      :class "btn btn-primary"
@@ -217,7 +217,7 @@
                    )
 
                  (div
-                   :col [:xs 4]
+                   :col {:xs 4}
 
                    (select
                      :toggle edit?

@@ -2,7 +2,8 @@
   (:require [de.zalf.berest.client.hoplon.util :as util]
             [ui.elements :as uie]
             [ui.addresses :as addr]
-            [bootstrap-util :as bs]
+            [bootstrap-util :as bsu]
+            [hoplon.twitter.bootstrap :as bs]
             [de.zalf.berest.client.hoplon.state :as s]))
 
 
@@ -201,8 +202,7 @@
 
         ]
     ((div
-       (bs/form
-         :opts [:horizontal]
+       (bs/form-horizontal
          :name plot-form-name
 
          (button
@@ -212,9 +212,9 @@
            (text "~(vocab :edit-plot-button-label s/lang)"))
 
          (bs/form-group
-           (bs/control-label :col [:sm label-cols] :for name-id (text "~(vocab :name-label s/lang)"))
+           (bs/control-label :col {:sm label-cols} :for name-id (text "~(vocab :name-label s/lang)"))
            (div
-             :col [:xs value-cols]
+             :col {:xs value-cols}
              (p :toggle no-edit? :class "form-control-static" (text "~{name}"))
              (input
                :id name-id
@@ -226,9 +226,9 @@
                :on-change #(name! @%))))
 
          (bs/form-group
-           (bs/control-label :col [:sm label-cols] :for number-id (text "~(vocab :number-label s/lang)"))
+           (bs/control-label :col {:sm label-cols} :for number-id (text "~(vocab :number-label s/lang)"))
            (div
-             :col [:xs value-cols]
+             :col {:xs value-cols}
              (p :toggle no-edit? :class "form-control-static" (text "~{number}"))
              (input
                :id number-id
@@ -240,9 +240,9 @@
                :on-change #(number! @%))))
 
          (bs/form-group
-           (bs/control-label :col [:sm label-cols] :for description-id (text "~(vocab :description-label s/lang)"))
+           (bs/control-label :col {:sm label-cols} :for description-id (text "~(vocab :description-label s/lang)"))
            (div
-             :col [:xs value-cols]
+             :col {:xs value-cols}
              (p :toggle no-edit? :class "form-control-static" (text "~{description}"))
              (input
                :id description-id
@@ -254,9 +254,9 @@
                :on-change #(description! @%))))
 
          (bs/form-group
-           (bs/control-label :col [:sm label-cols] :for short-description-id (text "~(vocab :short-description-label s/lang)"))
+           (bs/control-label :col {:sm label-cols} :for short-description-id (text "~(vocab :short-description-label s/lang)"))
            (div
-             :col [:xs value-cols]
+             :col {:xs value-cols}
              (p :toggle no-edit? :class "form-control-static" (text "~{short-description}"))
              (input
                :id short-description-id
@@ -268,9 +268,9 @@
                :on-change #(short-description! @%))))
 
          (bs/form-group
-           (bs/control-label :col [:sm label-cols] :for crop-area-id (text "~(vocab :crop-area-label s/lang)"))
+           (bs/control-label :col {:sm label-cols} :for crop-area-id (text "~(vocab :crop-area-label s/lang)"))
            (div
-             :col [:xs value-cols]
+             :col {:xs value-cols}
              (p :toggle no-edit? :class "form-control-static" (text "~{crop-area}"))
              (div
                :class "input-group"
@@ -287,9 +287,9 @@
                (span :class "input-group-addon" "ha"))))
 
          (bs/form-group
-           (bs/control-label :col [:sm label-cols] :for irrigation-area-id (text "~(vocab :irrigation-area-label s/lang)"))
+           (bs/control-label :col {:sm label-cols} :for irrigation-area-id (text "~(vocab :irrigation-area-label s/lang)"))
            (div
-             :col [:xs value-cols]
+             :col {:xs value-cols}
              (p :toggle no-edit? :class "form-control-static" (text "~{irrigation-area}"))
              (div
                :class "input-group"
@@ -331,7 +331,7 @@
            (bs/form-group
              (bs/control-label :col [:sm (+ 1 label-cols)] :for slope-id (text "~(vocab :slope-label s/lang)"))
              (div
-               :col [:xs value-cols]
+               :col {:xs value-cols}
                (p :toggle no-edit? :class "form-control-static" (text "~{slope}"))
                (select
                  :toggle edit?
@@ -385,7 +385,7 @@
                (bs/control-label :col [:sm (+ 1 label-cols)] :for substrate-groups-fc-id
                                  (text "~(vocab :substrate-groups-label s/lang) ~(:soil.stt/symbol stt)"))
                (div
-                 :col [:xs value-cols]
+                 :col {:xs value-cols}
                  (select
                    :id substrate-groups-fc-id
                    :class "form-control"
@@ -409,7 +409,7 @@
                (bs/control-label :col [:sm (+ 1 label-cols)] :for fc-pwp-unit-id
                                  (text "~(vocab :fc-pwp-unit-label s/lang)"))
                (div
-                 :col [:xs 2]
+                 :col {:xs 2}
                  (select
                    :disabled "disabled"
                    :id fc-pwp-unit-id
@@ -493,9 +493,9 @@
              ))
 
          (bs/form-group
-           (bs/control-label :col [:sm label-cols] :for groundwaterlevel-id (text "~(vocab :groundwaterlevel-label s/lang)"))
+           (bs/control-label :col {:sm label-cols} :for groundwaterlevel-id (text "~(vocab :groundwaterlevel-label s/lang)"))
            (div
-             :col [:xs value-cols]
+             :col {:xs value-cols}
              (p :toggle no-edit? :class "form-control-static" (text "~{groundwaterlevel}"))
              (div
                :class "input-group"
@@ -513,9 +513,9 @@
 
 
          (bs/form-group
-           (bs/control-label :col [:sm label-cols] :for notes-id (text "~(vocab :notes-label s/lang)"))
+           (bs/control-label :col {:sm label-cols} :for notes-id (text "~(vocab :notes-label s/lang)"))
            (div
-             :col [:xs 7]
+             :col {:xs 7}
              (p :toggle no-edit? :class "form-control-static" (text "~{notes}"))
              (textarea
                :id notes-id
@@ -530,10 +530,10 @@
            (legend (text "~(vocab :weather-data-fieldset-label s/lang)"))
 
            (bs/form-group
-             (bs/control-label :col [:sm label-cols] :for weather-station-id
+             (bs/control-label :col {:sm label-cols} :for weather-station-id
                                (text "~(vocab :weather-station-label s/lang)"))
              (div
-               :col [:xs value-cols]
+               :col {:xs value-cols}
                (p :toggle no-edit? :class "form-control-static"
                   (text "~(or (:weather-station/name weather-station)
                   (:weather-station/id weather-station))"))
@@ -563,9 +563,9 @@
                     (text "~(vocab :more-stuff-fieldset-label s/lang) ~(when-not visible? \" ...\")")))
 
                 (bs/form-group
-                  (bs/control-label :col [:sm label-cols] :for az-glz-id (text "~(vocab :az-glz-label s/lang)"))
+                  (bs/control-label :col {:sm label-cols} :for az-glz-id (text "~(vocab :az-glz-label s/lang)"))
                   (div
-                    :col [:xs value-cols]
+                    :col {:xs value-cols}
                     (p :toggle no-edit? :class "form-control-static" (text "~{az-glz}"))
                     (input
                       :id az-glz-id
