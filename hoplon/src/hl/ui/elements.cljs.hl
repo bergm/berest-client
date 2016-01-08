@@ -1,10 +1,12 @@
 (ns ui.elements
-  (:require [cljs-time.core :as cstc]
-            [cljs-time.format :as cstf]
-            [cljs-time.coerce :as cstcoe]
-            [bootstrap-util :as bs]
-            [de.zalf.berest.client.hoplon.util :as util]
-            [de.zalf.berest.client.hoplon.state :as s]))
+  (:require
+    [hoplon.core :refer :all]
+    [cljs-time.core :as cstc]
+    [cljs-time.format :as cstf]
+    [cljs-time.coerce :as cstcoe]
+    [bootstrap-util :as bs]
+    [de.zalf.berest.client.hoplon.util :as util]
+    [de.zalf.berest.client.hoplon.state :as s]))
 
 
 (defn vocab
@@ -122,7 +124,7 @@
 
 
 
-(defmethod tailrecursion.hoplon/do! :selected
+(defmethod hoplon.core/do! :selected
            [elem key value]
            (let [e (js/jQuery elem)
                  k (name key)]
@@ -131,7 +133,7 @@
                   (= true value) (.attr e k k)
                   :else (.attr e k (str value)))))
 
-(defmethod tailrecursion.hoplon/do! :disabled
+(defmethod hoplon.core/do! :disabled
            [elem key value]
            (let [e (js/jQuery elem)
                  k (name key)]
@@ -140,7 +142,7 @@
                   (= true value) (.attr e k k)
                   :else (.attr e k (str value)))))
 
-#_(defmethod tailrecursion.hoplon/do! :checked
+#_(defmethod hoplon.core/do! :checked
            [elem key value]
            (let [e (js/jQuery elem)
                  k (name key)]
@@ -162,42 +164,37 @@
    day set-day!
    month set-month!
    amount set-amount!]
-
-  (let [[day-id month-id amount-id] (repeatedly gensym)]
+  (div
     (div
-      (div
-        :class "col-xs-2"
-        (input
-          :id day-id
-          :class "form-control"
-          :type "number"
-          :placeholder "Tag"
-          :value day
-          :on-change #(set-day! (some-> row-no deref) (js/parseInt (val-id day-id)))))
-      (div
-        :class "col-xs-2"
-        (input
-          :id month-id
-          :class "form-control"
-          :type "number"
-          :placeholder "Monat"
-          :value month
-          :on-change #(set-month! (some-> row-no deref) (js/parseInt (val-id month-id)))))
-      (div
-        :class "col-xs-2"
-        (input
-          :id amount-id
-          :class "form-control"
-          :type "number"
-          :placeholder "Menge [mm]"
-          :value amount
-          :on-change #(set-amount! (some-> row-no deref) (js/parseInt (val-id month-id)))))
-
+      :class "col-xs-2"
       (input
-        :class "btn btn-default"
-        :type "button"
-        :value (if row-no "Zeile entfernen" "Zeile hinzufügen")
-        :on-click #(add-or-remove-row! (some-> row-no deref))))))
+        :class "form-control"
+        :type "number"
+        :placeholder "Tag"
+        :value day
+        :on-change #(set-day! (some-> row-no deref) (js/parseInt @%))))
+    (div
+      :class "col-xs-2"
+      (input
+        :class "form-control"
+        :type "number"
+        :placeholder "Monat"
+        :value month
+        :on-change #(set-month! (some-> row-no deref) (js/parseInt @%))))
+    (div
+      :class "col-xs-2"
+      (input
+        :class "form-control"
+        :type "number"
+        :placeholder "Menge [mm]"
+        :value amount
+        :on-change #(set-amount! (some-> row-no deref) (js/parseInt @%))))
+
+    (input
+      :class "btn btn-default"
+      :type "button"
+      :value (if row-no "Zeile entfernen" "Zeile hinzufügen")
+      :on-click #(add-or-remove-row! (some-> row-no deref)))))
 
 
 (defelem
@@ -224,7 +221,7 @@
              :min 0
              :max 200
              :value depth
-             :on-change #(depth! (js/parseInt (val-id depth-id))))
+             :on-change #(depth! (js/parseInt @%)))
            (span :class "input-group-addon" "cm")))
 
        (div
@@ -232,7 +229,7 @@
          (select
            :id value-id
            :class "form-control"
-           :on-change #(value! (val-id value-id))
+           :on-change #(value! @%)
            (option "")
            (loop-tpl
              :bindings [[name _] (cell= (sort-by first s/ka5-soil-types))]
@@ -281,7 +278,7 @@
              :min 0
              :max 200
              :value depth
-             :on-change #(depth! (js/parseInt (val-id depth-id))))
+             :on-change #(depth! (js/parseInt @%)))
            (span :class "input-group-addon" "cm")))
 
        (div
@@ -296,7 +293,7 @@
              :step 0.1
              :min 0
              :value value
-             :on-change #(value! (js/parseFloat (val-id value-id))))
+             :on-change #(value! (js/parseFloat @%)))
            (span :class "input-group-addon" (text "~{unit}"))))
 
        (div
@@ -344,7 +341,7 @@
                                (util/cljs-time-date->iso-y-m-d (cstc/now))
                                (str year* "-01-01"))))
              :on-change #(abs-start-day! (util/cljs-time-date->doy (cstf/parse (cstf/formatters :date)
-                                                                               (val-id abs-start-day-id)))))))
+                                                                               @%))))))
 
        (div
          :col [:xs 4]
@@ -361,7 +358,7 @@
                                (util/cljs-time-date->iso-y-m-d (cstc/now))
                                (str year* "-01-01"))))
              :on-change #(abs-end-day! (util/cljs-time-date->doy (cstf/parse (cstf/formatters :date)
-                                                                             (val-id abs-end-day-id)))))))
+                                                                             @%))))))
 
        (div
          :col [:xs 3]
@@ -375,7 +372,7 @@
              :step 0.1
              :min 0
              :value amount
-             :on-change #(amount! (js/parseFloat (val-id amount-id))))
+             :on-change #(amount! (js/parseFloat @%)))
            (span :class "input-group-addon" "mm")))
 
        (div
@@ -419,7 +416,7 @@
                              (util/cljs-time-date->iso-y-m-d (cstc/now))
                              (str year* "-01-01"))))
            :on-change #(abs-day! (util/cljs-time-date->doy (cstf/parse (cstf/formatters :date)
-                                                                       (val-id abs-day-id))))))
+                                                                       @%)))))
 
        (div
          :col [:xs 3]
@@ -432,14 +429,14 @@
            :min 1
            :max 100
            :value dc
-           :on-change #(dc! (js/parseInt (val-id dc-id)))))
+           :on-change #(dc! (js/parseInt @%))))
 
        (div
          :col [:xs 4]
          (select
            :id dc-select-id
            :class "form-control"
-           :on-change #(dc! (js/parseInt (val-id dc-select-id)))
+           :on-change #(dc! (js/parseInt @%))
            (option :selected (cell= (nil? row-no)) "")
            (loop-tpl
              :bindings [[dc* name] (cell= (sort-by first dc->names))]
@@ -495,7 +492,7 @@
              :type "date"
              :value date-str
              :on-change #(date! (cstcoe/to-date (cstf/parse (cstf/formatters :date)
-                                                            (val-id date-id)))))))
+                                                            @%))))))
 
        #_(div
          :col [:xs 2]
@@ -510,7 +507,7 @@
              :min -70
              :max 70
              :value tavg
-             :on-change #(tavg! (js/parseFloat (val-id tavg-id))))
+             :on-change #(tavg! (js/parseFloat @%)))
            (span :class "input-group-addon" "°C"))
          (div
            :class "input-group"
@@ -523,7 +520,7 @@
              ;:min -70
              ;:max 70
              :value globrad
-             :on-change #(globrad! (js/parseFloat (val-id globrad-id))))
+             :on-change #(globrad! (js/parseFloat @%)))
            (span :class "input-group-addon" "J/cm²")))
 
        (div
@@ -543,7 +540,7 @@
              :step 0.1
              :min 0
              :value evap
-             :on-change #(evap! (js/parseFloat (val-id evap-id))))
+             :on-change #(evap! (js/parseFloat @%)))
            (span
              :toggle (cell= (or edit? (not (nil? row-no))))
              :class "input-group-addon" "mm")))
@@ -562,7 +559,7 @@
              :step 0.1
              :min 0
              :value precip
-             :on-change #(precip! (js/parseFloat (val-id precip-id))))
+             :on-change #(precip! (js/parseFloat @%)))
            (span
              :toggle (cell= (or edit? (not (nil? row-no))))
              :class "input-group-addon" "mm")))
@@ -576,7 +573,7 @@
              :id prog?-id
              :type "checkbox"
              :value prog?
-             :on-change #(prog?! (val-id prog?-id)))
+             :on-change #(prog?! @%))
            (text "~(vocab :prog?-label s/lang)")))
 
        (let [prog-date-str (cell= (if prog-date
@@ -592,7 +589,7 @@
              :type "date"
              :value prog-date-str
              :on-change #(prog-date! (cstcoe/to-date (cstf/parse (cstf/formatters :date)
-                                                                 (val-id prog-date-id)))))))
+                                                                 @%))))))
 
        (div
          :col [:xs 1]
@@ -705,7 +702,7 @@
              :min 0
              :max 100
              :value dc
-             :on-change #(dc! (js/parseInt (val-id dc-id))))
+             :on-change #(dc! (js/parseInt @%)))
            (span :class "input-group-addon" "")))
 
        (div
@@ -718,7 +715,7 @@
              :type "text"
              :placeholder (cell= (vocab :crop-name-placeholder s/lang))
              :value name
-             :on-change #(name! (val-id name-id)))
+             :on-change #(name! @%))
            (span :class "input-group-addon" "")))
 
        (div
@@ -761,7 +758,7 @@
              :min 0
              :max 100
              :value dc
-             :on-change #(dc! (js/parseInt (val-id dc-id))))
+             :on-change #(dc! (js/parseInt @%)))
            (span :class "input-group-addon" "")))
 
        (div
@@ -777,7 +774,7 @@
              :min 1
              :max 365
              :value rel-dc-day
-             :on-change #(rel-dc-day! (js/parseInt (val-id rel-dc-day-id))))
+             :on-change #(rel-dc-day! (js/parseInt @%)))
            (span :class "input-group-addon" "")))
 
        (div
@@ -821,7 +818,7 @@
              :min 1
              :max 365
              :value rel-dc-day
-             :on-change #(rel-dc-day! (js/parseInt (val-id rel-dc-day-id))))
+             :on-change #(rel-dc-day! (js/parseInt @%)))
            (span :class "input-group-addon" "d")))
 
        (div
@@ -837,7 +834,7 @@
              :min 0
              :max 100
              :value cover-degree
-             :on-change #(cover-degree! (js/parseInt (val-id cover-degree-id))))
+             :on-change #(cover-degree! (js/parseInt @%)))
            (span :class "input-group-addon" "%")))
 
        (div
@@ -880,7 +877,7 @@
              :min 1
              :max 365
              :value rel-dc-day
-             :on-change #(rel-dc-day! (js/parseInt (val-id rel-dc-day-id))))
+             :on-change #(rel-dc-day! (js/parseInt @%)))
            (span :class "input-group-addon" "d")))
 
        (div
@@ -896,7 +893,7 @@
              :min 0
              :max 100
              :value aet7pet
-             :on-change #(aet7pet! (js/parseInt (val-id aet7pet-id))))
+             :on-change #(aet7pet! (js/parseInt @%)))
            (span :class "input-group-addon" "%")))
 
        (div
@@ -939,7 +936,7 @@
              :min 1
              :max 365
              :value rel-dc-day
-             :on-change #(rel-dc-day! (js/parseInt (val-id rel-dc-day-id))))
+             :on-change #(rel-dc-day! (js/parseInt @%)))
            (span :class "input-group-addon" "d")))
 
        (div
@@ -955,7 +952,7 @@
              :min 0
              :max 200
              :value extraction-depth
-             :on-change #(extraction-depth! (js/parseInt (val-id extraction-depth-id))))
+             :on-change #(extraction-depth! (js/parseInt @%)))
            (span :class "input-group-addon" "cm")))
 
        (div
@@ -998,7 +995,7 @@
              :min 1
              :max 365
              :value rel-dc-day
-             :on-change #(rel-dc-day! (js/parseInt (val-id rel-dc-day-id))))
+             :on-change #(rel-dc-day! (js/parseInt @%)))
            (span :class "input-group-addon" "d")))
 
        (div
@@ -1014,7 +1011,7 @@
              :min 0
              :max 2
              :value transpiration-factor
-             :on-change #(transpiration-factor! (js/parseFloat (val-id transpiration-factor-id))))
+             :on-change #(transpiration-factor! (js/parseFloat @%)))
            (span :class "input-group-addon" "")))
 
        (div
@@ -1053,7 +1050,7 @@
            :type "text"
            :placeholder (cell= (vocab :com-con-id-placeholder s/lang))
            :value id
-           :on-change #(id! (val-id id-id))))
+           :on-change #(id! @%)))
 
        (div
          :col [:xs 3]
@@ -1063,14 +1060,14 @@
            :type "text"
            :placeholder (cell= (vocab :com-con-desc-placeholder s/lang))
            :value desc
-           :on-change #(desc! (val-id desc-id))))
+           :on-change #(desc! @%)))
 
        (div
          :col [:xs 3]
          (select
            :id type-id
            :class "form-control"
-           :change #(type! (keyword "com-con.type" (val-id type-id)))
+           :change #(type! (keyword "com-con.type" @%))
            (option :value "" "")
            (option :value "mobile-phone"
                    :selected (cell= (= :com-con.type/mobile-phone type))

@@ -41,7 +41,7 @@
 (defelem form
          [{:keys [opts] :as attr} kids]
          (let [classes (->> opts (opts-classes "form") (str/join " "))]
-           ((tailrecursion.hoplon/form :class classes :role "form") (dissoc attr :opts) kids)))
+           ((hoplon.core/form :class classes :role "form") (dissoc attr :opts) kids)))
 
 (defelem navbar
          [{:keys [opts] :as attr} kids]
@@ -53,5 +53,5 @@
          (html
            (head
              (load-bootstrap-cdn version)
-             (tailrecursion.hoplon/title :text title))
+             (hoplon.core/title :text title))
            (body (dissoc attr :version :title) kids)))

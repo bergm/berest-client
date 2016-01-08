@@ -1,5 +1,11 @@
 (ns ui.farms
-  (:require [cljs-time.core :as cstc]
+  (:require-macros [javelin.core :refer :all]
+                   [hoplon.core :refer :all])
+
+  (:require [javelin.core :refer :all]
+            [hoplon.core :refer :all]
+
+            [cljs-time.core :as cstc]
             [cljs-time.format :as cstf]
             [cljs-time.coerce :as cstcoe]
             [de.zalf.berest.client.hoplon.util :as util]
@@ -145,7 +151,7 @@
         lc-filter-criterium (cell= (.toLowerCase (:value filter-criterium)))
         fc-first-char (cell= (.charAt lc-filter-criterium 0))
         filtered-farms (cell= (if (> fc-count 0)
-                                (filter (fn [[farm-id farm {name :farm/name}]]
+                                (filter (fn [[_ farm]]
                                           (let [value (-> :attr filter-criterium farm)]
                                             ;include farms in resultset, whose name is missing
                                             (if value
@@ -173,7 +179,7 @@
 
         selected-farm (cell= (when-let [fid (:farm-id s/route-params)]
                                (when-let [fs (:farms s/state)]
-                                 (fs (UUID. fid)))))
+                                 (fs (uuid #_UUID. fid)))))
         ;_ (cell= (println "selected-farm: " (pr-str selected-farm)))
 
         _ (cell= (if selected-farm
@@ -227,7 +233,7 @@
               :placeholder (cell= (vocab :query-placeholder s/lang))
               :value (cell= (:value filter-criterium))
               :on-change #(reset! filter-criterium {:attr :farm/name
-                                                    :value (val-id query-id)})))))
+                                                    :value @%})))))
 
       (div
         :class "row"
@@ -272,7 +278,7 @@
                          :class (cell= {:warning (and hover? (not selected?))
                                         :success selected?})
                          :click #(do
-                                  (some-> "plot-section-table" by-id .scrollIntoView)
+                                  (some-> "plot-section-table" util/by-id .scrollIntoView)
                                   (s/set-route-params :farm-id @id))
                          (span :class "glyphicon glyphicon-arrow-down"))
                        (td
@@ -389,7 +395,7 @@
                                                         :success selected?})
                                          :click #(do
                                                   (s/set-route-params :plot-id @plot-id)
-                                                  (some-> "recommendation-section" by-id .scrollIntoView))
+                                                  (some-> "recommendation-section" util/by-id .scrollIntoView))
                                          (span :class "glyphicon glyphicon-arrow-down"))
                                        (td
                                          :style "vertical-align: middle"
@@ -555,7 +561,7 @@
                                                                   (> (.search desc (h/quote-regex once-new-annual-desc-filter))
                                                                      -1))
                                                                 sorted-annuals)))
-                                               (when-let [param-id (some-> (:plot-annual-id s/route-params) UUID.)]
+                                               (when-let [param-id (some-> (:plot-annual-id s/route-params) uuid #_UUID.)]
                                                  (first (filter #(= param-id (:plot.annual/id %)) sorted-annuals)))
                                                (first (filter #(= current-year (:plot.annual/year %)) sorted-annuals))
                                                (last sorted-annuals)))
@@ -587,7 +593,7 @@
                                           (select
                                             :id annual-years-id
                                             :class "form-control"
-                                            :change #(s/set-route-params :plot-annual-id (val-id annual-years-id))
+                                            :change #(s/set-route-params :plot-annual-id @%)
                                             (loop-tpl
                                               :bindings [annual sorted-annuals]
                                               (option :value (cell= (str (:plot.annual/id annual)))
@@ -611,7 +617,7 @@
                                                  :id copy-previous-years-data-id
                                                  :type "checkbox"
                                                  :value copy-data?
-                                                 :on-change #(reset! copy-data? (val-id copy-previous-years-data-id)))
+                                                 :on-change #(reset! copy-data? @%))
                                                (text "~(vocab :copy-selected-years-data?-label s/lang)?")))
 
                                            (div
@@ -628,7 +634,7 @@
                                                :max 2100
                                                :placeholder (cell= (vocab :new-year-placeholder s/lang))
                                                :value new-year
-                                               :on-change #(reset! new-year (js/parseInt (val-id new-annual-year-id)))))
+                                               :on-change #(reset! new-year (js/parseInt @%))))
 
                                            (div
                                              :col [:xs 1]

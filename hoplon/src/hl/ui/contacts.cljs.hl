@@ -1,9 +1,15 @@
 (ns ui.contacts
   #_(:refer-hoplon :exclude [address])
-  (:require [de.zalf.berest.client.hoplon.util :as util]
-            [de.zalf.berest.client.hoplon.state :as s]
-            [ui.elements :as uie]
-            [bootstrap-util :as bs]))
+  (:require-macros [javelin.core :refer :all]
+                   [hoplon.core :refer :all])
+  (:require
+    [javelin.core :refer :all]
+    [hoplon.core :refer :all]
+
+    [de.zalf.berest.client.hoplon.util :as util]
+    [de.zalf.berest.client.hoplon.state :as s]
+    [ui.elements :as uie]
+    [bootstrap-util :as bs]))
 
 (defn vocab
       "translatable vocabulary for this page"
@@ -87,7 +93,7 @@
                 :type "text"
                 :placeholder (cell= (vocab :title-placeholder s/lang))
                 :value title
-                :on-change #(title! (val-id title-id)))))
+                :on-change #(title! @%))))
 
           (bs/form-group
             (bs/control-label :col [:sm label-cols] :for first-name-id (text "~(vocab :first-name-label s/lang)"))
@@ -101,7 +107,7 @@
                 :type "text"
                 :placeholder (cell= (vocab :first-name-placeholder s/lang))
                 :value first-name
-                :on-change #(first-name! (val-id first-name-id)))))
+                :on-change #(first-name! @%))))
 
           (bs/form-group
             (bs/control-label :col [:sm label-cols] :for last-name-id (text "~(vocab :last-name-label s/lang)"))
@@ -115,7 +121,7 @@
                 :type "text"
                 :placeholder (cell= (vocab :last-name-placeholder s/lang))
                 :value last-name
-                :on-change #(last-name! (val-id last-name-id)))))
+                :on-change #(last-name! @%))))
 
           (bs/form-group
             (bs/control-label :col [:sm label-cols] :for roles-id (text "~(vocab :roles-label s/lang)"))
@@ -129,7 +135,7 @@
                 :type "text"
                 :placeholder (cell= (vocab :roles-placeholder s/lang))
                 :value roles
-                :on-change #(roles! (val-id roles-id)))))
+                :on-change #(roles! @%))))
 
           (bs/form-group
             (bs/control-label :col [:sm label-cols] :for notes-id (text "~(vocab :notes-label s/lang)"))
@@ -143,7 +149,7 @@
                 :rows 5
                 :placeholder (cell= (vocab :notes-placeholder s/lang))
                 :value notes
-                :on-change #(notes! (val-id notes-id)))))
+                :on-change #(notes! @%))))
 
           (bs/form-group
             (bs/control-label :col [:sm label-cols] :for com-connections-id (text "~(vocab :com-con-id-label s/lang)"))
@@ -188,6 +194,6 @@
                 :id is-main-contact?-id
                 :type "checkbox"
                 :value is-main-contact?
-                :on-change #(is-main-contact?! (val-id is-main-contact?-id)))))
+                :on-change #(is-main-contact?! (do! (util/by-id is-main-contact?-id) :value)))))
 
           ) (dissoc attrs :fields :opts) kids)))

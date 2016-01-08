@@ -126,7 +126,7 @@
              :type "text"
              :placeholder (cell= (vocab :name-placeholder s/lang))
              :value name
-             :on-change #(name! (val-id name-id)))))
+             :on-change #(name! @%))))
 
        (let [visible? (cell false)]
          (fieldset
@@ -267,7 +267,7 @@
                :max 100
                :placeholder (cell= (vocab :irr-costs-placeholder s/lang))
                :value avg-irrigation-costs
-               :on-change #(avg-irrigation-costs! (js/parseFloat (val-id irr-costs-id))))
+               :on-change #(avg-irrigation-costs! (js/parseFloat @%)))
              (span :class "input-group-addon" "€/mm"))))
 
        (bs/form-group
@@ -282,7 +282,7 @@
              :rows 5
              :placeholder (cell= (vocab :notes-placeholder s/lang))
              :value notes
-             :on-change #(notes! (val-id notes-id)))))
+             :on-change #(notes! @%))))
 
        (fieldset
          (legend (text "~(vocab :weather-stations-fieldset-label s/lang)"))
@@ -301,8 +301,7 @@
                :toggle edit?
                :id authorative-ws-id
                :class "form-control"
-               :change #(let [v (val-id authorative-ws-id)]
-                         (authorative-weather-station! (when (seq v) (js/parseInt v))))
+               :change #(authorative-weather-station! (when (seq @%) (js/parseInt @%)))
                (option :value "" "")
                (loop-tpl
                  :bindings [{ws-db-id :db/id
@@ -329,8 +328,7 @@
                :toggle edit?
                :id ws-id
                :class "form-control"
-               :change #(let [v (val-id ws-id)]
-                         (weather-station! (when (seq v) (js/parseInt v))))
+               :change #(weather-station! (when (seq @%) (js/parseInt @%)))
                (option :value "" "")
                (loop-tpl
                  :bindings [{ws-db-id :db/id

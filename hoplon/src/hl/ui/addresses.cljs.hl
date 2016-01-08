@@ -1,9 +1,9 @@
 (ns ui.addresses
-  #_(:require-macros [tailrecursion.javelin :refer :all]
-                   [tailrecursion.hoplon :refer :all])
+  (:require-macros [javelin.core :refer :all]
+                   [hoplon.core :refer :all])
   (:refer-hoplon :exclude [address])
-  (:require #_[tailrecursion.javelin :refer :all]
-            #_[tailrecursion.hoplon :refer :all]
+  (:require [javelin.core :refer :all]
+            [hoplon.core :refer :all]
     [de.zalf.berest.client.hoplon.util :as util]
     [de.zalf.berest.client.hoplon.state :as s]
     [ui.elements :as uie]
@@ -149,7 +149,7 @@
                 :type "text"
                 :placeholder (cell= (vocab :description-placeholder s/lang))
                 :value description
-                :on-change #(description! (val-id description-id)))))
+                :on-change #(description! @%))))
 
           (bs/form-group
             (bs/control-label :col [:sm label-cols] :for street-id (text "~(vocab :street-label s/lang)"))
@@ -163,7 +163,7 @@
                 :type "text"
                 :placeholder (cell= (vocab :street-placeholder s/lang))
                 :value street
-                :on-change #(street! (val-id street-id)))))
+                :on-change #(street! @%))))
 
           (bs/form-group
             (bs/control-label :col [:sm label-cols] :for postal-code-id (text "~(vocab :postal-code-label s/lang)"))
@@ -180,7 +180,7 @@
                 :max 100000
                 :placeholder (cell= (vocab :postal-code-placeholder s/lang))
                 :value postal-code
-                :on-change #(postal-code! (val-id postal-code-id)))))
+                :on-change #(postal-code! @%))))
 
           (bs/form-group
             (bs/control-label :col [:sm label-cols] :for city-id (text "~(vocab :city-label s/lang)"))
@@ -194,7 +194,7 @@
                 :type "text"
                 :placeholder (cell= (vocab :city-placeholder s/lang))
                 :value city
-                :on-change #(city! (val-id city-id)))))
+                :on-change #(city! @%))))
 
           (bs/form-group
             (bs/control-label :col [:sm label-cols] :for city-part-id (text "~(vocab :city-part-label s/lang)"))
@@ -208,7 +208,7 @@
                 :type "text"
                 :placeholder (cell= (vocab :city-part-placeholder s/lang))
                 :value city-part
-                :on-change #(city-part! (val-id city-part-id)))))
+                :on-change #(city-part! @%))))
 
           (bs/form-group
             (bs/control-label :col [:sm label-cols] :for municipality-id (text "~(vocab :municipality-label s/lang)"))
@@ -222,7 +222,7 @@
                 :type "text"
                 :placeholder (cell= (vocab :municipality-placeholder s/lang))
                 :value municipality
-                :on-change #(municipality! (val-id municipality-id)))))
+                :on-change #(municipality! @%))))
 
           (bs/form-group
             (bs/control-label :col [:sm label-cols] :for municipality-short-id (text "~(vocab :municipality-short-label s/lang)"))
@@ -236,7 +236,7 @@
                 :type "text"
                 :placeholder (cell= (vocab :municipality-short-placeholder s/lang))
                 :value municipality-short
-                :on-change #(municipality-short! (val-id municipality-short-id)))))
+                :on-change #(municipality-short! @%))))
 
           (bs/form-group
             (bs/control-label :col [:sm label-cols] :for state-id (text "~(vocab :state-label s/lang)"))
@@ -250,7 +250,7 @@
                 :type "text"
                 :placeholder (cell= (vocab :state-placeholder s/lang))
                 :value state
-                :on-change #(state! (val-id state-id)))))
+                :on-change #(state! @%))))
 
           (bs/form-group
             (bs/control-label :col [:sm label-cols] :for state-short-id (text "~(vocab :state-short-label s/lang)"))
@@ -264,7 +264,7 @@
                 :type "text"
                 :placeholder (cell= (vocab :state-short-placeholder s/lang))
                 :value state-short
-                :on-change #(state-short! (val-id state-short-id)))))
+                :on-change #(state-short! @%))))
 
           (bs/form-group
             (bs/control-label :col [:sm label-cols] :for country-id (text "~(vocab :country-label s/lang)"))
@@ -278,7 +278,7 @@
                 :type "text"
                 :placeholder (cell= (vocab :country-placeholder s/lang))
                 :value country
-                :on-change #(country! (val-id country-id)))))
+                :on-change #(country! @%))))
 
           (bs/form-group
             (bs/control-label :col [:sm label-cols] :for country-short-id (text "~(vocab :country-short-label s/lang)"))
@@ -292,6 +292,6 @@
                 :type "text"
                 :placeholder (cell= (vocab :country-short-placeholder s/lang))
                 :value country-short
-                :on-change #(country-short! (val-id country-short-id)))))
+                :on-change #(country-short! @%))))
 
           ) (dissoc attrs :fields :opts) kids)))

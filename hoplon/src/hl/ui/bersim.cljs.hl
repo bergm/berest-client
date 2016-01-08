@@ -1,8 +1,8 @@
 (ns ui.bersim
-  (:require-macros [tailrecursion.javelin :refer :all]
-                   [tailrecursion.hoplon :refer :all])
-  (:require [tailrecursion.javelin :refer :all]
-            [tailrecursion.hoplon :refer :all]
+  (:require-macros [javelin.core :refer :all]
+                   [hoplon.core :refer :all])
+  (:require [javelin.core :refer :all]
+            [hoplon.core :refer :all]
             [de.zalf.berest.client.hoplon.util :as util]
             [de.zalf.berest.client.hoplon.state :as s]
             [ui.elements :as uie]
@@ -74,7 +74,7 @@
             (select
               :id farm-id
               :class "form-control"
-              :on-change #(reset! selected-farm-id* (val-id farm-id))
+              :on-change #(reset! selected-farm-id* @%)
               (loop-tpl :bindings [[_ {fid :farm/id
                                        name :farm/name}] s/farms]
                         (uie/create-option fid (:farm/id @selected-farm) name)))))
@@ -86,7 +86,7 @@
             (select
               :id plot-id
               :class "form-control"
-              :on-change #(reset! selected-plot-id* (val-id plot-id))
+              :on-change #(reset! selected-plot-id* @%)
               (loop-tpl
                 :bindings [[_ {pid :plot/id
                                name :plot/name}] plots]
@@ -103,7 +103,7 @@
               :type "date"
               :placeholder "Datum"
               :value (cell= (util/js-date-time->date-str until-date))
-              :on-change #(reset! until-date (js/Date. (val-id until-date-id))))))
+              :on-change #(reset! until-date (js/Date. @%)))))
 
 
         (fieldset

@@ -1,5 +1,11 @@
 (ns ui.crops
-  (:require [de.zalf.berest.client.hoplon.util :as util]
+  (:require-macros [javelin.core :refer :all]
+                   [hoplon.core :refer :all])
+
+  (:require [javelin.core :refer :all]
+            [hoplon.core :refer :all]
+
+            [de.zalf.berest.client.hoplon.util :as util]
             [de.zalf.berest.client.hoplon.state :as s]
             [de.zalf.berest.client.hoplon.helper :as h]
             [ui.elements :as uie]
@@ -192,7 +198,7 @@
               :type "text"
               :placeholder (cell= (vocab :query-placeholder s/lang))
               :value filter-criterium
-              :on-change #(reset! filter-criterium (val-id "crop-query-input-id"))))))
+              :on-change #(reset! filter-criterium @%)))))
 
       (div
         :class "row"
@@ -245,7 +251,7 @@
                       :class (cell= {:warning (and hover? (not selected?))
                                      :success selected?})
                       :click #(do
-                               (some-> "crop-chart" #_chart-id by-id .scrollIntoView)
+                               (some-> "crop-chart" #_chart-id util/by-id .scrollIntoView)
                                (s/set-route-params :weather-station-id @id))
                       (span :class "glyphicon glyphicon-arrow-down"))
                     (td
@@ -342,7 +348,7 @@
                     :type "text"
                     :placeholder (cell= (vocab :name-placeholder s/lang))
                     :value name
-                    :on-change #(s/update-crop-db-entity @id @db-id :crop/name (val-id name-id)))))
+                    :on-change #(s/update-crop-db-entity @id @db-id :crop/name @%))))
 
               (bs/form-group
                 (bs/control-label :col [:sm 2] :for symbol-id (text "~(vocab :symbol-label s/lang)"))
@@ -356,7 +362,7 @@
                     :type "text"
                     :placeholder (cell= (vocab :symbol-placeholder s/lang))
                     :value symbol
-                    :on-change #(s/update-crop-db-entity @id @db-id :crop/symbol (val-id symbol-id)))))
+                    :on-change #(s/update-crop-db-entity @id @db-id :crop/symbol @%))))
 
               (bs/form-group
                 (bs/control-label :col [:sm 2] :for description-id (text "~(vocab :description-label s/lang)"))
@@ -370,7 +376,7 @@
                     :type "text"
                     :placeholder (cell= (vocab :description-placeholder s/lang))
                     :value description
-                    :on-change #(s/update-crop-db-entity @id @db-id :crop/description (val-id description-id)))))
+                    :on-change #(s/update-crop-db-entity @id @db-id :crop/description @%))))
 
               (bs/form-group
                 (bs/control-label :col [:sm 2] :for description-id (text "~(vocab :number-cult-type-usage-label s/lang)"))
@@ -384,7 +390,7 @@
                     :type "text"
                     :placeholder (cell= (vocab :number-placeholder s/lang))
                     :value number
-                    :on-change #(s/update-crop-db-entity @id @db-id :crop/number (val-id number-id))))
+                    :on-change #(s/update-crop-db-entity @id @db-id :crop/number @%)))
                 (div
                   :col [:xs 2]
                   (p :toggle no-edit? :class "form-control-static" (text "~{cultivation-type}"))
@@ -395,7 +401,7 @@
                     :type "text"
                     :placeholder (cell= (vocab :cultivation-type-placeholder s/lang))
                     :value cultivation-type
-                    :on-change #(s/update-crop-db-entity @id @db-id :crop/cultivation-type (val-id cultivation-type-id))))
+                    :on-change #(s/update-crop-db-entity @id @db-id :crop/cultivation-type @%)))
                 (div
                   :col [:xs 2]
                   (p :toggle no-edit? :class "form-control-static" (text "~{usage}"))
@@ -406,7 +412,7 @@
                     :type "text"
                     :placeholder (cell= (vocab :usage-placeholder s/lang))
                     :value usage
-                    :on-change #(s/update-crop-db-entity @id @db-id :crop/usage (val-id usage-id)))))
+                    :on-change #(s/update-crop-db-entity @id @db-id :crop/usage @%))))
 
               (div
                 :class "row"
@@ -628,6 +634,6 @@
                           :placeholder (cell= (vocab :crop-effectivity-quotient-placeholder s/lang))
                           :value effectivity-quotient
                           :on-change #(s/update-crop-db-entity @id @db-id
-                                                               :crop/effectivity-quotient (js/parseFloat (val-id crop-effectivity-quotient-id))
+                                                               :crop/effectivity-quotient (js/parseFloat @%)
                                                                :value-type :double))
                         (span :class "input-group-addon" "")))))))))))))

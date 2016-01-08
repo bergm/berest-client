@@ -1,8 +1,8 @@
 (ns ui.components
-  (:require-macros [tailrecursion.javelin :refer :all]
-                   [tailrecursion.hoplon :refer :all])
-  (:require [tailrecursion.javelin :refer :all]
-            [tailrecursion.hoplon :refer :all]
+  (:require-macros [javelin.core :refer :all]
+                   [hoplon.core :refer :all])
+  (:require [javelin.core :refer :all]
+            [hoplon.core :refer :all]
             [de.zalf.berest.client.hoplon.util :as util]
             [de.zalf.berest.client.hoplon.state :as s]
             [bootstrap-util :as bs]))
@@ -176,7 +176,7 @@
 
           (span
             :toggle (cell= (:farm s/breadcrumbs))
-            :click #(some-> "farm-details-panel" by-id .scrollIntoView)
+            :click #(some-> "farm-details-panel" util/by-id .scrollIntoView)
             (text "~(vocab :farm s/lang) ~(:farm s/breadcrumbs) "))
 
           (span
@@ -185,7 +185,7 @@
 
           (span
             :toggle (cell= (:plot s/breadcrumbs))
-            :click #(some-> "plot-details-panel" by-id .scrollIntoView)
+            :click #(some-> "plot-details-panel" util/by-id .scrollIntoView)
             (text " ~(vocab :plot s/lang) ~(:plot s/breadcrumbs) "))
 
           (span
@@ -194,7 +194,7 @@
 
           (span
             :toggle (cell= (:plot-annual s/breadcrumbs))
-            :click #(some-> "plot-section-table" by-id .scrollIntoView)
+            :click #(some-> "plot-section-table" util/by-id .scrollIntoView)
             (text " ~(vocab :plot-annual s/lang) ~(:plot-annual s/breadcrumbs)")))
 
 
@@ -205,7 +205,7 @@
 
           (span
             :toggle (cell= (:weather-station s/breadcrumbs))
-            :click #(some-> "weather-data-chart" by-id .scrollIntoView)
+            :click #(some-> "weather-data-chart" util/by-id .scrollIntoView)
             (text "~(vocab :weather-station s/lang) ~(:weather-station s/breadcrumbs) "))
 
           (span
@@ -224,14 +224,15 @@
 
           (span
             :toggle (cell= (:crop s/breadcrumbs))
-            :click #(some-> "crop-chart" by-id .scrollIntoView)
+            :click #(some-> "crop-chart" util/by-id .scrollIntoView)
             (text "~(vocab :crop s/lang) ~(:crop s/breadcrumbs) ")))
 
         ))))
 
 (defn login-pane
   []
-  (let [[user-id pwd-id] (repeatedly gensym)]
+  (let [user (cell nil)
+        pwd (cell nil)]
     (div
       (div
         :id "login-pane"
@@ -241,29 +242,33 @@
         (bs/form
           :opts [:horizontal]
           :id "login"
-          :submit #(do
-                    (s/login! (val-id user-id) (val-id pwd-id))
+          :submit #(when (and @user @pwd)
+                    (s/login! @user @pwd)
                     (s/set-route "#/farms")
-                    (do! (by-id user-id) :value "")
-                    (do! (by-id pwd-id) :value ""))
+                    (reset! user nil)
+                    (reset! pwd nil)
+                    #_(do! (util/by-id user-id) :value "")
+                    #_(do! (util/by-id pwd-id) :value ""))
           (bs/form-group
             (div
               :col [:xs 3]
               (input
-                :id user-id
                 :class "form-control"
                 :placeholder (cell= (vocab :user-placeholder s/lang))
                 :type "text"
+                :value user
+                :change #(reset! user @%)
                 :autofocus "autofocus"))
 
             (div
               :col [:xs 3]
               :class "col-xs-offset-1"
               (input
-                :id pwd-id
                 :class "form-control"
                 :placeholder (cell= (vocab :pwd-placeholder s/lang))
-                :type "password"))
+                :type "password"
+                :value pwd
+                :change #(reset! pwd @%)))
 
             (div
               :col [:xs 4]
@@ -307,7 +312,7 @@
                   :id checked-id
                   :type "checkbox"
                   :value checked?
-                  :change #(reset! checked? (val-id checked-id))))))
+                  :change #(reset! checked? @%)))))
           (dissoc attrs :action! :value :small-button?) kids))
 
 (defelem hover-activate-wrapper

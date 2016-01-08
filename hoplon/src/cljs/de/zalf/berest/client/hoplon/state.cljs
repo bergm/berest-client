@@ -1,11 +1,10 @@
 (ns de.zalf.berest.client.hoplon.state
-  (:require-macros
-    [tailrecursion.javelin :refer [defc defc= cell=]])
+  (:require-macros [javelin.core :refer [defc defc= cell=]])
   (:require [clojure.set :as set]
             [clojure.string :as str]
-            [tailrecursion.javelin :as j :refer [cell]]
-            [tailrecursion.castra  :as c #_:refer #_[mkremote]]
-            [tailrecursion.hoplon :as h]))
+            [javelin.core :as j :refer [cell]]
+            [castra.core  :as c #_:refer #_[mkremote]]
+            [hoplon.core :as h]))
 
 (defn jq-cred-ajax [async? url data headers done fail always]
   (.. js/jQuery
@@ -38,43 +37,43 @@
 (enable-console-print!)
 
 ;stem cell
-(defc state {})
+(def state (cell {}))
 #_(cell= (println "state: \n" (pr-str state)))
 
-(defc pwd-update-success? nil)
-(defc climate-data-import-time-update-success? nil)
-(defc climate-data-import-success? nil)
+(def pwd-update-success? (cell nil))
+(def climate-data-import-time-update-success? (cell nil))
+(def climate-data-import-success? (cell nil))
 
 ;cell holding static app state, which will hardly change
-(defc static-state nil)
+(def static-state (cell nil))
 #_(cell= (println "static-state:\n " (pr-str static-state)))
 
-(defc= slopes (:slopes static-state))
-(defc= stts (:stts static-state))
-(defc= substrate-groups (into {} (map (juxt :soil.substrate/key identity) (:substrate-groups static-state))))
-(defc= ka5-soil-types (into {} (map (juxt :soil.type.ka5/name identity) (:ka5-soil-types static-state))))
-(defc= crop->dcs (:crop->dcs static-state))
+(def slopes (cell= (:slopes static-state)))
+(def stts (cell= (:stts static-state)))
+(def substrate-groups (cell= (into {} (map (juxt :soil.substrate/key identity) (:substrate-groups static-state)))))
+(def ka5-soil-types (cell= (into {} (map (juxt :soil.type.ka5/name identity) (:ka5-soil-types static-state)))))
+(def crop->dcs (cell= (:crop->dcs static-state)))
 #_(defc= stt-descriptions (into {} (map (juxt :soil.stt/key :soil.stt/description) stts)))
-(defc= minimal-all-crops (:minimal-all-crops static-state))
-(defc= all-weather-stations (:all-weather-stations static-state))
+(def minimal-all-crops (cell= (:minimal-all-crops static-state)))
+(def all-weather-stations (cell= (:all-weather-stations static-state)))
 
 ;local state
-(defc weather-station-data {})
+(def weather-station-data (cell {}))
 #_(cell= (println "weather-station-data: " (pr-str weather-station-data)))
 
-(defc crop-state nil)
+(def crop-state (cell nil))
 #_(cell= (when crop-state (println "crop-state: " (pr-str crop-state))))
 
-(defc= processed-crop-data (:processed crop-state))
-(defc= raw-crop-data (:raw crop-state))
+(def processed-crop-data (cell= (:processed crop-state)))
+(def raw-crop-data (cell= (:raw crop-state)))
 #_(defc= user-crop? (= (:crop-type crop-state) :user))
 
-(defc breadcrumbs {:farm nil
-                   :plot nil
-                   :plot-annual nil
-                   :weather-station nil
-                   :weather-year nil
-                   :crop nil})
+(def breadcrumbs (cell {:farm nil
+                        :plot nil
+                        :plot-annual nil
+                        :weather-station nil
+                        :weather-year nil
+                        :crop nil}))
 #_(cell= (println "breadcrumbs: " (pr-str breadcrumbs)))
 
 (defn set-breadcrumb
@@ -83,39 +82,39 @@
 
 ;derived state
 
-(defc= farms (:farms state))
+(def farms (cell= (:farms state)))
 
-(defc= users (:users state))
+(def users (cell= (:users state)))
 
-(defc= user-weather-stations (:weather-stations state))
+(def user-weather-stations (cell= (:weather-stations state)))
 #_(cell= (println "user-weather-stations: " (pr-str user-weather-stations)))
 
-(defc= technology-cycle-days (-> state :technology :technology/cycle-days))
+(def technology-cycle-days (cell= (-> state :technology :technology/cycle-days)))
 (defn set-technology-cycle-days
   [value]
   (swap! state update-in [:technology :technology/cycle-days] value))
 
-(defc= technology-outlet-height (-> state :technology :technology/outlet-height))
-(defn set-technology-cycle-days
+(def technology-outlet-height (cell= (-> state :technology :technology/outlet-height)))
+(defn set-technology-outlet-height
   [value]
-  (swap! state update-in [:technology :technology/cycle-days] value))
+  (swap! state update-in [:technology :technology/outlet-height] value))
 
 
-(defc routeHash (.. js/window -location -hash))
+(def routeHash (cell (.. js/window -location -hash)))
 #_(cell= (println "routeHash: " (pr-str routeHash)))
 (def full-route (h/route-cell routeHash #(reset! routeHash %)))
-(defc= route+params (str/split full-route #"\?|\&|="))
-(defc= route (first route+params))
+(def route+params (cell= (str/split full-route #"\?|\&|=")))
+(def route (cell= (first route+params)))
 #_(cell= (println "route+params: " (pr-str route+params)))
-(defc= route-params (into {} (for [[k v] (partition 2 (rest route+params))]
-                               [(keyword k) v])))
+(def route-params (cell= (into {} (for [[k v] (partition 2 (rest route+params))]
+                                    [(keyword k) v]))))
 #_(cell= (println "route-params: " (pr-str route-params)))
 
-(defc= route-params-str
-       (->> route-params
-            (map (fn [[k v]] (when v (str (name k) "=" v))) ,,,)
-            (remove nil? ,,,)
-            (str/join "&" ,,,)))
+(def route-params-str
+  (cell= (->> route-params
+              (map (fn [[k v]] (when v (str (name k) "=" v))) ,,,)
+              (remove nil? ,,,)
+              (str/join "&" ,,,))))
 #_(cell= (println "route-params-str: " (pr-str route-params-str)))
 
 (defn clear-route+params
@@ -146,26 +145,24 @@
   [route*]
   (set-route+params route*))
 
-(defc error nil)
-(defc loading [])
+(def error (cell nil))
+(def loading (cell []))
 
-(def clear-error!   #(reset! error nil))
-
-(defc csv-result nil)
+(def csv-result (cell nil))
 #_(cell= (println "csv-result: " (pr-str csv-result)))
-(defc calc-error nil)
-(defc calculating [])
+(def calc-error (cell nil))
+(def calculating (cell []))
 
-(defc= user (:user-credentials state))
+(def user (cell= (:user-credentials state)))
 #_(cell= (println "user-creds: " (pr-str user)))
 
-(defc= lang (:language state))
+(def lang (cell= (:language state)))
 #_(cell= (println "lang: " (pr-str lang)))
 
-(defc= loaded?      (not= {} state))
-(defc= loading?     (seq loading))
+(def loaded? (cell= (not= {} state)))
+(def loading? (cell= (seq loading)))
 
-(defc= logged-in?   (not (nil? user)))
+(def logged-in? (cell= (not (nil? user))))
 #_(cell= (println "logged-in?: "(pr-str logged-in?)))
 
 
@@ -181,13 +178,13 @@
   [role]
   (has-role @user role))
 
-(defc= admin-logged-in? (has-role user :admin))
-(defc= consultant-logged-in? (has-role user :consultant))
+(def admin-logged-in? (cell= (has-role user :admin)))
+(def consultant-logged-in? (cell= (has-role user :consultant)))
 
-(defc= show-login?  (and #_loaded? (not logged-in?)))
+(def show-login?  (cell= (and #_loaded? (not logged-in?))))
 #_(cell= (println "show-login?: " show-login?))
 
-(defc= show-content?  (and loaded? logged-in?))
+(def show-content?  (cell= (and loaded? logged-in?)))
 
 
 (def clear-error!   #(reset! error nil))

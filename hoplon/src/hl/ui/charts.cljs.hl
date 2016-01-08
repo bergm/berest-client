@@ -1,5 +1,11 @@
 (ns ui.charts
-  (:require [de.zalf.berest.client.hoplon.util :as util]
+  (:require-macros [javelin.core :refer :all]
+                   [hoplon.core :refer :all])
+
+  (:require [javelin.core :refer :all]
+            [hoplon.core :refer :all]
+
+            [de.zalf.berest.client.hoplon.util :as util]
             [de.zalf.berest.client.hoplon.state :as s]
             [ui.elements :as uie]
             [ui.components :as uic]
@@ -87,7 +93,7 @@
 (defn apply-fn-to-series
   [chart-div-id series-index f]
   (some-> chart-div-id
-          by-id
+          util/by-id
           js/jQuery
           .highcharts
           .-series

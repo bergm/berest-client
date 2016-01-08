@@ -69,3 +69,5 @@
   (-> event .-target .-value))
 
 (def sum (partial reduce + 0))
+
+(defn by-id [id] (.getElementById js/document (name id)))

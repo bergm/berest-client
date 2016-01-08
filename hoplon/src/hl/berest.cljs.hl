@@ -1,24 +1,17 @@
 (page "index.html"
       (:require
-       [de.zalf.berest.client.hoplon.state :as s]
-       [bootstrap-util :as bs]
-       [ui.components :as uic]
-       [ui.elements :as uie]
-       [ui.bersim :as bersim]
-       [ui.weather-stations :as weather-stations]
-       [ui.crops :as crops]
-       [ui.farms :as farms]
-       [ui.admin :as admin]
-       [clojure.string :as str]
-       [tailrecursion.hoplon.reload :refer [reload-all]]))
+        [de.zalf.berest.client.hoplon.state :as s]
+        [bootstrap-util :as bs]
+        [ui.components :as uic]
+        [ui.elements :as uie]
+        [ui.bersim :as bersim]
+        [ui.weather-stations :as weather-stations]
+        [ui.crops :as crops]
+        [ui.farms :as farms]
+        [ui.admin :as admin]
+        [clojure.string :as str]))
 
 (enable-console-print!)
-
-#_(reload-all)
-
-;; Live-reload when we're local
-#_(when (-> js/window .-location .-hostname (= "localhost"))
-  (reload-all 500))
 
 #_(println "hostname: " (-> js/window .-location .-hostname))
 

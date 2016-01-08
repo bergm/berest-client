@@ -202,7 +202,7 @@
                          :class (cell= {:warning (and hover? (not selected?))
                                         :success selected?})
                          :click #(do
-                                  (some-> "weather-data-curves" by-id .scrollIntoView)
+                                  (some-> "weather-data-curves" util/by-id .scrollIntoView)
                                   (s/set-route-params :weather-station-id @id))
                          (span :class "glyphicon glyphicon-arrow-down"))
                        (td
@@ -381,7 +381,7 @@
 
                    set-series-data (fn [series-index data]
                                        (some-> "weather-data-chart" #_chart-id
-                                               by-id
+                                               util/by-id
                                                js/jQuery
                                                .highcharts
                                                .-series
@@ -417,7 +417,7 @@
                          :type "text"
                          :placeholder (cell= (vocab :name-placeholder s/lang))
                          :value (cell= (or name (str "(Id: " id ")")))
-                         :on-change #(s/update-db-entity @db-id :weather-station/name (val-id name-input)))))
+                         :on-change #(s/update-db-entity @db-id :weather-station/name @%))))
 
                    #_(bs/form-group
                      (bs/control-label :col [:sm 2] :for lat-input (text "~(vocab :lat-label s/lang)"))
@@ -431,7 +431,7 @@
                          :type "number"
                          :placeholder (cell= (vocab :lat-placeholder s/lang))
                          :value lat
-                         :on-change #(swap! station-data assoc :lat (val-id lat-input)))))
+                         :on-change #(swap! station-data assoc :lat @%))))
 
                    #_(bs/form-group
                      (bs/control-label :col [:sm 2] :for long-input (text "~(vocab :long-label s/lang)"))
@@ -445,7 +445,7 @@
                          :type "number"
                          :placeholder (cell= (vocab :long-placeholder s/lang))
                          :value long
-                         :on-change #(swap! station-data assoc :long (val-id long-input)))))
+                         :on-change #(swap! station-data assoc :long @%))))
 
 
                    (bs/form-group
@@ -460,7 +460,7 @@
                          :class "form-control"
                          :multiple "multiple"
                          ;:on-change #(s/load-weather-station-data weather-station-data @id (map js/parseInt (val-id years-id)))
-                         :click #(let [sel-years (map js/parseInt (val-id years-id))]
+                         :click #(let [sel-years (map js/parseInt @%)]
                                       (reset! selected-years-set (into #{} sel-years))
                                       #_(s/load-weather-station-data weather-station-data @id sel-years))
                          (loop-tpl
@@ -505,7 +505,8 @@
                          ;_ (cell= (println "df: " (pr-str df) " df-example: " (pr-str df-example)))
                          separator (cell "\t")
                          decimal-separator (cell :dot)
-                         no-of-header-lines-to-ignore (cell 1)]
+                         no-of-header-lines-to-ignore (cell 1)
+                         import-data (cell nil)]
                      (fieldset
                        :toggle (cell= (or local? s/admin-logged-in?))
 
@@ -522,7 +523,7 @@
                            (select
                              :id separator-select-id
                              :class "form-control"
-                             :change #(reset! separator (val-id separator-select-id))
+                             :change #(reset! separator @%)
                              (option :value "\t" :selected (cell= (= separator "\t")) (text "~(vocab :tab s/lang)"))
                              (option :value " " :selected (cell= (= separator " " )) (text "~(vocab :space s/lang)"))
                              (option :value "," :selected (cell= (= separator ",")) (text "~(vocab :comma s/lang)"))
@@ -536,7 +537,7 @@
                            (select
                              :id decimal-separator-select-id
                              :class "form-control"
-                             :change #(reset! decimal-separator (keyword (val-id decimal-separator-select-id)))
+                             :change #(reset! decimal-separator (keyword @%))
                              (option :value "comma" :selected (cell= (= decimal-separator :comma)) (text "~(vocab :comma s/lang)"))
                              (option :value "dot" :selected (cell= (= decimal-separator :dot )) (text "~(vocab :dot s/lang)")))))
 
@@ -553,7 +554,7 @@
                              :min 0
                              :placeholder (cell= (vocab :ignore-header-lines-placeholder s/lang))
                              :value no-of-header-lines-to-ignore
-                             :on-change #(reset! no-of-header-lines-to-ignore (js/parseInt (val-id ignore-header-lines-id))))))
+                             :on-change #(reset! no-of-header-lines-to-ignore (js/parseInt @%)))))
 
                        (let [create-elem-select (fn [def-elem c size]
                                                   (let [id (gensym)]
@@ -562,7 +563,7 @@
                                                       (select
                                                         :id id
                                                         :class "form-control"
-                                                        :change #(reset! c (val-id id))
+                                                        :change #(reset! c @%)
                                                         (option :value "dd"
                                                                 :selected (= def-elem :day)
                                                                 (text "~(vocab :day s/lang)"))
@@ -579,7 +580,7 @@
                                                  (select
                                                    :id id
                                                    :class "form-control"
-                                                   :change #(reset! c (val-id id))
+                                                   :change #(reset! c @%)
                                                    (option :value ""
                                                            :selected (= def-elem :none)
                                                            "")
@@ -630,9 +631,8 @@
                                                       (select
                                                         :id id
                                                         :class "form-control"
-                                                        :change #(let [v (val-id id)]
-                                                                  (reset! c (when-not (= v "")
-                                                                              (keyword v))))
+                                                        :change #(reset! c (when-not (= @% "")
+                                                                             (keyword @%)))
                                                         (option :value "" :selected (nil? def-elem) "")
                                                         (option :value "date"
                                                                 :selected (= def-elem :date)
@@ -679,7 +679,8 @@
                              :class "form-control"
                              :rows "20" ;:cols "150"
                              :placeholder (cell= (vocab :import-area-placeholder s/lang))
-                             :value "")))
+                             :change #(reset! import-data @%)
+                             :value import-data)))
 
                        (bs/form-group
                          :toggle visible?
@@ -688,15 +689,16 @@
                            :class "col-xs-offset-2"
                            (button
                              :class "btn btn-warning btn-lg"
-                             :click #(s/import-weather-data @id
-                                                            #_(seq @selected-years-set*)
-                                                            (val-id import-area-id)
-                                                            :separator @separator
-                                                            :decimal-separator @decimal-separator
-                                                            :date-format @df
-                                                            :ignore-lines @no-of-header-lines-to-ignore
-                                                            :element-order [@elem-1 @elem-2 @elem-3 @elem-4
-                                                                            @elem-5 @elem-6 @elem-7])
+                             :click #(when @import-data
+                                      (s/import-weather-data @id
+                                                             #_(seq @selected-years-set*)
+                                                             @import-data
+                                                             :separator @separator
+                                                             :decimal-separator @decimal-separator
+                                                             :date-format @df
+                                                             :ignore-lines @no-of-header-lines-to-ignore
+                                                             :element-order [@elem-1 @elem-2 @elem-3 @elem-4
+                                                                             @elem-5 @elem-6 @elem-7]))
                              (text "~(vocab :import-button-label s/lang)"))))))
 
                    (let [visible? (cell false)]

@@ -1,5 +1,10 @@
 (ns ui.plot-annual
-  (:require [clojure.set :as set]
+  (:require-macros [javelin.core :refer :all]
+                   [hoplon.core :refer :all])
+  (:require [javelin.core :refer :all]
+            [hoplon.core :refer :all]
+
+            [clojure.set :as set]
             [ui.charts :as charts]
             [ui.elements :as uie]
             [ui.components :as uic]
@@ -318,8 +323,9 @@
         initial-dc-assertions-available? (cell= (do
                                                   #_(println "crop-instances: " (pr-str crop-instances))
                                                   (and crop-instances
-                                                     (reduce #(and %1 (boolean (seq %2))) true
-                                                             (map :crop.instance/dc-assertions crop-instances)))))
+                                                       (reduce #(and %1 (boolean (seq %2)))
+                                                               true
+                                                               (map :crop.instance/dc-assertions crop-instances)))))
         ;_ (cell= (println "initial-dc-assertions-available?: " initial-dc-assertions-available?))
 
         ;_ (cell= (println "additional-soil-moistures: " (pr-str additional-soil-moistures)))
@@ -396,8 +402,7 @@
                                        :sm-60-100 (util/sum (subvec (vec soil-moistures) 7 11))
                                        :sm-100-150 (util/sum (subvec (vec soil-moistures) 11 16))
                                        :sm-0-30  (util/sum (subvec (vec soil-moistures) 0 4))
-                                       :sm-60-90 (util/sum (subvec (vec soil-moistures) 7 10))
-                                       })
+                                       :sm-60-90 (util/sum (subvec (vec soil-moistures) 7 10))})
                                     (:soil-moistures calc-result)))
 
         inputs (cell= (:inputs calc-result))
@@ -570,7 +575,7 @@
 
         apply-fn-to-series (fn [series-index f]
                              (some-> chart-id
-                                     by-id
+                                     util/by-id
                                      js/jQuery
                                      .highcharts
                                      .-series
@@ -630,7 +635,7 @@
                                     :data []
                                     :visible false}]]
                      (some-> chart-id
-                             by-id
+                             util/by-id
                              js/jQuery
                              .highcharts
                              (.addSeries (clj->js option))))
@@ -663,7 +668,7 @@
         _ (cell= (when soil-moistures
                        #_(println "soil-moistures: " (pr-str soil-moistures))
                        (some-> chart-id
-                               by-id
+                               util/by-id
                                js/jQuery
                                .highcharts
                                .-xAxis
@@ -719,7 +724,7 @@
              :type "text"
              :placeholder (cell= (vocab :description-placeholder s/lang))
              :value description
-             :on-change #(description! (val-id description-id)))))
+             :on-change #(description! @%))))
 
        (bs/form-group
          (bs/control-label :col [:sm label-cols] :for year-id (text "~(vocab :year-label s/lang)"))
@@ -736,7 +741,7 @@
              :max 2100
              :placeholder (cell= (vocab :year-placeholder s/lang))
              :value year
-             :on-change #(year! (js/parseInt (val-id year-id))))
+             :on-change #(year! (js/parseInt @%)))
            ))
 
        (let [visible? (cell false)]
@@ -763,7 +768,7 @@
                                        (cstf/unparse (cstf/formatters :date),,,)))
                     :on-change #(abs-day-of-initial-soil-moisture-measurement!
                                  (util/cljs-time-date->doy (cstf/parse (cstf/formatters :date)
-                                                                       (val-id abs-day-of-initial-soil-moisture-measurement-id)))))))
+                                                                       @%))))))
 
 
               (bs/form-group
@@ -776,7 +781,7 @@
                     :disabled "disabled"
                     :id initial-sm-unit-id
                     :class "form-control"
-                    :on-change #(initial-sm-unit! (keyword (val-id initial-sm-unit-id)))
+                    :on-change #(initial-sm-unit! (keyword @%))
                     (option :value "soil-moisture.unit/pFK"
                             :selected (cell= (= initial-sm-unit :soil-moisture.unit/pFK))
                             (text "~(vocab :pFK s/lang)"))
@@ -894,7 +899,7 @@
                                                  (cstf/unparse (cstf/formatters :date),,,)))
                               :on-change #(s/update-db-entity @sm-db-id :plot.annual.soil-moisture/abs-day-of-measurement
                                                               (util/cljs-time-date->doy (cstf/parse (cstf/formatters :date)
-                                                                                                    (val-id abs-day-of-measurement-id)))
+                                                                                                    @%))
                                                               :value-type :int)))
 
                           (div
@@ -918,7 +923,7 @@
                               :disabled "disabled"
                               :id sm-unit-id
                               :class "form-control"
-                              :on-change #(s/update-db-entity @sm-db-id :plot.annual.soil-moisture/unit (keyword (val-id sm-unit-id)))
+                              :on-change #(s/update-db-entity @sm-db-id :plot.annual.soil-moisture/unit (keyword @%))
                               (option :value "soil-moisture.unit/pFK"
                                       :selected (cell= (= sm-unit :soil-moisture.unit/pFK))
                                       (text "~(vocab :pFK s/lang)"))
@@ -1059,8 +1064,8 @@
                 :toggle visible?
                 :col [:xs 1]
                 :class "btn btn-sm btn-warning"
-                :click #(when-let [ci-id (val-id new-crop-instance-id)]
-                         (s/create-new-crop-instance @db-id ci-id))
+                :click #(when @%
+                         (s/create-new-crop-instance @db-id @%))
                 (text "~(vocab :new-crop-instance-button-label s/lang)"))
 
               (loop-tpl
@@ -1074,8 +1079,12 @@
                             avg-profit-per-dt :crop.instance/avg-expected-profit-per-dt}
                            (cell= (sort-by #(apply min (map :assertion/abs-assert-dc-day (:crop.instance/assertions %)))
                                            crop-instances))]
-                :bind-ids [ci-name-id dc-assertions-id
-                           avg-irr-need-id avg-yield-per-ha-id avg-yield-per-mm-id avg-profit-per-dt-id
+                :bind-ids [ci-name-id
+                           dc-assertions-id
+                           avg-irr-need-id
+                           avg-yield-per-ha-id
+                           avg-yield-per-mm-id
+                           avg-profit-per-dt-id
                            enter-mm?-id]
                 (div
                   :class "row"
@@ -1107,7 +1116,7 @@
                           :type "text"
                           :placeholder (cell= (vocab :ci-name-placeholder s/lang))
                           :value ci-name
-                          :on-change #(s/update-db-entity @ci-db-id :crop.instance/name (val-id ci-name-id)))))
+                          :on-change #(s/update-db-entity @ci-db-id :crop.instance/name @%))))
 
                     (bs/form-group
                       (bs/control-label :col [:sm (+ 1 label-cols)] :for dc-assertions-id
@@ -1143,12 +1152,14 @@
                                         :dc dc* :dc! #(reset! dc* %)}))))
 
                     (let [enter-mm? (cell false)
-                          update-per-mm #(let [irr-need (js/parseFloat (val-id avg-irr-need-id))
-                                               kg-y-per-ha (* 100 (js/parseFloat (val-id avg-yield-per-ha-id)))]
-                                              (when (and irr-need (> irr-need 0) kg-y-per-ha (> kg-y-per-ha 0))
-                                                    (s/update-db-entity @ci-db-id
-                                                                        :crop.instance/avg-expected-additional-yield-per-mm (/ kg-y-per-ha irr-need)
-                                                                        :value-type :double)))
+                          avg-irr-need (cell nil)
+                          avg-yield-per-ha (cell nil)
+                          update-per-mm #(let [irr-need (js/parseFloat @avg-irr-need)
+                                               kg-y-per-ha (* 100 (js/parseFloat @avg-yield-per-ha))]
+                                          (when (and irr-need (> irr-need 0) kg-y-per-ha (> kg-y-per-ha 0))
+                                            (s/update-db-entity @ci-db-id
+                                                                :crop.instance/avg-expected-additional-yield-per-mm (/ kg-y-per-ha irr-need)
+                                                                :value-type :double)))
                           clear-non-mm #(do
                                          (s/update-db-entity @ci-db-id
                                                              :crop.instance/avg-irrigation-water-need 0
@@ -1176,8 +1187,9 @@
                                   :placeholder (cell= (vocab :avg-irr-need-placeholder s/lang))
                                   :value avg-irrigation-need
                                   :on-change #(do
+                                               (reset! avg-irr-need @%)
                                                (s/update-db-entity @ci-db-id
-                                                                   :crop.instance/avg-irrigation-water-need (js/parseFloat (val-id avg-irr-need-id))
+                                                                   :crop.instance/avg-irrigation-water-need (js/parseFloat @%)
                                                                    :value-type :double)
                                                (update-per-mm)))
                                 (span :class "input-group-addon" "mm"))))
@@ -1202,8 +1214,9 @@
                                   :value (cell= (when avg-yield-per-ha
                                                       (/ avg-yield-per-ha 100.0)))
                                   :on-change #(do
+                                               (reset! avg-yield-per-ha @%)
                                                (s/update-db-entity @ci-db-id
-                                                                   :crop.instance/avg-expected-additional-yield-per-ha (* 100 (js/parseFloat (val-id avg-yield-per-ha-id)))
+                                                                   :crop.instance/avg-expected-additional-yield-per-ha (* 100 (js/parseFloat @%))
                                                                    :value-type :double)
                                                (update-per-mm)))
                                 (span :class "input-group-addon" "dt/ha"))))
@@ -1228,7 +1241,7 @@
                                   :value (cell= (util/round avg-yield-per-mm :digits 2))
                                   :on-change #(do
                                                (s/update-db-entity @ci-db-id
-                                                                   :crop.instance/avg-expected-additional-yield-per-mm (js/parseFloat (val-id avg-yield-per-mm-id))
+                                                                   :crop.instance/avg-expected-additional-yield-per-mm (js/parseFloat @%)
                                                                    :value-type :double)
                                                (clear-non-mm)))
                                 (span :class "input-group-addon" "kg/mm")))
@@ -1241,7 +1254,7 @@
                                   :id enter-mm?-id
                                   :type "checkbox"
                                   :value enter-mm?
-                                  :on-change #(reset! enter-mm? (val-id enter-mm?-id)))
+                                  :on-change #(reset! enter-mm? @%))
                                 (text "~(vocab :use-avg-yield-per-mm?-label s/lang)"))))])
 
                     (bs/form-group
@@ -1262,7 +1275,7 @@
                             :placeholder (cell= (vocab :avg-profit-per-dt-placeholder s/lang))
                             :value avg-profit-per-dt
                             :on-change #(s/update-db-entity @ci-db-id
-                                                            :crop.instance/avg-expected-profit-per-dt (js/parseFloat (val-id avg-profit-per-dt-id))
+                                                            :crop.instance/avg-expected-profit-per-dt (js/parseFloat @%)
                                                             :value-type :double))
                           (span :class "input-group-addon" "€/dt")))))
 
@@ -1344,7 +1357,7 @@
                :type "date"
                :value calc-until-date-iso-ymd
                :on-change #(reset! calc-until-abs-day (util/cljs-time-date->doy (cstf/parse (cstf/formatters :date)
-                                                                                            (val-id calc-until-id))))))
+                                                                                            @%)))))
 
            (div
              :col [:xs 2]
@@ -1379,7 +1392,7 @@
                     :min 1
                     :max 100
                     :value donation
-                    :on-change #(reset! donation* (js/parseFloat (val-id recommended-donation-id))))
+                    :on-change #(reset! donation* (js/parseFloat @%)))
                   (span :class "input-group-addon" "mm")))
 
               (div
@@ -1444,7 +1457,7 @@
              (select
                :id crop-id-select-id
                :class "form-control"
-               :change #(reset! selected-crop-id (val-id crop-id-select-id))
+               :change #(reset! selected-crop-id @%)
                (loop-tpl
                  :bindings [[{:keys [from to]} crop-id] crop-rotation]
                  (cell-let [[from-date to-date] (map #(util/doy->german-d-m-y % year) [from to])]

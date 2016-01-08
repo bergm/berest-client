@@ -223,7 +223,7 @@
                :type "text"
                :placeholder (cell= (vocab :name-placeholder s/lang))
                :value name
-               :on-change #(name! (val-id name-id)))))
+               :on-change #(name! @%))))
 
          (bs/form-group
            (bs/control-label :col [:sm label-cols] :for number-id (text "~(vocab :number-label s/lang)"))
@@ -237,7 +237,7 @@
                :type "text"
                :placeholder (cell= (vocab :number-placeholder s/lang))
                :value number
-               :on-change #(number! (val-id number-id)))))
+               :on-change #(number! @%))))
 
          (bs/form-group
            (bs/control-label :col [:sm label-cols] :for description-id (text "~(vocab :description-label s/lang)"))
@@ -251,7 +251,7 @@
                :type "text"
                :placeholder (cell= (vocab :description-placeholder s/lang))
                :value description
-               :on-change #(description! (val-id description-id)))))
+               :on-change #(description! @%))))
 
          (bs/form-group
            (bs/control-label :col [:sm label-cols] :for short-description-id (text "~(vocab :short-description-label s/lang)"))
@@ -265,7 +265,7 @@
                :type "text"
                :placeholder (cell= (vocab :short-description-placeholder s/lang))
                :value short-description
-               :on-change #(short-description! (val-id short-description-id)))))
+               :on-change #(short-description! @%))))
 
          (bs/form-group
            (bs/control-label :col [:sm label-cols] :for crop-area-id (text "~(vocab :crop-area-label s/lang)"))
@@ -283,7 +283,7 @@
                  :min 0
                  :placeholder (cell= (vocab :crop-area-placeholder s/lang))
                  :value crop-area
-                 :on-change #(crop-area! (js/parseFloat (val-id crop-area-id))))
+                 :on-change #(crop-area! (js/parseFloat @%)))
                (span :class "input-group-addon" "ha"))))
 
          (bs/form-group
@@ -302,7 +302,7 @@
                :min 0
                :placeholder (cell= (vocab :irrigation-area-placeholder s/lang))
                :value irrigation-area
-               :on-change #(irrigation-area! (js/parseFloat (val-id irrigation-area-id))))
+               :on-change #(irrigation-area! (js/parseFloat @%)))
                (span :class "input-group-addon" "ha"))))
 
          (fieldset
@@ -317,7 +317,7 @@
                  :toggle edit?
                  :id stt-id
                  :class "form-control"
-                 :on-change #(stt! (js/parseInt (val-id stt-id)))
+                 :on-change #(stt! (js/parseInt @%))
                  (loop-tpl
                    :bindings [{key :soil.stt/key
                                symbol :soil.stt/symbol
@@ -337,7 +337,7 @@
                  :toggle edit?
                  :id slope-id
                  :class "form-control"
-                 :on-change #(slope! (js/parseInt (val-id slope-id)))
+                 :on-change #(slope! (js/parseInt @%))
                  (loop-tpl
                    :bindings [{key :slope/key
                                symbol :slope/symbol
@@ -389,7 +389,7 @@
                  (select
                    :id substrate-groups-fc-id
                    :class "form-control"
-                   :on-change #(s/set-substrate-group-fcs-and-pwps @id (js/parseInt (val-id substrate-groups-fc-id)))
+                   :on-change #(s/set-substrate-group-fcs-and-pwps @id (js/parseInt @%))
                    (option "")
                    (loop-tpl
                      :bindings [{key :soil.substrate/key
@@ -414,7 +414,7 @@
                    :disabled "disabled"
                    :id fc-pwp-unit-id
                    :class "form-control"
-                   :on-change #(fc-pwp-unit! (keyword (val-id fc-pwp-unit-id)))
+                   :on-change #(fc-pwp-unit! (keyword @%))
                    (option :value "soil-moisture.unit/pFK"
                            :selected (cell= (= fc-pwp-unit :soil-moisture.unit/pFK))
                            (text "~(vocab :pFK s/lang)"))
@@ -508,7 +508,7 @@
                  :min 0
                  :placeholder (cell= (vocab :groundwaterlevel-placeholder s/lang))
                  :value groundwaterlevel
-                 :on-change #(groundwaterlevel! (js/parseFloat (val-id groundwaterlevel-id))))
+                 :on-change #(groundwaterlevel! (js/parseFloat @%)))
                (span :class "input-group-addon" "cm"))))
 
 
@@ -524,7 +524,7 @@
                :rows 5
                :placeholder (cell= (vocab :notes-placeholder s/lang))
                :value notes
-               :on-change #(notes! (val-id notes-id)))))
+               :on-change #(notes! @%))))
 
          (fieldset
            (legend (text "~(vocab :weather-data-fieldset-label s/lang)"))
@@ -541,8 +541,7 @@
                  :toggle edit?
                  :id weather-station-id
                  :class "form-control"
-                 :change #(let [v (val-id weather-station-id)]
-                           (weather-station! (when (seq v) (js/parseInt v))))
+                 :change #(weather-station! (when (seq @%) (js/parseInt @%)))
                  (option :value "" "")
                  (loop-tpl
                    :bindings [{ws-db-id :db/id
@@ -578,7 +577,7 @@
                       :max 100
                       :placeholder (cell= (vocab :az-glz-placeholder s/lang))
                       :value az-glz
-                      :on-change #(az-glz! (js/parseInt (val-id az-glz-id))))))
+                      :on-change #(az-glz! (js/parseInt @%)))))
 
 
 
