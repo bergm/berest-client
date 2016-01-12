@@ -206,7 +206,7 @@
 
     (div
       :id "farms-pane"
-      :do-toggle (cell= (= s/route "#/farms"))
+      :toggle (cell= (and s/show-content? (= s/route "#/farms")))
 
       (bs/form-horizontal
 

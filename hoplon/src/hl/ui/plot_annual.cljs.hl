@@ -12,6 +12,7 @@
             [ui.addresses :as addr]
             [bootstrap-util :as bsu]
             [hoplon.twitter.bootstrap :as bs]
+            [cljsjs.highcharts]
             [cljs-time.core :as cstc]
             [cljs-time.format :as cstf]
             [cljs-time.coerce :as cstcoe]
@@ -805,7 +806,7 @@
                       ;_ (cell= (println "initial-soil-moistures: " (pr-str initial-soil-moistures)))
                       ]
                      (div
-                       :col [:xs (min (+ value-cols 2) (- 12 label-cols))]
+                       :col {:xs (min (+ value-cols 2) (- 12 label-cols))}
                        #_(p :toggle no-edit? :class "form-control-static" (text "~{irrigation-area}"))
 
                        (loop-tpl
@@ -947,7 +948,7 @@
                                 ;_ (cell= (println "sm-values: " (pr-str sm-values)))
                                 ]
                             (div
-                              :col [:xs (min (+ value-cols 2) (- 12 label-cols))]
+                              :col {:xs (min (+ value-cols 2) (- 12 label-cols))}
 
                               (loop-tpl
                                 :bindings [[row-no {db-id :db/id
@@ -980,7 +981,7 @@
                 :toggle visible?
                 (bs/control-label :col {:sm label-cols} :for technology-select-id (text "~(vocab :technology-select-label s/lang)"))
                 (div
-                  :col [:xs (min (+ value-cols 2) (- 12 label-cols))]
+                  :col {:xs (min (+ value-cols 2) (- 12 label-cols))}
                   (p :toggle no-edit? :class "form-control-static" "???Schlauchtrommel???" #_(text "~{}"))
                   (select
                     :toggle edit?
@@ -1105,7 +1106,7 @@
                       :value (cell= (vocab :delete-ci-button-label s/lang)))
 
                     (bs/form-group
-                      (bs/control-label :col [:sm (+ 1 label-cols)] :for ci-name-id (text "~(vocab :ci-name-label s/lang)"))
+                      (bs/control-label :col {:sm (+ 1 label-cols)} :for ci-name-id (text "~(vocab :ci-name-label s/lang)"))
                       (div
                         :col {:xs value-cols}
                         (p :toggle no-edit? :class "form-control-static" (text "~{ci-name}"))
@@ -1119,14 +1120,14 @@
                           :on-change #(s/update-db-entity @ci-db-id :crop.instance/name @%))))
 
                     (bs/form-group
-                      (bs/control-label :col [:sm (+ 1 label-cols)] :for dc-assertions-id
+                      (bs/control-label :col {:sm (+ 1 label-cols)} :for dc-assertions-id
                                         (text "~(vocab :dc-assertions-label s/lang)"))
                       (let [abs-day* (cell nil)
                             ;at-abs-day* (cell nil)
                             dc* (cell nil)
                             dc->names (cell= (get s/crop->dcs template-id))]
                            (div
-                             :col [:xs (min (+ value-cols 4) (- 12 label-cols))]
+                             :col {:xs (min (+ value-cols 4) (- 12 label-cols))}
                              #_(p :toggle no-edit? :class "form-control-static" (text "~{irrigation-area}"))
 
                              (loop-tpl
@@ -1169,7 +1170,7 @@
                                                              :value-type :double))]
 
                          [(bs/form-group
-                            (bs/control-label :col [:sm (+ 1 label-cols)] :for avg-irr-need-id (text "~(vocab :avg-irr-need-label s/lang)"))
+                            (bs/control-label :col {:sm (+ 1 label-cols)} :for avg-irr-need-id (text "~(vocab :avg-irr-need-label s/lang)"))
                             (div
                               :col {:xs 2}
                               (p :toggle no-edit? :class "form-control-static" (text "~{avg-irrigation-need}"))
@@ -1195,7 +1196,7 @@
                                 (span :class "input-group-addon" "mm"))))
 
                           (bs/form-group
-                            (bs/control-label :col [:sm (+ 1 label-cols)] :for avg-yield-per-ha-id (text "~(vocab :avg-yield-per-ha-label s/lang)"))
+                            (bs/control-label :col {:sm (+ 1 label-cols)} :for avg-yield-per-ha-id (text "~(vocab :avg-yield-per-ha-label s/lang)"))
                             (div
                               :col {:xs 2}
                               (p :toggle no-edit? :class "form-control-static" (text "~{avg-yield-per-ha}"))
@@ -1222,7 +1223,7 @@
                                 (span :class "input-group-addon" "dt/ha"))))
 
                           (bs/form-group
-                            (bs/control-label :col [:sm (+ 1 label-cols)] :for avg-yield-per-ha-id (text "~(vocab :avg-yield-per-mm-label s/lang)"))
+                            (bs/control-label :col {:sm (+ 1 label-cols)} :for avg-yield-per-ha-id (text "~(vocab :avg-yield-per-mm-label s/lang)"))
                             (div
                               :col {:xs 2}
                               (p :toggle no-edit? :class "form-control-static" (text "~{avg-yield-per-mm}"))
@@ -1258,7 +1259,7 @@
                                 (text "~(vocab :use-avg-yield-per-mm?-label s/lang)"))))])
 
                     (bs/form-group
-                      (bs/control-label :col [:sm (+ 1 label-cols)] :for avg-profit-per-dt-id (text "~(vocab :avg-profit-per-dt-label s/lang)"))
+                      (bs/control-label :col {:sm (+ 1 label-cols)} :for avg-profit-per-dt-id (text "~(vocab :avg-profit-per-dt-label s/lang)"))
                       (div
                         :col {:xs 2}
                         (p :toggle no-edit? :class "form-control-static" (text "~{avg-profit-per-dt}"))
@@ -1300,7 +1301,7 @@
                       abs-end-day* (cell nil)
                       amount* (cell nil)]
                      (div
-                       :col [:xs (min (+ value-cols 4) (- 12 label-cols))]
+                       :col {:xs (min (+ value-cols 4) (- 12 label-cols))}
 
                        (loop-tpl
                          :bindings [[row-no {don-db-id :db/id

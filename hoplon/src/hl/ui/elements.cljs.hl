@@ -1108,7 +1108,7 @@
 
 (defelem active
          [{:keys [state]} [elem]]
-         (elem :do-class (cell= {:active state})))
+         (elem :class (cell= {:active state})))
 
 (defelem trigger
          [{:keys [state tab]} [elem]]

@@ -309,9 +309,9 @@
            (legend (text "~(vocab :soil-data-fieldset-label s/lang)"))
 
            (bs/form-group
-             (bs/control-label :col [:sm (+ 1 label-cols)] :for stt-id (text "~(vocab :stt-label s/lang)"))
+             (bs/control-label :col {:sm (+ 1 label-cols)} :for stt-id (text "~(vocab :stt-label s/lang)"))
              (div
-               :col [:xs (min (+ value-cols 2) (- 12 label-cols))]
+               :col {:xs (min (+ value-cols 2) (- 12 label-cols))}
                (p :toggle no-edit? :class "form-control-static" (text "~{stt}"))
                (select
                  :toggle edit?
@@ -329,7 +329,7 @@
                            (text "~{symbol} | ~{description}"))))))
 
            (bs/form-group
-             (bs/control-label :col [:sm (+ 1 label-cols)] :for slope-id (text "~(vocab :slope-label s/lang)"))
+             (bs/control-label :col {:sm (+ 1 label-cols)} :for slope-id (text "~(vocab :slope-label s/lang)"))
              (div
                :col {:xs value-cols}
                (p :toggle no-edit? :class "form-control-static" (text "~{slope}"))
@@ -348,12 +348,12 @@
                            (text "~{symbol} | ~{description}"))))))
 
            (bs/form-group
-             (bs/control-label :col [:sm (+ 1 label-cols)] :for ka5-soil-types-id
+             (bs/control-label :col {:sm (+ 1 label-cols)} :for ka5-soil-types-id
                                (text "~(vocab :ka5-soil-types-label s/lang)"))
              (let [depth* (cell nil)
                    ka5* (cell nil)]
                (div
-                 :col [:xs (min (+ value-cols 2) (- 12 label-cols))]
+                 :col {:xs (min (+ value-cols 2) (- 12 label-cols))}
                  #_(p :toggle no-edit? :class "form-control-static" (text "~{irrigation-area}"))
 
                  (loop-tpl
@@ -382,7 +382,7 @@
 
              (bs/form-group
                :toggle edit? ;we don't have to show this for read-only mode
-               (bs/control-label :col [:sm (+ 1 label-cols)] :for substrate-groups-fc-id
+               (bs/control-label :col {:sm (+ 1 label-cols)} :for substrate-groups-fc-id
                                  (text "~(vocab :substrate-groups-label s/lang) ~(:soil.stt/symbol stt)"))
                (div
                  :col {:xs value-cols}
@@ -406,7 +406,7 @@
 
              (bs/form-group
                :toggle edit? ;we don't have to show this for read-only mode
-               (bs/control-label :col [:sm (+ 1 label-cols)] :for fc-pwp-unit-id
+               (bs/control-label :col {:sm (+ 1 label-cols)} :for fc-pwp-unit-id
                                  (text "~(vocab :fc-pwp-unit-label s/lang)"))
                (div
                  :col {:xs 2}
@@ -429,13 +429,13 @@
                            (text "~(vocab :mm s/lang)")))))
 
              (bs/form-group
-               (bs/control-label :col [:sm (+ 1 label-cols)] :for field-capacities-id
+               (bs/control-label :col {:sm (+ 1 label-cols)} :for field-capacities-id
                                  (text "~(vocab :field-capacities-label s/lang)"))
                (let [depth* (cell nil)
                      fc* (cell nil)
                      unit* (cell= (vocab (keyword ((fnil clojure.core/name "") fc-pwp-unit)) s/lang))]
                  (div
-                   :col [:xs (min (+ value-cols 2) (- 12 label-cols))]
+                   :col {:xs (min (+ value-cols 2) (- 12 label-cols))}
                    #_(p :toggle no-edit? :class "form-control-static" (text "~{irrigation-area}"))
 
                    (loop-tpl
@@ -460,13 +460,13 @@
                    )))
 
              (bs/form-group
-               (bs/control-label :col [:sm (+ 1 label-cols)] :for permanent-wilting-points-id
+               (bs/control-label :col {:sm (+ 1 label-cols)} :for permanent-wilting-points-id
                                  (text "~(vocab :permanent-wilting-points-label s/lang)"))
                (let [depth* (cell nil)
                      pwp* (cell nil)
                      unit* (cell= (vocab (keyword ((fnil clojure.core/name "") fc-pwp-unit)) s/lang))]
                  (div
-                   :col [:xs (min (+ value-cols 2) (- 12 label-cols))]
+                   :col {:xs (min (+ value-cols 2) (- 12 label-cols))}
                    #_(p :toggle no-edit? :class "form-control-static" (text "~{irrigation-area}"))
 
                    (loop-tpl

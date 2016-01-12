@@ -159,7 +159,7 @@
                   com-con-type* (cell nil)]
               (div
                 :id com-connections-id
-                :col [:xs (- 12 label-cols)]
+                :col {:xs (- 12 label-cols)}
 
                 (loop-tpl
                   :bindings [[row-no {com-con-db-id :db/id

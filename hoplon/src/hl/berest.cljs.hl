@@ -50,7 +50,10 @@
       :content "width=device-width, initial-scale=1.0"
       :charset "UTF-8")
     #_(link :rel "stylesheet" :href "css/bootstrap.min.css")
-    (link :rel "stylesheet" :href "//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css")
+    (link :rel "stylesheet" :href "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" :integrity "sha256-7s5uDGW3AHqw6xtJmNNtr+OBRJUlgkNJEo78P4b0yRw= sha512-nNo+yCHEyn0smMxSswnf/OnX6/KwJuZTlNZBjauKhTK0c+zT+q5JOCx0UFhXQ6rJR9jg6Es8gPuD2uZcYDLqSw==" :crossorigin "anonymous")
+    #_(link :rel "stylesheet" :href "https://maxcdn.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" :crossorigin "anonymous")
+    #_(link :rel "stylesheet" :href "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js")
+    #_(link :rel "stylesheet" :href "//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css")
     #_(link :rel "stylesheet" :href "//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css")
     #_(script :src "//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js")
 

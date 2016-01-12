@@ -4,7 +4,8 @@
             [clojure.string :as str]
             [javelin.core :as j :refer [cell]]
             [castra.core  :as c #_:refer #_[mkremote]]
-            [hoplon.core :as h]))
+            [hoplon.core :as h]
+            [cognitect.transit :as t]))
 
 (defn jq-cred-ajax [async? url data headers done fail always]
   (.. js/jQuery
@@ -21,6 +22,39 @@
       (fail (fn [x _ _] (fail (aget x "responseText"))))
       (always (fn [_ _] (always)))))
 
+(defn with-default-opts
+  [opts]
+  (->> opts
+       (apply hash-map)
+       (merge {:timeout     0
+               :credentials true
+               :on-error    identity
+               :ajax-fn     c/ajax-fn
+               :json->clj   (partial t/read (t/reader :json))
+               :clj->json   (partial t/write (t/writer :json))
+               :url         (.. js/window -location -href)})))
+
+(defn mkremote*
+  "Given state error and loading input cells, returns an RPC function. The
+  optional :url keyword argument can be used to specify the URL to which the
+  POST requests will be made."
+  [endpoint state error loading & opts]
+  (fn [& args]
+    (let [live?  (not c/*validate-only*)
+          prom   (.Deferred js/jQuery)
+          unload #(vec (remove (partial = prom) %))]
+      (when live? (swap! loading (fnil conj []) prom))
+      (let [prom' (-> (c/ajax (with-default-opts opts) `[~endpoint ~@args])
+                      (.done   #(do (when live?
+                                      (reset! error nil)
+                                      (reset! state %))
+                                    (.resolve prom %)))
+                      (.fail   #(do (when live? (reset! error %))
+                                    (.reject prom %)))
+                      (.always #(when live? (swap! loading unload))))]
+        (doto prom (aset "xhr" (aget prom' "xhr")))))))
+
+
 (def server-url #_(condp = (-> js/window .-location .-hostname)
                   "" "http://localhost:3000/"
                   "localhost" "http://localhost:3000/"
@@ -29,8 +63,11 @@
   "http://irrigama-web.elasticbeanstalk.com/")
 #_(println "server-url: " server-url)
 
+(println "local-url: " (.. js/window -location -href))
+
 (defn mkremote [& args]
-  (apply c/mkremote (flatten [args server-url jq-cred-ajax]))
+  (apply mkremote* (flatten [args :url server-url]))
+  #_(apply c/mkremote (flatten [args :url server-url #_jq-cred-ajax]))
   #_(apply c/mkremote (flatten [args "http://localhost:3000/" jq-cred-ajax]))
   #_(apply c/mkremote (flatten [args "http://irrigama-web.elasticbeanstalk.com/" jq-cred-ajax])))
 

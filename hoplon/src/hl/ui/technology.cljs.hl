@@ -157,7 +157,7 @@
 
            (bs/form-group
              :toggle edit? ;we don't have to show this for read-only mode
-             (bs/control-label :col [:sm (+ 1 label-cols)] :for type-id
+             (bs/control-label :col {:sm (+ 1 label-cols)} :for type-id
                                (text "~(vocab :type-label s/lang)"))
              (div
                :col {:xs 2}
@@ -175,7 +175,7 @@
                  )))
 
            (bs/form-group
-             (bs/control-label :col [:sm (+ 1 label-cols)] :for outlet-height-id (text "~(vocab :outlet-height-label s/lang)"))
+             (bs/control-label :col {:sm (+ 1 label-cols)} :for outlet-height-id (text "~(vocab :outlet-height-label s/lang)"))
              (div
                :col {:xs value-cols}
                (p :toggle no-edit? :class "form-control-static" (text "~{outlet-height}"))
@@ -195,7 +195,7 @@
                  (span :class "input-group-addon" "cm"))))
 
            (bs/form-group
-             (bs/control-label :col [:sm (+ 1 label-cols)] :for sprinkle-loss-factor-id (text "~(vocab :sprinkle-loss-factor-label s/lang)"))
+             (bs/control-label :col {:sm (+ 1 label-cols)} :for sprinkle-loss-factor-id (text "~(vocab :sprinkle-loss-factor-label s/lang)"))
              (div
                :col {:xs value-cols}
                (div
@@ -218,7 +218,7 @@
                  (span :class "input-group-addon" "%"))))
 
            (bs/form-group
-             (bs/control-label :col [:sm (+ 1 label-cols)] :for cycle-days-id (text "~(vocab :cycle-days-label s/lang)"))
+             (bs/control-label :col {:sm (+ 1 label-cols)} :for cycle-days-id (text "~(vocab :cycle-days-label s/lang)"))
              (div
                :col {:xs value-cols}
                (p :toggle no-edit? :class "form-control-static" (text "~{cycle-days}"))
@@ -245,7 +245,7 @@
            (legend (text "~(vocab :technology-parameters-fieldset-label s/lang)"))
 
            (bs/form-group
-             (bs/control-label :col [:sm (+ 1 label-cols)] :for donation-min-id (text "~(vocab :donation-min-label s/lang)"))
+             (bs/control-label :col {:sm (+ 1 label-cols)} :for donation-min-id (text "~(vocab :donation-min-label s/lang)"))
              (div
                :col {:xs value-cols}
                (p :toggle no-edit? :class "form-control-static" (text "~{donation-min}"))
@@ -266,7 +266,7 @@
                ))
 
            (bs/form-group
-             (bs/control-label :col [:sm (+ 1 label-cols)] :for donation-opt-id (text "~(vocab :donation-opt-label s/lang)"))
+             (bs/control-label :col {:sm (+ 1 label-cols)} :for donation-opt-id (text "~(vocab :donation-opt-label s/lang)"))
              (div
                :col {:xs value-cols}
                (p :toggle no-edit? :class "form-control-static" (text "~{donation-opt}"))
@@ -287,7 +287,7 @@
                ))
 
            (bs/form-group
-             (bs/control-label :col [:sm (+ 1 label-cols)] :for donation-max-id (text "~(vocab :donation-max-label s/lang)"))
+             (bs/control-label :col {:sm (+ 1 label-cols)} :for donation-max-id (text "~(vocab :donation-max-label s/lang)"))
              (div
                :col {:xs value-cols}
                (p :toggle no-edit? :class "form-control-static" (text "~{donation-max}"))
@@ -308,7 +308,7 @@
                ))
 
            (bs/form-group
-             (bs/control-label :col [:sm (+ 1 label-cols)] :for step-size-id (text "~(vocab :step-size-label s/lang)"))
+             (bs/control-label :col {:sm (+ 1 label-cols)} :for step-size-id (text "~(vocab :step-size-label s/lang)"))
              (div
                :col {:xs value-cols}
                (p :toggle no-edit? :class "form-control-static" (text "~{step-size}"))

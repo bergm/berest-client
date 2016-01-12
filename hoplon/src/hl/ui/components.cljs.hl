@@ -66,14 +66,14 @@
   (div
     :id "error"
     :on-click s/clear-error!
-    :do-slide-toggle s/error
+    :slide-toggle s/error
     (text "~(:message s/error)")))
 
 (defn loading-pane
   []
   (div
     :id "loading"
-    :do-fade-toggle s/loading?
+    :fade-toggle s/loading?
     "loading..."))
 
 
@@ -81,7 +81,7 @@
   [page-name-label]
   (nav
     :class "navbar navbar-default navbar-fixed-top"
-    :role "navigation"
+    ;:role "navigation"
     (div
       :class "container-fluid"
 
@@ -89,7 +89,7 @@
         :class "navbar-header"
         (button
           :type "button"
-          :class "navbar-toggle"
+          :class "navbar-toggle collapsed"
           :data-toggle "collapse"
           :data-target ".navbar-collapse"
           (span :class "sr-only" "Toggle navigation")
@@ -98,28 +98,29 @@
           (span :class "icon-bar"))
         (span
           :class "navbar-brand"
-          :style "float: none"
+          :style "padding-top: 8px"
           (img
-            :style "clear: both; height:50px"
+            :style "height:50px" #_"clear: both;"
             :src "irrigama-logo.png"
-            :alt "Irrigama-Logo")
+            :alt "Irrigama-Logo"))
+        (span
+          :class "navbar-brand"
+          :style "padding-top: 8px"
           (a
-            :class "navbar-brand"
-            :style "float:none"
             :href "http://www.fbm-ev.de"
             (img
-              :style "clear: both; height:50px"
+              :style "height:50px" #_"clear: both"
               :src "fbm-logo.png"
-              :alt "FBM-Logo"))
+              :alt "FBM-Logo")))
+        (span
+          :class "navbar-text"
           (a
-            :class "navbar-brand"
-            :style "float: none"
             :href "#/farms"
             (span
               :toggle s/show-content?
               :style "vertical-align: middle; font-size:24px; font-weight:bold" "IRRIGAMA.WEB"))))
 
-      (div
+      #_(div
         :class "collapse navbar-collapse"
         (ul
           :toggle s/logged-in?
@@ -166,7 +167,7 @@
                           (reset! s/static-state nil)
                           (s/clear-route+params))
               "Logout"))))
-      (div
+      #_(div
         :class "row"
         :toggle s/logged-in?
         :style "background-color: #e7e7e7; margin-bottom: 0px;"
@@ -200,7 +201,7 @@
 
 
 
-        (div
+        #_(div
           :toggle (cell= (= s/route "#/weather"))
           :style "padding: 8px 15px"
 
@@ -219,7 +220,7 @@
 
 
 
-        (div
+        #_(div
           :toggle (cell= (= s/route "#/crops"))
           :style "padding: 8px 15px"
 

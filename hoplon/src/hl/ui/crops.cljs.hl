@@ -13,6 +13,7 @@
             [ui.components :as uic]
             [bootstrap-util :as bsu]
             [hoplon.twitter.bootstrap :as bs]
+            [cljsjs.highcharts]
             #_[cljs-time.coerce :as cstcoe]))
 
 
@@ -173,7 +174,7 @@
 
     (div
       :id "crops-pane"
-      :do-toggle (cell= (= s/route "#/crops"))
+      :toggle (cell= (and s/show-content? (= s/route "#/crops")))
 
       (bs/form-horizontal
 

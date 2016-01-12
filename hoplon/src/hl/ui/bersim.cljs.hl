@@ -62,7 +62,7 @@
 
     (div
       :id "bersim-pane"
-      :do-toggle (cell= (= s/route "#/bersim"))
+      :toggle (cell= (and s/show-content? (= s/route "#/bersim")))
 
       (bs/form-horizontal
         :name "test-data-form"

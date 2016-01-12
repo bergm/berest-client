@@ -5,6 +5,7 @@
             [ui.components :as uic]
             [bootstrap-util :as bsu]
             [hoplon.twitter.bootstrap :as bs]
+            [cljsjs.highcharts]
             [cljs-time.core :as cstc]
             [cljs-time.format :as cstf]
             [cljs-time.coerce :as cstcoe]
@@ -150,7 +151,7 @@
         ]
        (div
          :id "weather-stations-pane"
-         :do-toggle (cell= (= s/route "#/weather"))
+         :toggle (cell= (and s/show-content? (= s/route "#/weather")))
 
          (div
            :class "row"

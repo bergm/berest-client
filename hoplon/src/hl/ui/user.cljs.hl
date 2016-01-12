@@ -172,7 +172,7 @@
            (bs/control-label :col {:sm label-cols} :for all-weather-stations-id
                              (text "~(vocab :available-weathers-station-label s/lang)"))
            (div
-             :col [:xs (- 12 label-cols)]
+             :col {:xs (- 12 label-cols)}
              (div
                :class "container"
                :style "margin-left: 0px; padding-left: 0px"

@@ -12,6 +12,7 @@
                  [ring/ring-defaults        "0.1.5"]
 
                  [hoplon/twitter-bootstrap "0.2.0"]
+                 [cljsjs/bootstrap "3.3.6-0"]
                  [cljsjs/highcharts "4.1.10-1"]
 
                  [cljs-ajax "0.2.3"]
