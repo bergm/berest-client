@@ -59,8 +59,8 @@
                   "" "http://localhost:3000/"
                   "localhost" "http://localhost:3000/"
                   "http://irrigama-web.elasticbeanstalk.com/")
-  #_"http://localhost:3000/"
-  "http://irrigama-web.elasticbeanstalk.com/")
+  "http://localhost:3000/"
+  #_"http://irrigama-web.elasticbeanstalk.com/")
 #_(println "server-url: " server-url)
 
 (println "local-url: " (.. js/window -location -href))
