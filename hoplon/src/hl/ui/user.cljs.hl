@@ -107,7 +107,7 @@
                :type "text"
                :placeholder (cell= (vocab :full-name-placeholder s/lang))
                :value full-name
-               :on-change #(full-name! @%))))
+               :change #(full-name! @%))))
 
          (bs/form-group
            :class (cell= {:has-error pwd-error})
@@ -127,7 +127,7 @@
                :type "password"
                :placeholder (cell= (vocab :pwd1-placeholder s/lang))
                :value (cell= (first pwds))
-               :on-change #(swap! pwds assoc 0 @%))
+               :change #(swap! pwds assoc 0 @%))
 
              (input
                :id pwd2-id
@@ -136,7 +136,7 @@
                :type "password"
                :placeholder (cell= (vocab :pwd2-placeholder s/lang))
                :value (cell= (second pwds))
-               :on-change #(swap! pwds assoc 1 @%))))
+               :change #(swap! pwds assoc 1 @%))))
 
          (bs/form-group
            (bs/control-label :col {:sm 2} :for roles-id (text "~(vocab :roles-label s/lang)"))
@@ -147,7 +147,7 @@
                :class "form-control"
                :multiple "multiple"
                :size 4
-               :on-change #(let [role-kws (mapv keyword @%)
+               :change #(let [role-kws (mapv keyword @%)
                                  _ (println (pr-str role-kws) " types: " (map type role-kws))]
                                 (s/update-user-roles @id role-kws))
 

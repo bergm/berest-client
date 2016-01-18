@@ -126,7 +126,7 @@
              :type "text"
              :placeholder (cell= (vocab :name-placeholder s/lang))
              :value name
-             :on-change #(name! @%))))
+             :change #(name! @%))))
 
        (let [visible? (cell false)]
          (fieldset
@@ -267,7 +267,7 @@
                :max 100
                :placeholder (cell= (vocab :irr-costs-placeholder s/lang))
                :value avg-irrigation-costs
-               :on-change #(avg-irrigation-costs! (js/parseFloat @%)))
+               :change #(avg-irrigation-costs! (js/parseFloat @%)))
              (span :class "input-group-addon" "€/mm"))))
 
        (bs/form-group
@@ -282,7 +282,7 @@
              :rows 5
              :placeholder (cell= (vocab :notes-placeholder s/lang))
              :value notes
-             :on-change #(notes! @%))))
+             :change #(notes! @%))))
 
        (fieldset
          (legend (text "~(vocab :weather-stations-fieldset-label s/lang)"))

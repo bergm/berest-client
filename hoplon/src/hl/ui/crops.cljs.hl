@@ -186,7 +186,7 @@
               (button
                 :type "button"
                 :class "btn btn-link"
-                :on-click #(reset! filter-criterium (char c))
+                :click #(reset! filter-criterium (char c))
                 (char c)))))
 
         (bs/form-group
@@ -199,7 +199,7 @@
               :type "text"
               :placeholder (cell= (vocab :query-placeholder s/lang))
               :value filter-criterium
-              :on-change #(reset! filter-criterium @%)))))
+              :change #(reset! filter-criterium @%)))))
 
       (div
         :class "row"
@@ -348,7 +348,7 @@
                     :type "text"
                     :placeholder (cell= (vocab :name-placeholder s/lang))
                     :value name
-                    :on-change #(s/update-crop-db-entity @id @db-id :crop/name @%))))
+                    :change #(s/update-crop-db-entity @id @db-id :crop/name @%))))
 
               (bs/form-group
                 (bs/control-label :col {:sm 2} :for symbol-id (text "~(vocab :symbol-label s/lang)"))
@@ -362,7 +362,7 @@
                     :type "text"
                     :placeholder (cell= (vocab :symbol-placeholder s/lang))
                     :value symbol
-                    :on-change #(s/update-crop-db-entity @id @db-id :crop/symbol @%))))
+                    :change #(s/update-crop-db-entity @id @db-id :crop/symbol @%))))
 
               (bs/form-group
                 (bs/control-label :col {:sm 2} :for description-id (text "~(vocab :description-label s/lang)"))
@@ -376,7 +376,7 @@
                     :type "text"
                     :placeholder (cell= (vocab :description-placeholder s/lang))
                     :value description
-                    :on-change #(s/update-crop-db-entity @id @db-id :crop/description @%))))
+                    :change #(s/update-crop-db-entity @id @db-id :crop/description @%))))
 
               (bs/form-group
                 (bs/control-label :col {:sm 2} :for description-id (text "~(vocab :number-cult-type-usage-label s/lang)"))
@@ -390,7 +390,7 @@
                     :type "text"
                     :placeholder (cell= (vocab :number-placeholder s/lang))
                     :value number
-                    :on-change #(s/update-crop-db-entity @id @db-id :crop/number @%)))
+                    :change #(s/update-crop-db-entity @id @db-id :crop/number @%)))
                 (div
                   :col {:xs 2}
                   (p :toggle no-edit? :class "form-control-static" (text "~{cultivation-type}"))
@@ -401,7 +401,7 @@
                     :type "text"
                     :placeholder (cell= (vocab :cultivation-type-placeholder s/lang))
                     :value cultivation-type
-                    :on-change #(s/update-crop-db-entity @id @db-id :crop/cultivation-type @%)))
+                    :change #(s/update-crop-db-entity @id @db-id :crop/cultivation-type @%)))
                 (div
                   :col {:xs 2}
                   (p :toggle no-edit? :class "form-control-static" (text "~{usage}"))
@@ -412,7 +412,7 @@
                     :type "text"
                     :placeholder (cell= (vocab :usage-placeholder s/lang))
                     :value usage
-                    :on-change #(s/update-crop-db-entity @id @db-id :crop/usage @%))))
+                    :change #(s/update-crop-db-entity @id @db-id :crop/usage @%))))
 
               (div
                 :class "row"
@@ -633,7 +633,7 @@
                           :max 2
                           :placeholder (cell= (vocab :crop-effectivity-quotient-placeholder s/lang))
                           :value effectivity-quotient
-                          :on-change #(s/update-crop-db-entity @id @db-id
+                          :change #(s/update-crop-db-entity @id @db-id
                                                                :crop/effectivity-quotient (js/parseFloat @%)
                                                                :value-type :double))
                         (span :class "input-group-addon" "")))))))))))))

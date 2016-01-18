@@ -150,7 +150,7 @@
                 :type "text"
                 :placeholder (cell= (vocab :description-placeholder s/lang))
                 :value description
-                :on-change #(description! @%))))
+                :change #(description! @%))))
 
           (bs/form-group
             (bs/control-label :col {:sm label-cols} :for street-id (text "~(vocab :street-label s/lang)"))
@@ -164,7 +164,7 @@
                 :type "text"
                 :placeholder (cell= (vocab :street-placeholder s/lang))
                 :value street
-                :on-change #(street! @%))))
+                :change #(street! @%))))
 
           (bs/form-group
             (bs/control-label :col {:sm label-cols} :for postal-code-id (text "~(vocab :postal-code-label s/lang)"))
@@ -181,7 +181,7 @@
                 :max 100000
                 :placeholder (cell= (vocab :postal-code-placeholder s/lang))
                 :value postal-code
-                :on-change #(postal-code! @%))))
+                :change #(postal-code! @%))))
 
           (bs/form-group
             (bs/control-label :col {:sm label-cols} :for city-id (text "~(vocab :city-label s/lang)"))
@@ -195,7 +195,7 @@
                 :type "text"
                 :placeholder (cell= (vocab :city-placeholder s/lang))
                 :value city
-                :on-change #(city! @%))))
+                :change #(city! @%))))
 
           (bs/form-group
             (bs/control-label :col {:sm label-cols} :for city-part-id (text "~(vocab :city-part-label s/lang)"))
@@ -209,7 +209,7 @@
                 :type "text"
                 :placeholder (cell= (vocab :city-part-placeholder s/lang))
                 :value city-part
-                :on-change #(city-part! @%))))
+                :change #(city-part! @%))))
 
           (bs/form-group
             (bs/control-label :col {:sm label-cols} :for municipality-id (text "~(vocab :municipality-label s/lang)"))
@@ -223,7 +223,7 @@
                 :type "text"
                 :placeholder (cell= (vocab :municipality-placeholder s/lang))
                 :value municipality
-                :on-change #(municipality! @%))))
+                :change #(municipality! @%))))
 
           (bs/form-group
             (bs/control-label :col {:sm label-cols} :for municipality-short-id (text "~(vocab :municipality-short-label s/lang)"))
@@ -237,7 +237,7 @@
                 :type "text"
                 :placeholder (cell= (vocab :municipality-short-placeholder s/lang))
                 :value municipality-short
-                :on-change #(municipality-short! @%))))
+                :change #(municipality-short! @%))))
 
           (bs/form-group
             (bs/control-label :col {:sm label-cols} :for state-id (text "~(vocab :state-label s/lang)"))
@@ -251,7 +251,7 @@
                 :type "text"
                 :placeholder (cell= (vocab :state-placeholder s/lang))
                 :value state
-                :on-change #(state! @%))))
+                :change #(state! @%))))
 
           (bs/form-group
             (bs/control-label :col {:sm label-cols} :for state-short-id (text "~(vocab :state-short-label s/lang)"))
@@ -265,7 +265,7 @@
                 :type "text"
                 :placeholder (cell= (vocab :state-short-placeholder s/lang))
                 :value state-short
-                :on-change #(state-short! @%))))
+                :change #(state-short! @%))))
 
           (bs/form-group
             (bs/control-label :col {:sm label-cols} :for country-id (text "~(vocab :country-label s/lang)"))
@@ -279,7 +279,7 @@
                 :type "text"
                 :placeholder (cell= (vocab :country-placeholder s/lang))
                 :value country
-                :on-change #(country! @%))))
+                :change #(country! @%))))
 
           (bs/form-group
             (bs/control-label :col {:sm label-cols} :for country-short-id (text "~(vocab :country-short-label s/lang)"))
@@ -293,6 +293,6 @@
                 :type "text"
                 :placeholder (cell= (vocab :country-short-placeholder s/lang))
                 :value country-short
-                :on-change #(country-short! @%))))
+                :change #(country-short! @%))))
 
           ) (dissoc attrs :fields :opts) kids)))

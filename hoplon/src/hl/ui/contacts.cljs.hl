@@ -93,7 +93,7 @@
                 :type "text"
                 :placeholder (cell= (vocab :title-placeholder s/lang))
                 :value title
-                :on-change #(title! @%))))
+                :change #(title! @%))))
 
           (bs/form-group
             (bs/control-label :col {:sm label-cols} :for first-name-id (text "~(vocab :first-name-label s/lang)"))
@@ -107,7 +107,7 @@
                 :type "text"
                 :placeholder (cell= (vocab :first-name-placeholder s/lang))
                 :value first-name
-                :on-change #(first-name! @%))))
+                :change #(first-name! @%))))
 
           (bs/form-group
             (bs/control-label :col {:sm label-cols} :for last-name-id (text "~(vocab :last-name-label s/lang)"))
@@ -121,7 +121,7 @@
                 :type "text"
                 :placeholder (cell= (vocab :last-name-placeholder s/lang))
                 :value last-name
-                :on-change #(last-name! @%))))
+                :change #(last-name! @%))))
 
           (bs/form-group
             (bs/control-label :col {:sm label-cols} :for roles-id (text "~(vocab :roles-label s/lang)"))
@@ -135,7 +135,7 @@
                 :type "text"
                 :placeholder (cell= (vocab :roles-placeholder s/lang))
                 :value roles
-                :on-change #(roles! @%))))
+                :change #(roles! @%))))
 
           (bs/form-group
             (bs/control-label :col {:sm label-cols} :for notes-id (text "~(vocab :notes-label s/lang)"))
@@ -149,7 +149,7 @@
                 :rows 5
                 :placeholder (cell= (vocab :notes-placeholder s/lang))
                 :value notes
-                :on-change #(notes! @%))))
+                :change #(notes! @%))))
 
           (bs/form-group
             (bs/control-label :col {:sm label-cols} :for com-connections-id (text "~(vocab :com-con-id-label s/lang)"))
@@ -194,6 +194,6 @@
                 :id is-main-contact?-id
                 :type "checkbox"
                 :value is-main-contact?
-                :on-change #(is-main-contact?! (do! (util/by-id is-main-contact?-id) :value)))))
+                :change #(is-main-contact?! (do! (util/by-id is-main-contact?-id) :value)))))
 
           ) (dissoc attrs :fields :opts) kids)))

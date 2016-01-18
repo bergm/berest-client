@@ -48,7 +48,7 @@
            (watch)
            (speak)
            (hoplon)
-           (reload)
+           #_(reload)
            (cljs)))
 
 (deftask prod

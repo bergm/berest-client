@@ -28,6 +28,7 @@
 
 #_(s/login! "zalf" "fLAz")
 #_(s/login! "günther" "günther")
+(s/login! "mirschel" "mirschel")
 
 (cell= (print (:trace s/error)))
 

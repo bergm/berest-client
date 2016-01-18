@@ -65,7 +65,7 @@
   []
   (div
     :id "error"
-    :on-click s/clear-error!
+    :click s/clear-error!
     :slide-toggle s/error
     (text "~(:message s/error)")))
 
@@ -98,22 +98,23 @@
           (span :class "icon-bar"))
         (span
           :class "navbar-brand"
-          :style "padding-top: 8px"
+          :style "padding-top: 6px"
           (img
-            :style "height:50px" #_"clear: both;"
+            :style "height:40px" #_"clear: both;"
             :src "irrigama-logo.png"
             :alt "Irrigama-Logo"))
-        (span
+        #_(span
           :class "navbar-brand"
-          :style "padding-top: 8px"
+          :style "padding-top: 6px"
           (a
             :href "http://www.fbm-ev.de"
             (img
-              :style "height:50px" #_"clear: both"
+              :style "height:40px" #_"clear: both"
               :src "fbm-logo.png"
               :alt "FBM-Logo")))
         (span
           :class "navbar-text"
+          :style "margin-top: 8px; margin-bottom: 8px"
           (a
             :href "#/farms"
             (span
@@ -162,19 +163,20 @@
             (strong (text "~(:user/full-name s/user) "))
             (button
               :class "btn btn-default navbar-btn"
-              :on-click #(do
-                          (s/logout!)
-                          (reset! s/static-state nil)
-                          (s/clear-route+params))
+              :click #(do
+                       (s/logout!)
+                       (reset! s/static-state nil)
+                       (s/clear-route+params))
               "Logout"))))
-      #_(div
+      (div
         :class "row"
         :toggle s/logged-in?
         :style "background-color: #e7e7e7; margin-bottom: 0px;"
 
         (div
           :toggle (cell= (= s/route "#/farms"))
-          :style "padding: 8px 15px"
+          :class "breadcrumbs-padding"
+          ;:style "padding: 3px 15px"
 
           (span
             :toggle (cell= (:farm s/breadcrumbs))
@@ -199,11 +201,10 @@
             :click #(some-> "plot-section-table" util/by-id .scrollIntoView)
             (text " ~(vocab :plot-annual s/lang) ~(:plot-annual s/breadcrumbs)")))
 
-
-
-        #_(div
+        (div
           :toggle (cell= (= s/route "#/weather"))
-          :style "padding: 8px 15px"
+          :class "breadcrumbs-padding"
+          ;:style "padding: 3px 15px"
 
           (span
             :toggle (cell= (:weather-station s/breadcrumbs))
@@ -218,11 +219,10 @@
             :toggle (cell= (:weather-year s/breadcrumbs))
             (text " ~(vocab :weather-year s/lang) ~(:weather-year s/breadcrumbs) ")))
 
-
-
-        #_(div
+        (div
           :toggle (cell= (= s/route "#/crops"))
-          :style "padding: 8px 15px"
+          :class "breadcrumbs-padding"
+          ;:style "padding: 3px 15px"
 
           (span
             :toggle (cell= (:crop s/breadcrumbs))

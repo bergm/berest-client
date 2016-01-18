@@ -7,7 +7,7 @@
 (defelem trigger
   [{:keys [state tab]} [elem]]
   (active :state (cell= (= state tab))
-    (elem :on-click #(reset! state tab))))
+    (elem :click #(reset! state tab))))
 
 (defelem content
   [{:keys [state tab]} [elem]]

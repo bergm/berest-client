@@ -136,7 +136,7 @@
                    (button
                      :type "button"
                      :class "btn btn-link"
-                     :on-click #(reset! filter-criterium (char c))
+                     :click #(reset! filter-criterium (char c))
                      (char c)))))
 
           (bs/form-group
@@ -149,7 +149,7 @@
                 :type "text"
                 :placeholder (cell= (vocab :user-query-placeholder s/lang))
                 :value filter-criterium
-                :on-change #(reset! filter-criterium @%)))))
+                :change #(reset! filter-criterium @%)))))
 
         (hr)
 
@@ -164,7 +164,7 @@
                 :type "text"
                 :placeholder (cell= (vocab :new-user-id-field-placeholder s/lang))
                 :value new-user-id
-                :on-change #(reset! new-user-id @%)))
+                :change #(reset! new-user-id @%)))
 
             (bs/form-group
               (label :class "sr-only" :for new-user-pwd-field-id (text "~(vocab :new-user-pwd-field-label s/lang)"))
@@ -174,7 +174,7 @@
                 :type "password"
                 :placeholder (cell= (vocab :new-user-pwd-field-placeholder s/lang))
                 :value new-user-pwd
-                :on-change #(reset! new-user-pwd @%)))
+                :change #(reset! new-user-pwd @%)))
 
             (button
               ;:toggle no-edit?
@@ -229,7 +229,7 @@
                    (span
                      :class "glyphicon glyphicon-plus"
                      :toggle (cell= (not user-details-visible?))
-                     :on-click #(reset! user-details-visible? true))
+                     :click #(reset! user-details-visible? true))
                    (span
                      :toggle user-details-visible?
                      :class "glyphicon glyphicon-minus"
@@ -270,7 +270,7 @@
                   :min 1
                   :max 24
                   :value new-hour
-                  :on-change #(reset! new-hour (js/parseInt @%)))
+                  :change #(reset! new-hour (js/parseInt @%)))
                 (span :class "input-group-addon" "h")))
 
             (bs/form-group
@@ -286,7 +286,7 @@
                   :min 0
                   :max 59
                   :value new-min
-                  :on-change #(reset! new-min (js/parseInt @%)))
+                  :change #(reset! new-min (js/parseInt @%)))
                 (span :class "input-group-addon" "min")))
 
             (button
@@ -310,7 +310,7 @@
                   :class "form-control"
                   :type "date"
                   :value new-import-from
-                  :on-change #(reset! new-import-from @%))))
+                  :change #(reset! new-import-from @%))))
 
             (bs/form-group
               :col {:xs 2}
@@ -322,7 +322,7 @@
                   :class "form-control"
                   :type "date"
                   :value new-import-to
-                  :on-change #(reset! new-import-to @%))))
+                  :change #(reset! new-import-to @%))))
 
             (button
               ;:col {:xs 3}

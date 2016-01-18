@@ -418,7 +418,7 @@
                          :type "text"
                          :placeholder (cell= (vocab :name-placeholder s/lang))
                          :value (cell= (or name (str "(Id: " id ")")))
-                         :on-change #(s/update-db-entity @db-id :weather-station/name @%))))
+                         :change #(s/update-db-entity @db-id :weather-station/name @%))))
 
                    #_(bs/form-group
                      (bs/control-label :col {:sm 2} :for lat-input (text "~(vocab :lat-label s/lang)"))
@@ -432,7 +432,7 @@
                          :type "number"
                          :placeholder (cell= (vocab :lat-placeholder s/lang))
                          :value lat
-                         :on-change #(swap! station-data assoc :lat @%))))
+                         :change #(swap! station-data assoc :lat @%))))
 
                    #_(bs/form-group
                      (bs/control-label :col {:sm 2} :for long-input (text "~(vocab :long-label s/lang)"))
@@ -446,7 +446,7 @@
                          :type "number"
                          :placeholder (cell= (vocab :long-placeholder s/lang))
                          :value long
-                         :on-change #(swap! station-data assoc :long @%))))
+                         :change #(swap! station-data assoc :long @%))))
 
 
                    (bs/form-group
@@ -460,7 +460,7 @@
                          :id years-id
                          :class "form-control"
                          :multiple "multiple"
-                         ;:on-change #(s/load-weather-station-data weather-station-data @id (map js/parseInt (val-id years-id)))
+                         ;:change #(s/load-weather-station-data weather-station-data @id (map js/parseInt (val-id years-id)))
                          :click #(let [sel-years (map js/parseInt @%)]
                                       (reset! selected-years-set (into #{} sel-years))
                                       #_(s/load-weather-station-data weather-station-data @id sel-years))
@@ -483,7 +483,7 @@
 
                    (div
                      :id "weather-data-chart" #_chart-id
-                     :toggle :toggle (cell= (not (nil? (seq selected-years-set*))))
+                     :toggle (cell= (not (nil? (seq selected-years-set*))))
                      :col {:xs 12})
 
                    (let [visible? (cell false)
@@ -555,7 +555,7 @@
                              :min 0
                              :placeholder (cell= (vocab :ignore-header-lines-placeholder s/lang))
                              :value no-of-header-lines-to-ignore
-                             :on-change #(reset! no-of-header-lines-to-ignore (js/parseInt @%)))))
+                             :change #(reset! no-of-header-lines-to-ignore (js/parseInt @%)))))
 
                        (let [create-elem-select (fn [def-elem c size]
                                                   (let [id (gensym)]

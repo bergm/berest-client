@@ -164,7 +164,7 @@
                (select
                  :id type-id
                  :class "form-control"
-                 :on-change #(type! (keyword @%))
+                 :change #(type! (keyword @%))
                  (option :value "technology.type/drip"
                          :selected (cell= (= type :technology.type/drip))
                          (text "~(vocab :drip s/lang)"))
@@ -191,7 +191,7 @@
                    :max 500
                    :placeholder (cell= (vocab :outlet-height-placeholder s/lang))
                    :value outlet-height
-                   :on-change #(outlet-height! (js/parseInt @%)))
+                   :change #(outlet-height! (js/parseInt @%)))
                  (span :class "input-group-addon" "cm"))))
 
            (bs/form-group
@@ -214,7 +214,7 @@
                    :value (cell= (if drip-irrigation?
                                    0
                                    (* (or sprinkle-loss-factor 0.2) 100)))
-                   :on-change #(sprinkle-loss-factor! (/ (js/parseInt @%) 100.0)))
+                   :change #(sprinkle-loss-factor! (/ (js/parseInt @%) 100.0)))
                  (span :class "input-group-addon" "%"))))
 
            (bs/form-group
@@ -234,7 +234,7 @@
                    :max 14
                    :placeholder (cell= (vocab :cycle-days-placeholder s/lang))
                    :value cycle-days
-                   :on-change #(cycle-days! (js/parseInt @%)))
+                   :change #(cycle-days! (js/parseInt @%)))
                  (span :class "input-group-addon" "d"))
                )))
 
@@ -261,7 +261,7 @@
                    :max 100
                    :placeholder (cell= (vocab :donation-min-placeholder s/lang))
                    :value donation-min
-                   :on-change #(donation-min! (js/parseInt @%)))
+                   :change #(donation-min! (js/parseInt @%)))
                  (span :class "input-group-addon" "mm"))
                ))
 
@@ -282,7 +282,7 @@
                    :max 100
                    :placeholder (cell= (vocab :donation-opt-placeholder s/lang))
                    :value donation-opt
-                   :on-change #(donation-opt! (js/parseInt @%)))
+                   :change #(donation-opt! (js/parseInt @%)))
                  (span :class "input-group-addon" "mm"))
                ))
 
@@ -303,7 +303,7 @@
                    :max 100
                    :placeholder (cell= (vocab :donation-max-placeholder s/lang))
                    :value donation-max
-                   :on-change #(donation-max! (js/parseInt @%)))
+                   :change #(donation-max! (js/parseInt @%)))
                  (span :class "input-group-addon" "mm"))
                ))
 
@@ -324,7 +324,7 @@
                    :max 50
                    :placeholder (cell= (vocab :step-size-placeholder s/lang))
                    :value step-size
-                   :on-change #(step-size! (js/parseInt @%)))
+                   :change #(step-size! (js/parseInt @%)))
                  (span :class "input-group-addon" "mm"))
                ))
            )

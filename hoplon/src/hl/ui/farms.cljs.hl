@@ -5,6 +5,7 @@
   (:require [javelin.core :refer :all]
             [hoplon.core :refer :all]
 
+            [clojure.string :as str]
             [cljs-time.core :as cstc]
             [cljs-time.format :as cstf]
             [cljs-time.coerce :as cstcoe]
@@ -232,7 +233,7 @@
               :type "text"
               :placeholder (cell= (vocab :query-placeholder s/lang))
               :value (cell= (:value filter-criterium))
-              :on-change #(reset! filter-criterium {:attr :farm/name
+              :change #(reset! filter-criterium {:attr :farm/name
                                                     :value @%})))))
 
       (div
@@ -285,7 +286,7 @@
                          :style "vertical-align: middle"
                          :class (cell= {:warning (and hover? (not selected?))
                                         :success selected?})
-                         :click #(s/set-route-params :farm-id @id)
+                         :click  #(s/set-route-params :farm-id @id)
                          (text "~(or name id)"))
 
                        (td
@@ -568,8 +569,10 @@
                                     ;_ (cell= (println "selected-annual: " (pr-str selected-annual)))
 
                                     _ (cell= (if selected-annual
-                                               (s/set-breadcrumb :plot-annual (or (:plot.annual/description selected-annual)
-                                                                                  (str (:plot.annual/year selected-annual))))
+                                               (s/set-breadcrumb :plot-annual (let [desc (:plot.annual/description selected-annual)]
+                                                                                (if (and desc (not= (str/trim desc) ""))
+                                                                                  desc
+                                                                                  (str (:plot.annual/year selected-annual)))))
                                                (s/set-breadcrumb :plot-annual nil)))
 
                                     _ (cell= (when-let [sel-ann-id (:plot.annual/id selected-annual)]
@@ -617,7 +620,7 @@
                                                  :id copy-previous-years-data-id
                                                  :type "checkbox"
                                                  :value copy-data?
-                                                 :on-change #(reset! copy-data? @%))
+                                                 :change #(reset! copy-data? @%))
                                                (text "~(vocab :copy-selected-years-data?-label s/lang)?")))
 
                                            (div
@@ -634,7 +637,7 @@
                                                :max 2100
                                                :placeholder (cell= (vocab :new-year-placeholder s/lang))
                                                :value new-year
-                                               :on-change #(reset! new-year (js/parseInt @%))))
+                                               :change #(reset! new-year (js/parseInt @%))))
 
                                            (div
                                              :col {:xs 1}

@@ -173,7 +173,7 @@
         :type "number"
         :placeholder "Tag"
         :value day
-        :on-change #(set-day! (some-> row-no deref) (js/parseInt @%))))
+        :change #(set-day! (some-> row-no deref) (js/parseInt @%))))
     (div
       :class "col-xs-2"
       (input
@@ -181,7 +181,7 @@
         :type "number"
         :placeholder "Monat"
         :value month
-        :on-change #(set-month! (some-> row-no deref) (js/parseInt @%))))
+        :change #(set-month! (some-> row-no deref) (js/parseInt @%))))
     (div
       :class "col-xs-2"
       (input
@@ -189,13 +189,13 @@
         :type "number"
         :placeholder "Menge [mm]"
         :value amount
-        :on-change #(set-amount! (some-> row-no deref) (js/parseInt @%))))
+        :change #(set-amount! (some-> row-no deref) (js/parseInt @%))))
 
     (input
       :class "btn btn-default"
       :type "button"
       :value (if row-no "Zeile entfernen" "Zeile hinzufügen")
-      :on-click #(add-or-remove-row! (some-> row-no deref)))))
+      :click #(add-or-remove-row! (some-> row-no deref)))))
 
 
 (defelem
@@ -222,7 +222,7 @@
              :min 0
              :max 200
              :value depth
-             :on-change #(depth! (js/parseInt @%)))
+             :change #(depth! (js/parseInt @%)))
            (span :class "input-group-addon" "cm")))
 
        (div
@@ -230,7 +230,7 @@
          (select
            :id value-id
            :class "form-control"
-           :on-change #(value! @%)
+           :change #(value! @%)
            (option "")
            (loop-tpl
              :bindings [[name _] (cell= (sort-by first s/ka5-soil-types))]
@@ -247,7 +247,7 @@
                           :btn-warning (nil? row-no)})
            ;:type "button"
            ;:value (cell= (if row-no (vocab :remove-layer-label s/lang) (vocab :add-layer-label s/lang)))
-           :on-click #(row-action! (some-> row-no deref))
+           :click #(row-action! (some-> row-no deref))
            (span :class (cell= {:glyphicon true
                                 :glyphicon-trash (not (nil? row-no))
                                 :glyphicon-plus (nil? row-no)})))))
@@ -279,7 +279,7 @@
              :min 0
              :max 200
              :value depth
-             :on-change #(depth! (js/parseInt @%)))
+             :change #(depth! (js/parseInt @%)))
            (span :class "input-group-addon" "cm")))
 
        (div
@@ -294,7 +294,7 @@
              :step 0.1
              :min 0
              :value value
-             :on-change #(value! (js/parseFloat @%)))
+             :change #(value! (js/parseFloat @%)))
            (span :class "input-group-addon" (text "~{unit}"))))
 
        (div
@@ -306,7 +306,7 @@
                           :btn-warning (nil? row-no)})
            ;:type "button"
            ;:value (cell= (if row-no (vocab :remove-layer-label s/lang) (vocab :add-layer-label s/lang)))
-           :on-click #(row-action! (some-> row-no deref))
+           :click #(row-action! (some-> row-no deref))
            (span :class (cell= {:glyphicon true
                                 :glyphicon-trash (not (nil? row-no))
                                 :glyphicon-plus (nil? row-no)})))))
@@ -341,7 +341,7 @@
                              (if (= year* (cstc/year (cstc/now)))
                                (util/cljs-time-date->iso-y-m-d (cstc/now))
                                (str year* "-01-01"))))
-             :on-change #(abs-start-day! (util/cljs-time-date->doy (cstf/parse (cstf/formatters :date)
+             :change #(abs-start-day! (util/cljs-time-date->doy (cstf/parse (cstf/formatters :date)
                                                                                @%))))))
 
        (div
@@ -358,7 +358,7 @@
                              (if (= year* (cstc/year (cstc/now)))
                                (util/cljs-time-date->iso-y-m-d (cstc/now))
                                (str year* "-01-01"))))
-             :on-change #(abs-end-day! (util/cljs-time-date->doy (cstf/parse (cstf/formatters :date)
+             :change #(abs-end-day! (util/cljs-time-date->doy (cstf/parse (cstf/formatters :date)
                                                                              @%))))))
 
        (div
@@ -373,7 +373,7 @@
              :step 0.1
              :min 0
              :value amount
-             :on-change #(amount! (js/parseFloat @%)))
+             :change #(amount! (js/parseFloat @%)))
            (span :class "input-group-addon" "mm")))
 
        (div
@@ -385,7 +385,7 @@
                           :btn-warning (nil? row-no)})
            ;:type "button"
            ;:value (cell= (if row-no (vocab :remove-donation-label s/lang) (vocab :add-donation-label s/lang)))
-           :on-click #(row-action! (some-> row-no deref))
+           :click #(row-action! (some-> row-no deref))
            (span :class (cell= {:glyphicon true
                                 :glyphicon-trash (not (nil? row-no))
                                 :glyphicon-plus (nil? row-no)})))))
@@ -416,7 +416,7 @@
                            (if (= year* (cstc/year (cstc/now)))
                              (util/cljs-time-date->iso-y-m-d (cstc/now))
                              (str year* "-01-01"))))
-           :on-change #(abs-day! (util/cljs-time-date->doy (cstf/parse (cstf/formatters :date)
+           :change #(abs-day! (util/cljs-time-date->doy (cstf/parse (cstf/formatters :date)
                                                                        @%)))))
 
        (div
@@ -430,14 +430,14 @@
            :min 1
            :max 100
            :value dc
-           :on-change #(dc! (js/parseInt @%))))
+           :change #(dc! (js/parseInt @%))))
 
        (div
          :col {:xs 4}
          (select
            :id dc-select-id
            :class "form-control"
-           :on-change #(dc! (js/parseInt @%))
+           :change #(dc! (js/parseInt @%))
            (option :selected (cell= (nil? row-no)) "")
            (loop-tpl
              :bindings [[dc* name] (cell= (sort-by first dc->names))]
@@ -453,7 +453,7 @@
                           :btn-sm true
                           :btn-danger (not (nil? row-no))
                           :btn-warning (nil? row-no)})
-           :on-click #(row-action! (some-> row-no deref))
+           :click #(row-action! (some-> row-no deref))
            (span :class (cell= {:glyphicon true
                                 :glyphicon-trash (not (nil? row-no))
                                 :glyphicon-plus (nil? row-no)})))))
@@ -492,7 +492,7 @@
              :class "form-control"
              :type "date"
              :value date-str
-             :on-change #(date! (cstcoe/to-date (cstf/parse (cstf/formatters :date)
+             :change #(date! (cstcoe/to-date (cstf/parse (cstf/formatters :date)
                                                             @%))))))
 
        #_(div
@@ -508,7 +508,7 @@
              :min -70
              :max 70
              :value tavg
-             :on-change #(tavg! (js/parseFloat @%)))
+             :change #(tavg! (js/parseFloat @%)))
            (span :class "input-group-addon" "°C"))
          (div
            :class "input-group"
@@ -521,7 +521,7 @@
              ;:min -70
              ;:max 70
              :value globrad
-             :on-change #(globrad! (js/parseFloat @%)))
+             :change #(globrad! (js/parseFloat @%)))
            (span :class "input-group-addon" "J/cm²")))
 
        (div
@@ -541,7 +541,7 @@
              :step 0.1
              :min 0
              :value evap
-             :on-change #(evap! (js/parseFloat @%)))
+             :change #(evap! (js/parseFloat @%)))
            (span
              :toggle (cell= (or edit? (not (nil? row-no))))
              :class "input-group-addon" "mm")))
@@ -560,7 +560,7 @@
              :step 0.1
              :min 0
              :value precip
-             :on-change #(precip! (js/parseFloat @%)))
+             :change #(precip! (js/parseFloat @%)))
            (span
              :toggle (cell= (or edit? (not (nil? row-no))))
              :class "input-group-addon" "mm")))
@@ -574,7 +574,7 @@
              :id prog?-id
              :type "checkbox"
              :value prog?
-             :on-change #(prog?! @%))
+             :change #(prog?! @%))
            (text "~(vocab :prog?-label s/lang)")))
 
        (let [prog-date-str (cell= (if prog-date
@@ -589,7 +589,7 @@
              :class "form-control"
              :type "date"
              :value prog-date-str
-             :on-change #(prog-date! (cstcoe/to-date (cstf/parse (cstf/formatters :date)
+             :change #(prog-date! (cstcoe/to-date (cstf/parse (cstf/formatters :date)
                                                                  @%))))))
 
        (div
@@ -600,7 +600,7 @@
                           :btn-sm true
                           :btn-danger (not (nil? row-no))
                           :btn-warning (nil? row-no)})
-           :on-click #(row-action! (some-> row-no deref))
+           :click #(row-action! (some-> row-no deref))
            (span :class (cell= {:glyphicon true
                                 :glyphicon-trash (not (nil? row-no))
                                 :glyphicon-plus (nil? row-no)})))))
@@ -703,7 +703,7 @@
              :min 0
              :max 100
              :value dc
-             :on-change #(dc! (js/parseInt @%)))
+             :change #(dc! (js/parseInt @%)))
            (span :class "input-group-addon" "")))
 
        (div
@@ -716,7 +716,7 @@
              :type "text"
              :placeholder (cell= (vocab :crop-name-placeholder s/lang))
              :value name
-             :on-change #(name! @%))
+             :change #(name! @%))
            (span :class "input-group-addon" "")))
 
        (div
@@ -728,7 +728,7 @@
                           :btn-warning (nil? row-no)})
            ;:type "button"
            ;:value (cell= (if row-no (vocab :remove-crop-dc-to-name-label s/lang) (vocab :add-crop-dc-to-name-label s/lang)))
-           :on-click #(row-action! (some-> row-no deref))
+           :click #(row-action! (some-> row-no deref))
            (span :class (cell= {:glyphicon true
                                 :glyphicon-trash (not (nil? row-no))
                                 :glyphicon-plus (nil? row-no)})))))
@@ -759,7 +759,7 @@
              :min 0
              :max 100
              :value dc
-             :on-change #(dc! (js/parseInt @%)))
+             :change #(dc! (js/parseInt @%)))
            (span :class "input-group-addon" "")))
 
        (div
@@ -775,7 +775,7 @@
              :min 1
              :max 365
              :value rel-dc-day
-             :on-change #(rel-dc-day! (js/parseInt @%)))
+             :change #(rel-dc-day! (js/parseInt @%)))
            (span :class "input-group-addon" "")))
 
        (div
@@ -787,7 +787,7 @@
                           :btn-warning (nil? row-no)})
            ;:type "button"
            ;:value (cell= (if row-no (vocab :remove-crop-dc-to-rel-dc-day-label s/lang) (vocab :add-crop-dc-to-rel-dc-day-label s/lang)))
-           :on-click #(row-action! (some-> row-no deref))
+           :click #(row-action! (some-> row-no deref))
            (span :class (cell= {:glyphicon true
                                 :glyphicon-trash (not (nil? row-no))
                                 :glyphicon-plus (nil? row-no)})))))
@@ -819,7 +819,7 @@
              :min 1
              :max 365
              :value rel-dc-day
-             :on-change #(rel-dc-day! (js/parseInt @%)))
+             :change #(rel-dc-day! (js/parseInt @%)))
            (span :class "input-group-addon" "d")))
 
        (div
@@ -835,7 +835,7 @@
              :min 0
              :max 100
              :value cover-degree
-             :on-change #(cover-degree! (js/parseInt @%)))
+             :change #(cover-degree! (js/parseInt @%)))
            (span :class "input-group-addon" "%")))
 
        (div
@@ -847,7 +847,7 @@
                           :btn-warning (nil? row-no)})
            ;:type "button"
            ;:value (cell= (if row-no (vocab :remove-crop-rel-dc-day-to-cover-degree-label s/lang) (vocab :add-crop-rel-dc-day-to-cover-degree-label s/lang)))
-           :on-click #(row-action! (some-> row-no deref))
+           :click #(row-action! (some-> row-no deref))
            (span :class (cell= {:glyphicon true
                                 :glyphicon-trash (not (nil? row-no))
                                 :glyphicon-plus (nil? row-no)})))))
@@ -878,7 +878,7 @@
              :min 1
              :max 365
              :value rel-dc-day
-             :on-change #(rel-dc-day! (js/parseInt @%)))
+             :change #(rel-dc-day! (js/parseInt @%)))
            (span :class "input-group-addon" "d")))
 
        (div
@@ -894,7 +894,7 @@
              :min 0
              :max 100
              :value aet7pet
-             :on-change #(aet7pet! (js/parseInt @%)))
+             :change #(aet7pet! (js/parseInt @%)))
            (span :class "input-group-addon" "%")))
 
        (div
@@ -906,7 +906,7 @@
                           :btn-warning (nil? row-no)})
            ;:type "button"
            ;:value (cell= (if row-no (vocab :remove-crop-rel-dc-day-to-aet7pet-label s/lang) (vocab :add-crop-rel-dc-day-to-aet7pet-label s/lang)))
-           :on-click #(row-action! (some-> row-no deref))
+           :click #(row-action! (some-> row-no deref))
            (span :class (cell= {:glyphicon true
                                 :glyphicon-trash (not (nil? row-no))
                                 :glyphicon-plus (nil? row-no)})))))
@@ -937,7 +937,7 @@
              :min 1
              :max 365
              :value rel-dc-day
-             :on-change #(rel-dc-day! (js/parseInt @%)))
+             :change #(rel-dc-day! (js/parseInt @%)))
            (span :class "input-group-addon" "d")))
 
        (div
@@ -953,7 +953,7 @@
              :min 0
              :max 200
              :value extraction-depth
-             :on-change #(extraction-depth! (js/parseInt @%)))
+             :change #(extraction-depth! (js/parseInt @%)))
            (span :class "input-group-addon" "cm")))
 
        (div
@@ -965,7 +965,7 @@
                           :btn-warning (nil? row-no)})
            ;:type "button"
            ;:value (cell= (if row-no (vocab :remove-crop-rel-dc-day-to-extraction-depth-label s/lang) (vocab :add-crop-rel-dc-day-to-extraction-depth-label s/lang)))
-           :on-click #(row-action! (some-> row-no deref))
+           :click #(row-action! (some-> row-no deref))
            (span :class (cell= {:glyphicon true
                                 :glyphicon-trash (not (nil? row-no))
                                 :glyphicon-plus (nil? row-no)})))))
@@ -996,7 +996,7 @@
              :min 1
              :max 365
              :value rel-dc-day
-             :on-change #(rel-dc-day! (js/parseInt @%)))
+             :change #(rel-dc-day! (js/parseInt @%)))
            (span :class "input-group-addon" "d")))
 
        (div
@@ -1012,7 +1012,7 @@
              :min 0
              :max 2
              :value transpiration-factor
-             :on-change #(transpiration-factor! (js/parseFloat @%)))
+             :change #(transpiration-factor! (js/parseFloat @%)))
            (span :class "input-group-addon" "")))
 
        (div
@@ -1024,7 +1024,7 @@
                           :btn-warning (nil? row-no)})
            ;:type "button"
            ;:value (cell= (if row-no (vocab :remove-crop-rel-dc-day-to-transpiration-factor-label s/lang) (vocab :add-crop-rel-dc-day-to-transpiration-factor-label s/lang)))
-           :on-click #(row-action! (some-> row-no deref))
+           :click #(row-action! (some-> row-no deref))
            (span :class (cell= {:glyphicon true
                                 :glyphicon-trash (not (nil? row-no))
                                 :glyphicon-plus (nil? row-no)})))))
@@ -1051,7 +1051,7 @@
            :type "text"
            :placeholder (cell= (vocab :com-con-id-placeholder s/lang))
            :value id
-           :on-change #(id! @%)))
+           :change #(id! @%)))
 
        (div
          :col {:xs 3}
@@ -1061,7 +1061,7 @@
            :type "text"
            :placeholder (cell= (vocab :com-con-desc-placeholder s/lang))
            :value desc
-           :on-change #(desc! @%)))
+           :change #(desc! @%)))
 
        (div
          :col {:xs 3}
@@ -1113,7 +1113,7 @@
 (defelem trigger
          [{:keys [state tab]} [elem]]
          (active :state (cell= (= state tab))
-                 (elem :on-click #(reset! state tab))))
+                 (elem :click #(reset! state tab))))
 
 (defelem content
          [{:keys [state tab]} [elem]]

@@ -1,5 +1,5 @@
 (ns de.zalf.berest.client.hoplon.state
-  (:require-macros [javelin.core :refer [defc defc= cell=]])
+  (:require-macros [javelin.core :refer [prop-cell defc defc= cell=]])
   (:require [clojure.set :as set]
             [clojure.string :as str]
             [javelin.core :as j :refer [cell]]
@@ -7,7 +7,9 @@
             [hoplon.core :as h]
             [cognitect.transit :as t]))
 
-(defn jq-cred-ajax [async? url data headers done fail always]
+#_(enable-console-print!)
+
+#_(defn jq-cred-ajax [async? url data headers done fail always]
   (.. js/jQuery
       (ajax (clj->js {"async"       async?
                       "contentType" "application/json"
@@ -43,15 +45,26 @@
     (let [live?  (not c/*validate-only*)
           prom   (.Deferred js/jQuery)
           unload #(vec (remove (partial = prom) %))]
-      (when live? (swap! loading (fnil conj []) prom))
+      (when live? (do
+                    #_(println endpoint " before swap! loading (count loading): " (count @loading))
+                    (swap! loading (fnil conj []) prom)
+                    #_(println endpoint " after swap! loading (count loading): " (count @loading))))
       (let [prom' (-> (c/ajax (with-default-opts opts) `[~endpoint ~@args])
-                      (.done   #(do (when live?
+                      (.done   #(do
+                                 #_(println endpoint " .done live?: " live? " (count loading): " (count @loading) " error: " error " state")
+                                 (when live?
                                       (reset! error nil)
+                                      #_(println endpoint " .done reset! state %")
                                       (reset! state %))
                                     (.resolve prom %)))
-                      (.fail   #(do (when live? (reset! error %))
-                                    (.reject prom %)))
-                      (.always #(when live? (swap! loading unload))))]
+                      (.fail   #(do
+                                 #_(println endpoint " .fail")
+                                 (when live? (reset! error %))
+                                 (.reject prom %)))
+                      (.always #(do
+                                 #_(println endpoint " .always before count: " (count @loading))
+                                 (when live? (swap! loading unload))
+                                 #_(println endpoint " .always after count: " (count @loading)))))]
         (doto prom (aset "xhr" (aget prom' "xhr")))))))
 
 
@@ -59,11 +72,9 @@
                   "" "http://localhost:3000/"
                   "localhost" "http://localhost:3000/"
                   "http://irrigama-web.elasticbeanstalk.com/")
-  "http://localhost:3000/"
-  #_"http://irrigama-web.elasticbeanstalk.com/")
+  #_"http://localhost:3000/"
+  "http://irrigama-web.elasticbeanstalk.com/")
 #_(println "server-url: " server-url)
-
-(println "local-url: " (.. js/window -location -href))
 
 (defn mkremote [& args]
   (apply mkremote* (flatten [args :url server-url]))
@@ -75,7 +86,7 @@
 
 ;stem cell
 (def state (cell {}))
-#_(cell= (println "state: \n" (pr-str state)))
+#_(cell= (println "state: " (pr-str state)))
 
 (def pwd-update-success? (cell nil))
 (def climate-data-import-time-update-success? (cell nil))
@@ -136,13 +147,35 @@
   [value]
   (swap! state update-in [:technology :technology/outlet-height] value))
 
+(defn route-cell
+  "Manage the URL hash via Javelin cells. There are three arities:
+  - When called with no arguments this function returns a formula cell whose
+    value is the URL hash or nil.
+  - When called with a single string argument, the argument is taken as the
+    default value, which is returned in place of nil when there is no hash.
+  - When a single cell argument is provided, the URL hash is kept synced to the
+    value of the cell.
+  - When a cell and a callback function are both provided, the URL hash is kept
+    synced to the value of the cell as above, and any attempt to change the hash
+    other than via the setter cell causes the callback to be called. The callback
+    should be a function of one argument, the requested URL hash."
+  ([]
+   (let [r (prop-cell (.. js/window -location -hash))]
+     (cell= (when (not= "" r) r))))
+  ([setter-or-dfl]
+   (if (j/cell? setter-or-dfl)
+     (prop-cell (.. js/window -location -hash) setter-or-dfl)
+     (let [r (route-cell)] (cell= (or r setter-or-dfl)))))
+  ([setter callback]
+   (prop-cell (.. js/window -location -hash) setter callback)))
 
 (def routeHash (cell (.. js/window -location -hash)))
 #_(cell= (println "routeHash: " (pr-str routeHash)))
-(def full-route (h/route-cell routeHash #(reset! routeHash %)))
+(def full-route (route-cell routeHash #(reset! routeHash %)))
 (def route+params (cell= (str/split full-route #"\?|\&|=")))
-(def route (cell= (first route+params)))
 #_(cell= (println "route+params: " (pr-str route+params)))
+(def route (cell= (first route+params)))
+#_(cell= (println "route: " (pr-str route)))
 (def route-params (cell= (into {} (for [[k v] (partition 2 (rest route+params))]
                                     [(keyword k) v]))))
 #_(cell= (println "route-params: " (pr-str route-params)))
@@ -184,6 +217,7 @@
 
 (def error (cell nil))
 (def loading (cell []))
+#_(cell= (println "(count loading) = " (count loading)))
 
 (def csv-result (cell nil))
 #_(cell= (println "csv-result: " (pr-str csv-result)))

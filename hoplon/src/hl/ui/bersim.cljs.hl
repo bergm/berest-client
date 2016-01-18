@@ -74,7 +74,7 @@
             (select
               :id farm-id
               :class "form-control"
-              :on-change #(reset! selected-farm-id* @%)
+              :change #(reset! selected-farm-id* @%)
               (loop-tpl :bindings [[_ {fid :farm/id
                                        name :farm/name}] s/farms]
                         (uie/create-option fid (:farm/id @selected-farm) name)))))
@@ -86,7 +86,7 @@
             (select
               :id plot-id
               :class "form-control"
-              :on-change #(reset! selected-plot-id* @%)
+              :change #(reset! selected-plot-id* @%)
               (loop-tpl
                 :bindings [[_ {pid :plot/id
                                name :plot/name}] plots]
@@ -103,7 +103,7 @@
               :type "date"
               :placeholder "Datum"
               :value (cell= (util/js-date-time->date-str until-date))
-              :on-change #(reset! until-date (js/Date. @%)))))
+              :change #(reset! until-date (js/Date. @%)))))
 
 
         (fieldset
@@ -140,13 +140,13 @@
             (input
               :class "btn btn-primary btn-lg"
               :type "button"
-              :on-click #(s/calculate-csv @selected-plot-id @until-date @donations)
+              :click #(s/calculate-csv @selected-plot-id @until-date @donations)
               :value "Berechnen & CSV")
             (div :css {:height "5px"})
             (input
               :class "btn btn-primary btn-lg"
               :type "button"
-              :on-click #(s/simulate-csv @selected-plot-id @until-date @donations)
+              :click #(s/simulate-csv @selected-plot-id @until-date @donations)
               :value "Simulieren & CSV")
             (div :css {:height "5px"})
             (a
