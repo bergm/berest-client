@@ -460,10 +460,8 @@
                          :id years-id
                          :class "form-control"
                          :multiple "multiple"
-                         ;:change #(s/load-weather-station-data weather-station-data @id (map js/parseInt (val-id years-id)))
-                         :click #(let [sel-years (map js/parseInt @%)]
-                                      (reset! selected-years-set (into #{} sel-years))
-                                      #_(s/load-weather-station-data weather-station-data @id sel-years))
+                         :change #(do #_(println "@%: " (pr-str @%))
+                                      (reset! selected-years-set (into #{} (map js/parseInt @%))))
                          (loop-tpl
                            :bindings [year (cell= (sort years))]
                            (option :value year
@@ -510,6 +508,7 @@
                          import-data (cell nil)]
                      (fieldset
                        :toggle (cell= (or local? s/admin-logged-in?))
+                       :col {:xs 12}
 
                        (uic/hover-activate-wrapper
                          :action! #(swap! visible? not)
@@ -705,6 +704,7 @@
                    (let [visible? (cell false)]
                         (fieldset
                           ;:toggle (cell= (or local? s/admin-logged-in?) #_(and selected-weather-station many-weather-stations? local?))
+                          :col {:xs 12}
 
                           (uic/hover-activate-wrapper
                             :action! #(swap! visible? not)

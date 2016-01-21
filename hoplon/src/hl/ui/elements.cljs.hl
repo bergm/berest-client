@@ -416,8 +416,7 @@
                            (if (= year* (cstc/year (cstc/now)))
                              (util/cljs-time-date->iso-y-m-d (cstc/now))
                              (str year* "-01-01"))))
-           :change #(abs-day! (util/cljs-time-date->doy (cstf/parse (cstf/formatters :date)
-                                                                       @%)))))
+           :change #(abs-day! (util/cljs-time-date->doy (cstf/parse (cstf/formatters :date) @%)))))
 
        (div
          :col {:xs 3}

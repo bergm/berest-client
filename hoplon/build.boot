@@ -13,7 +13,8 @@
 
                   [hoplon/twitter-bootstrap "0.2.0"]
                   [cljsjs/bootstrap "3.3.6-0"]
-                  [cljsjs/highcharts "4.1.10-1"]
+                  [cljsjs/highcharts "4.1.10-2"]
+                  #_[cljsjs/jquery "1.11.3-0"]
 
                   [cljs-ajax "0.2.3"]
 
@@ -49,7 +50,9 @@
            (speak)
            (hoplon)
            #_(reload)
-           (cljs)))
+           (cljs)
+           (target :dir #{"target"})
+           ))
 
 (deftask prod
          "Build berest-client for production deployment."
@@ -57,7 +60,8 @@
          (comp
            (hoplon)
            (cljs :optimizations :advanced)
-           (prerender)))
+           (prerender)
+           (target :dir #{"target"})))
 
 (deftask make-war
          "Build a war for deployment"

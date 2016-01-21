@@ -1,7 +1,8 @@
 (ns de.zalf.berest.client.hoplon.util
   (:require [cljs-time.core :as cstc]
             [cljs-time.format :as cstf]
-            [cljs-time.coerce :as cstcoe]))
+            [cljs-time.coerce :as cstcoe]
+            [hoplon.core :as hc]))
 
 (defn cell-update-in
   [global-cell path-to-substructure]
@@ -71,3 +72,5 @@
 (def sum (partial reduce + 0))
 
 (defn by-id [id] (.getElementById js/document (name id)))
+
+(defn val-id [id] (hc/do! (by-id id) :value))
