@@ -23,20 +23,5 @@
        ~@(:code res)
        ~(:sub-state-map res))))
 
-#_(do
-  `(defc= ~state (-> ~state ~@path ~k))
-  `(defn ~(symbol (str "set-" ~k "-fn"))
-     [value]
-     (swap! ~state update-in [~@path ~k] value))
 
-  )
 
-#_(defc= technology-cycle-days (-> state :technology :technology/cycle-days))
-#_(defn set-technology-cycle-days
-  [value]
-  (swap! state update-in [:technology :technology/cycle-days] value))
-
-#_(defc= technology-outlet-height (-> state :technology :technology/outlet-height))
-#_(defn set-technology-cycle-days
-  [value]
-  (swap! state update-in [:technology :technology/cycle-days] value))

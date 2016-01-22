@@ -9,21 +9,6 @@
 
 #_(enable-console-print!)
 
-#_(defn jq-cred-ajax [async? url data headers done fail always]
-  (.. js/jQuery
-      (ajax (clj->js {"async"       async?
-                      "contentType" "application/json"
-                      "data"        data
-                      "dataType"    "text"
-                      "headers"     headers
-                      "processData" false
-                      "xhrFields"   {"withCredentials" true}
-                      "type"        "POST"
-                      "url"         url}))
-      (done (fn [_ _ x] (done (aget x "responseText"))))
-      (fail (fn [x _ _] (fail (aget x "responseText"))))
-      (always (fn [_ _] (always)))))
-
 (defn with-default-opts
   [opts]
   (->> opts
@@ -78,9 +63,7 @@
 
 (defn mkremote [& args]
   (apply mkremote* (flatten [args :url server-url]))
-  #_(apply c/mkremote (flatten [args :url server-url #_jq-cred-ajax]))
-  #_(apply c/mkremote (flatten [args "http://localhost:3000/" jq-cred-ajax]))
-  #_(apply c/mkremote (flatten [args "http://irrigama-web.elasticbeanstalk.com/" jq-cred-ajax])))
+  #_(apply c/mkremote (flatten [args :url server-url #_jq-cred-ajax])))
 
 (enable-console-print!)
 
@@ -147,6 +130,9 @@
   [value]
   (swap! state update-in [:technology :technology/outlet-height] value))
 
+;copied from old javelin version, as the old one had more properties
+;especially it used prop-cell which has been used here to manipulate the
+;browser url more easily
 (defn route-cell
   "Manage the URL hash via Javelin cells. There are three arities:
   - When called with no arguments this function returns a formula cell whose
